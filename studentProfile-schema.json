@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "name": "BUPP studentProfile Schema",
+    "version": "1.0",
+    "phase": "Phase 1 — 학생 기본정보 + EC + 숙소",
+    "description": "브레이크에듀 조기유학 학생 관리 시스템(BUPP)의 학생 1명당 데이터 구조. 모든 학생 데이터는 이 구조를 따르는 객체로 저장됩니다.",
+    "enums": {
+      "admissionStatus": ["재학중", "신규", "졸업", "종료"],
+      "category": ["브듀", "외부", "단기"],
+      "ieltsStatus": ["시험예정", "준비중", "점수 있음", "해당없음"],
+      "ossltStatus": ["예정", "응시", "합격", "불합격", "해당없음"],
+      "ecType": ["클럽", "봉사활동", "대회", "리더십", "인턴십", "캠프", "포트폴리오", "기타"],
+      "ecStatus": ["예정", "진행중", "완료", "중단"],
+      "admissionsValue": ["높음", "보통", "낮음"],
+      "relatedTrack": ["Engineering", "Business", "Medical-Science", "Art", "General"],
+      "accommodationType": ["홈스테이", "기숙사", "부모동반", "친척집", "기타"],
+      "accommodationStatus": ["예정", "거주중", "변경예정", "종료"],
+      "adjustmentStatus": ["좋음", "보통", "어려움", "변경필요"],
+      "universityStatus": ["관심", "지원예정", "지원완료", "합격", "불합격", "대기"],
+      "gender": ["남", "여", "기타"]
+    }
+  },
+
+  "studentProfile": {
+    "id": "stu_001",
+    "koreanName": "김민준",
+    "englishName": "Min-Jun Kim",
+    "admissionStatus": "재학중",
+    "category": "브듀",
+    "guardianManager": "이지영",
+    "cohort": "2024-가을",
+    "currentSchool": "Northern Secondary School",
+    "birthDate": "2009-04-12",
+    "age": "17",
+    "officialGrade": "Grade 11",
+    "actualGrade": "고2",
+    "firstEntryDateCanada": "2024-08-22",
+    "expectedStudyPeriod": {
+      "startDate": "2024-09-01",
+      "endDate": "2027-06-30"
+    },
+    "buppContractPeriod": {
+      "startDate": "2024-09-01",
+      "endDate": "2025-08-31"
+    },
+    "insuranceEndDate": "2025-08-31",
+    "passportExpiryDate": "2028-03-15",
+    "visaExpiryDate": "2027-08-22",
+    "gender": "남",
+    "oen": "123-456-789",
+    "studentId": "NS-22134",
+    "bpid": "BPID-0001",
+    "bppw": "br!2025",
+
+    "contact": {
+      "studentPhone": "+1-647-555-0142",
+      "studentEmail": "minjun.kim@brkedu.ca",
+      "parentEmail": "jkim@parent.example",
+      "parentPhone": "+82-10-2222-3333",
+      "emergencyContact": "+1-416-555-9999 (호스트)",
+      "kakaoId": "jkim_dad",
+      "memo": "부모님은 주중 한국시간 저녁 9시 이후 통화 가능"
+    },
+
+    "academic": {
+      "ieltsStatus": "준비중",
+      "ieltsScore": "6.5 (Overall)",
+      "ossltStatus": "예정",
+      "schoolMemo": "AP Calculus 수강 예정",
+      "asGroupClass": "주 2회 (월/수)",
+      "asPrivateClassSubjects": ["Physics", "English"],
+      "koreanHighSchool": "대원외고",
+      "premiumTrack": true
+    },
+
+    "extracurriculars": [
+      {
+        "id": "ec_a1b2c3",
+        "type": "클럽",
+        "activityName": "Robotics Club",
+        "organizationName": "Northern Secondary",
+        "startDate": "2024-09-15",
+        "endDate": "",
+        "totalHours": "64",
+        "status": "진행중",
+        "studentRole": "Lead Programmer",
+        "description": "FIRST Robotics 대회 출전을 위한 자율주행 알고리즘 구현",
+        "growthPoint": "팀 협업과 문제 해결 능력 향상",
+        "admissionsValue": "높음",
+        "relatedTrack": "Engineering",
+        "proofLink": "https://drive.google.com/sample",
+        "teacherMemo": "리더십이 두드러짐"
+      }
+    ],
+
+    "accommodation": {
+      "type": "홈스테이",
+      "status": "거주중",
+      "moveInDate": "2024-08-25",
+      "expectedMoveOutDate": "2025-06-30",
+      "actualMoveOutDate": "",
+      "address": "123 Glenview Ave, Toronto, ON",
+      "commuteMethod": "TTC 버스 + 도보",
+      "commuteTime": "35분",
+      "memo": "집까지 도보 5분 안에 정류장 있음",
+      "homestay": {
+        "hostName": "Lisa Chen",
+        "hostPhone": "+1-416-555-1212",
+        "hostEmail": "lisa.chen@homestay.example",
+        "familyMembers": "호스트 부부 + 자녀 1 (10세)",
+        "mealIncluded": "3끼 모두 포함",
+        "allergyOrDiet": "땅콩 알러지",
+        "monthlyFee": "CAD 1,250",
+        "depositStatus": "납부완료 (CAD 500)",
+        "houseRules": "평일 22:00 통금, 일요일 외출 자유",
+        "adjustmentStatus": "좋음",
+        "changeRequested": false,
+        "changeRequestDate": "",
+        "changeReason": "",
+        "rearrangementFee": "",
+        "managerMemo": "호스트와 관계 양호"
+      },
+      "dormitory": {
+        "dormName": "",
+        "institutionName": "",
+        "contactPerson": "",
+        "phone": "",
+        "email": "",
+        "roomType": "",
+        "roommate": "",
+        "mealPlan": "",
+        "fee": "",
+        "depositStatus": "",
+        "rules": "",
+        "summerStayAvailable": "",
+        "managerMemo": ""
+      }
+    },
+
+    "accommodationHistory": [
+      {
+        "id": "hist_x1y2z3",
+        "previousType": "홈스테이",
+        "previousAddress": "45 Elm St, Toronto",
+        "previousHostOrDormName": "Smith Family",
+        "startDate": "2023-09-01",
+        "endDate": "2024-08-24",
+        "changeReason": "통학거리 단축 요청",
+        "feeCharged": "재배정비 CAD 200",
+        "memo": "호스트와 마찰 없음, 위치 문제만 해결"
+      }
+    ],
+
+    "universityApplications": [
+      {
+        "id": "uni_p1q2r3",
+        "universityName": "University of Toronto",
+        "campus": "St. George",
+        "programName": "Engineering Science",
+        "status": "관심",
+        "scholarship": "국가장학금 검토",
+        "supplementaryRequired": true,
+        "deadline": "2026-01-15",
+        "memo": "Top Choice — 추천서 3장 필요"
+      }
+    ],
+
+    "internalNotes": {
+      "studentPersonality": "책임감 강하고 내향적. 발표 부담스러워함.",
+      "parentPersonality": "교육열 높음. 주간 보고서 요청.",
+      "counselingNotes": "2025-04: 진로 상담 진행 — Engineering 확정",
+      "cautions": "땅콩 알러지 — 호스트에 재고지 필요",
+      "actionItems": "2025-06: IELTS 모의시험 예약 / 추천서 의뢰",
+      "managerMemo": "Premium Track 학생"
+    }
+  }
+}

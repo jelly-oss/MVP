@@ -824,7 +824,7 @@ const ACCOM_SUBCATEGORIES = {
   '보딩스쿨': ['공학 보딩', '여학교 보딩', '남학교 보딩'],
   '가족과 거주': []
 };
-const PAYMENT_METHODS = ['E-transfer', 'Cash', '한국계좌'];
+const PAYMENT_METHODS = ['E-transfer', 'Cash', '한국계좌', '송금'];
 const ADJUSTMENT_STATES = ['좋음', '보통', '어려움', '변경필요'];
 
 Object.assign(BADGE_COLOR, {
@@ -833,7 +833,7 @@ Object.assign(BADGE_COLOR, {
   'BUPP 주니어 남학생 기숙사':'b-blue', 'BUPP 여학생 기숙사':'b-pink',
   '공학 보딩':'b-orange', '여학교 보딩':'b-pink', '남학교 보딩':'b-blue',
   '보딩스쿨':'b-orange', '가족과 거주':'b-brown',
-  'E-transfer':'b-blue', 'Cash':'b-green', '한국계좌':'b-orange'
+  'E-transfer':'b-blue', 'Cash':'b-green', '한국계좌':'b-orange', '송금':'b-purple'
 });
 
 const ACCOMMODATIONS_KEY = 'bupp_accommodations_v1';
@@ -9137,6 +9137,118 @@ const PartnersPage = ({ partners, onChange }) => {
   );
 };
 
+/* ============================================================
+   💾 데이터 백업/복원 — localStorage 전체 export/import + GitHub의 bupp-data.json 자동 로드
+   ============================================================ */
+const EXPORT_KEYS = [
+  'bupp_students_v1', 'bupp_options_v1', 'bupp_schools_v1', 'bupp_subjects_v1',
+  'bupp_members_v1', 'bupp_universities_v1', 'bupp_programs_v1', 'bupp_trackgroups_v1',
+  'bupp_accommodations_v1', 'bupp_applications_v1', 'bupp_invoices_v1',
+  'bupp_partners_v1', 'bupp_invoice_items_v1', 'bupp_invoice_item_extra_categories'
+];
+const AUTO_LOAD_FLAG = 'bupp_data_initialized_v1';
+
+const exportAllData = () => {
+  const data = {};
+  EXPORT_KEYS.forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) data[k] = JSON.parse(raw);
+    } catch {}
+  });
+  const payload = {
+    _meta: { app: 'BUPP', version: '1.3', exportedAt: new Date().toISOString() },
+    data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bupp-data-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const applyImportedData = (json) => {
+  const data = (json && json.data) ? json.data : json; // 두 가지 포맷 모두 지원
+  let count = 0;
+  EXPORT_KEYS.forEach(k => {
+    if (data && data[k] !== undefined) {
+      try {
+        localStorage.setItem(k, JSON.stringify(data[k]));
+        count++;
+      } catch {}
+    }
+  });
+  return count;
+};
+
+const importAllDataFromFile = (file) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const json = JSON.parse(e.target.result);
+      const count = applyImportedData(json);
+      if (count === 0) { alert('유효한 BUPP 데이터를 찾을 수 없습니다.'); return; }
+      if (!confirm(`${count}개 데이터셋을 불러왔습니다.\n페이지를 새로고침해서 적용하시겠습니까?\n(현재 localStorage 데이터는 덮어쓰여집니다)`)) return;
+      window.location.reload();
+    } catch (err) {
+      alert('JSON 파싱 실패: ' + (err?.message || err));
+    }
+  };
+  reader.readAsText(file);
+};
+
+// 첫 방문 시 같은 폴더의 bupp-data.json 자동 시드
+const tryAutoLoadFromJson = async () => {
+  if (localStorage.getItem(AUTO_LOAD_FLAG)) return false;
+  try {
+    const res = await fetch('./bupp-data.json', { cache: 'no-store' });
+    if (!res.ok) {
+      localStorage.setItem(AUTO_LOAD_FLAG, 'no-file');
+      return false;
+    }
+    const json = await res.json();
+    const count = applyImportedData(json);
+    localStorage.setItem(AUTO_LOAD_FLAG, count > 0 ? new Date().toISOString() : 'no-file');
+    return count > 0;
+  } catch {
+    localStorage.setItem(AUTO_LOAD_FLAG, 'no-file');
+    return false;
+  }
+};
+
+const DataIOMenu = () => {
+  const fileInputRef = useRef(null);
+  return (
+    <Fragment>
+      <button
+        className="btn-ghost text-xs"
+        style={{padding:'4px 10px'}}
+        title="현재 데이터를 JSON 파일로 저장"
+        onClick={exportAllData}
+      >⬇ 내보내기</button>
+      <button
+        className="btn-ghost text-xs"
+        style={{padding:'4px 10px'}}
+        title="JSON 파일에서 데이터 복원"
+        onClick={() => fileInputRef.current?.click()}
+      >⬆ 불러오기</button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        style={{display:'none'}}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) importAllDataFromFile(f);
+          e.target.value = '';
+        }}
+      />
+    </Fragment>
+  );
+};
+
 function App() {
   const [students, setStudents] = useState(() => loadStudents());
   const [customOptions, setCustomOptions] = useState(() => loadOptions());
@@ -9158,6 +9270,16 @@ function App() {
   const [view, setView] = useState('students'); // students | schools | subjects | members | matrix | uniData | accomData | applications | invoices
   const [openId, setOpenId] = useState(null);
   const [showNew, setShowNew] = useState(false);
+
+  // 🚀 첫 방문 시 GitHub의 bupp-data.json 자동 시드 (있으면 새로고침)
+  useEffect(() => {
+    tryAutoLoadFromJson().then(loaded => {
+      if (loaded) {
+        alert('GitHub의 bupp-data.json 데이터를 불러왔습니다. 페이지를 새로고침합니다.');
+        window.location.reload();
+      }
+    });
+  }, []);
 
   useEffect(() => { saveStudents(students); }, [students]);
   useEffect(() => { saveOptions(customOptions); }, [customOptions]);
@@ -9322,7 +9444,10 @@ function App() {
           <div className="brand-title">BreakEDU · BUPP</div>
           <span className="badge b-orange text-xs">시뮬레이션 모드</span>
         </div>
-        <CurrentUserSwitcher members={members} currentUserId={currentUserId} onChange={(id) => { setCurrentUserId(id); setOpenId(null); setView('students'); }}/>
+        <div className="flex items-center gap-2">
+          {access.accounting && <DataIOMenu/>}
+          <CurrentUserSwitcher members={members} currentUserId={currentUserId} onChange={(id) => { setCurrentUserId(id); setOpenId(null); setView('students'); }}/>
+        </div>
       </header>
 
       <div className="flex flex-1 min-h-0">

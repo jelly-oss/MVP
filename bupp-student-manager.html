@@ -8216,9 +8216,11 @@ const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChan
 
   const [filter, setFilter] = useState({
     studentId: '',
+    status: '',                  // '' = 전체, 'unpaid' = 미납(draft+sent), 'overdue' = 미납+기한지남, 그 외 = 정확 매칭
     issueFrom: '', issueTo: '',
     dueFrom: '', dueTo: ''
   });
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   // 학생 옵션 — 인보이스에 등장하는 학생 + 학생 마스터에 있는 학생
   const studentOpts = (() => {
@@ -8234,12 +8236,28 @@ const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChan
 
   const filtered = scopedInvoices.filter(inv => {
     if (filter.studentId && inv.linkedStudentId !== filter.studentId) return false;
+    if (filter.status) {
+      if (filter.status === 'unpaid') {
+        // 미납 = 발행됐지만 입금 안 됨 (취소·환불 제외)
+        if (!['draft', 'sent'].includes(inv.status)) return false;
+      } else if (filter.status === 'overdue') {
+        // 연체 = 미납 + 납부 기한 지남
+        if (!['draft', 'sent'].includes(inv.status)) return false;
+        if (!inv.dueDate || inv.dueDate >= todayStr) return false;
+      } else {
+        if (inv.status !== filter.status) return false;
+      }
+    }
     if (filter.issueFrom && (inv.issueDate || '') < filter.issueFrom) return false;
     if (filter.issueTo && (inv.issueDate || '') > filter.issueTo) return false;
     if (filter.dueFrom && (inv.dueDate || '') < filter.dueFrom) return false;
     if (filter.dueTo && (inv.dueDate || '') > filter.dueTo) return false;
     return true;
   });
+
+  // 미납·연체 카운트 (전체 스코프 기준 — 빠른 토글 배지용)
+  const unpaidCount = scopedInvoices.filter(i => ['draft','sent'].includes(i.status)).length;
+  const overdueCount = scopedInvoices.filter(i => ['draft','sent'].includes(i.status) && i.dueDate && i.dueDate < todayStr).length;
 
   const hasFilter = Object.values(filter).some(Boolean);
 
@@ -8264,18 +8282,60 @@ const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChan
 
       {/* 필터 영역 */}
       <div className="notion-card p-4 mb-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* 빠른 토글 — 미납·연체 */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-xs text-gray-500">빠른 보기:</span>
+          <button
+            className="text-xs px-3 py-1.5 rounded transition-colors"
+            style={filter.status === ''
+              ? { background:'#202731', color:'#fff', border:'1px solid #202731' }
+              : { background:'#fff', color:'#202731', border:'1px solid #cabaab' }}
+            onClick={() => setFilter({...filter, status: ''})}
+          >전체 ({scopedInvoices.length})</button>
+          <button
+            className="text-xs px-3 py-1.5 rounded transition-colors"
+            style={filter.status === 'unpaid'
+              ? { background:'#cb912f', color:'#fff', border:'1px solid #cb912f' }
+              : { background:'#fff', color:'#a47007', border:'1px solid #cb912f' }}
+            onClick={() => setFilter({...filter, status: 'unpaid'})}
+          >📨 미납 ({unpaidCount})</button>
+          <button
+            className="text-xs px-3 py-1.5 rounded transition-colors"
+            style={filter.status === 'overdue'
+              ? { background:'#c20206', color:'#fff', border:'1px solid #c20206' }
+              : { background:'#fff', color:'#c20206', border:'1px solid #c20206' }}
+            onClick={() => setFilter({...filter, status: 'overdue'})}
+          >⚠️ 연체 ({overdueCount})</button>
+          <button
+            className="text-xs px-3 py-1.5 rounded transition-colors"
+            style={filter.status === 'paid'
+              ? { background:'#0f7b6c', color:'#fff', border:'1px solid #0f7b6c' }
+              : { background:'#fff', color:'#0f7b6c', border:'1px solid #0f7b6c' }}
+            onClick={() => setFilter({...filter, status: 'paid'})}
+          >✓ 납부 완료</button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <Field label="학생별">
             <RefSelect value={filter.studentId} onChange={(v) => setFilter({...filter, studentId: v})} options={studentOpts} placeholder="전체 학생"/>
+          </Field>
+          <Field label="상태">
+            <Select
+              value={filter.status}
+              onChange={(v) => setFilter({...filter, status: v})}
+              options={['draft','sent','paid','refunded','cancelled','unpaid','overdue']}
+              placeholder="전체"
+            />
           </Field>
           <Field label="발행일 시작"><TextInput type="date" value={filter.issueFrom} onChange={(v) => setFilter({...filter, issueFrom: v})}/></Field>
           <Field label="발행일 종료"><TextInput type="date" value={filter.issueTo} onChange={(v) => setFilter({...filter, issueTo: v})}/></Field>
           <Field label="납부 기한 시작"><TextInput type="date" value={filter.dueFrom} onChange={(v) => setFilter({...filter, dueFrom: v})}/></Field>
           <Field label="납부 기한 종료"><TextInput type="date" value={filter.dueTo} onChange={(v) => setFilter({...filter, dueTo: v})}/></Field>
         </div>
+        <div className="text-xs text-gray-500 mt-2">💡 상태 옵션 — <strong>sent</strong>=발행됨(미입금) · <strong>unpaid</strong>=미납(draft+sent) · <strong>overdue</strong>=납부 기한 지난 미납</div>
         {hasFilter && (
           <div className="mt-3 flex justify-end">
-            <button className="btn-ghost" onClick={() => setFilter({ studentId:'', issueFrom:'', issueTo:'', dueFrom:'', dueTo:'' })}>필터 초기화</button>
+            <button className="btn-ghost" onClick={() => setFilter({ studentId:'', status:'', issueFrom:'', issueTo:'', dueFrom:'', dueTo:'' })}>필터 초기화</button>
           </div>
         )}
       </div>

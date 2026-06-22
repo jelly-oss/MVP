@@ -1,177 +1,2918 @@
 {
   "_meta": {
-    "name": "BUPP studentProfile Schema",
-    "version": "1.0",
-    "phase": "Phase 1 — 학생 기본정보 + EC + 숙소",
-    "description": "브레이크에듀 조기유학 학생 관리 시스템(BUPP)의 학생 1명당 데이터 구조. 모든 학생 데이터는 이 구조를 따르는 객체로 저장됩니다.",
-    "enums": {
-      "admissionStatus": ["재학중", "신규", "졸업", "종료"],
-      "category": ["브듀", "외부", "단기"],
-      "ieltsStatus": ["시험예정", "준비중", "점수 있음", "해당없음"],
-      "ossltStatus": ["예정", "응시", "합격", "불합격", "해당없음"],
-      "ecType": ["클럽", "봉사활동", "대회", "리더십", "인턴십", "캠프", "포트폴리오", "기타"],
-      "ecStatus": ["예정", "진행중", "완료", "중단"],
-      "admissionsValue": ["높음", "보통", "낮음"],
-      "relatedTrack": ["Engineering", "Business", "Medical-Science", "Art", "General"],
-      "accommodationType": ["홈스테이", "기숙사", "부모동반", "친척집", "기타"],
-      "accommodationStatus": ["예정", "거주중", "변경예정", "종료"],
-      "adjustmentStatus": ["좋음", "보통", "어려움", "변경필요"],
-      "universityStatus": ["관심", "지원예정", "지원완료", "합격", "불합격", "대기"],
-      "gender": ["남", "여", "기타"]
-    }
+    "app": "BUPP",
+    "version": "1.3",
+    "exportedAt": "2026-06-22T19:08:52.176Z"
   },
-
-  "studentProfile": {
-    "id": "stu_001",
-    "koreanName": "김민준",
-    "englishName": "Min-Jun Kim",
-    "admissionStatus": "재학중",
-    "category": "브듀",
-    "guardianManager": "이지영",
-    "cohort": "2024-가을",
-    "currentSchool": "Northern Secondary School",
-    "birthDate": "2009-04-12",
-    "age": "17",
-    "officialGrade": "Grade 11",
-    "actualGrade": "고2",
-    "firstEntryDateCanada": "2024-08-22",
-    "expectedStudyPeriod": {
-      "startDate": "2024-09-01",
-      "endDate": "2027-06-30"
-    },
-    "buppContractPeriod": {
-      "startDate": "2024-09-01",
-      "endDate": "2025-08-31"
-    },
-    "insuranceEndDate": "2025-08-31",
-    "passportExpiryDate": "2028-03-15",
-    "visaExpiryDate": "2027-08-22",
-    "gender": "남",
-    "oen": "123-456-789",
-    "studentId": "NS-22134",
-    "bpid": "BPID-0001",
-    "bppw": "br!2025",
-
-    "contact": {
-      "studentPhone": "+1-647-555-0142",
-      "studentEmail": "minjun.kim@brkedu.ca",
-      "parentEmail": "jkim@parent.example",
-      "parentPhone": "+82-10-2222-3333",
-      "emergencyContact": "+1-416-555-9999 (호스트)",
-      "kakaoId": "jkim_dad",
-      "memo": "부모님은 주중 한국시간 저녁 9시 이후 통화 가능"
-    },
-
-    "academic": {
-      "ieltsStatus": "준비중",
-      "ieltsScore": "6.5 (Overall)",
-      "ossltStatus": "예정",
-      "schoolMemo": "AP Calculus 수강 예정",
-      "asGroupClass": "주 2회 (월/수)",
-      "asPrivateClassSubjects": ["Physics", "English"],
-      "koreanHighSchool": "대원외고",
-      "premiumTrack": true
-    },
-
-    "extracurriculars": [
+  "data": {
+    "bupp_students_v1": [
       {
-        "id": "ec_a1b2c3",
-        "type": "클럽",
-        "activityName": "Robotics Club",
-        "organizationName": "Northern Secondary",
-        "startDate": "2024-09-15",
-        "endDate": "",
-        "totalHours": "64",
-        "status": "진행중",
-        "studentRole": "Lead Programmer",
-        "description": "FIRST Robotics 대회 출전을 위한 자율주행 알고리즘 구현",
-        "growthPoint": "팀 협업과 문제 해결 능력 향상",
-        "admissionsValue": "높음",
-        "relatedTrack": "Engineering",
-        "proofLink": "https://drive.google.com/sample",
-        "teacherMemo": "리더십이 두드러짐"
+        "id": "83lfnt0k",
+        "koreanName": "박서연",
+        "englishName": "Seoyeon Park",
+        "admissionStatus": "신규",
+        "category": "외부",
+        "guardianManager": "",
+        "cohort": "BUPP 17기",
+        "currentSchool": "해운대중학교",
+        "birthDate": "2010-09-15",
+        "age": "15",
+        "officialGrade": "",
+        "actualGrade": "",
+        "firstEntryDateCanada": "",
+        "expectedStudyPeriod": {
+          "startDate": "",
+          "endDate": ""
+        },
+        "buppContractPeriod": {
+          "startDate": "",
+          "endDate": ""
+        },
+        "insuranceEndDate": "",
+        "passportExpiryDate": "",
+        "visaExpiryDate": "",
+        "gender": "여",
+        "oen": "",
+        "studentId": "",
+        "bpid": "",
+        "bppw": "",
+        "program": "영어집중 방과후 관리형",
+        "contact": {
+          "studentPhone": "+82-10-5555-7777",
+          "studentEmail": "seoyeon.park@example",
+          "parentEmail": "youngju.choi@example",
+          "parentPhone": "+82-10-2222-3333"
+        },
+        "academic": {
+          "englishTest": {
+            "type": "",
+            "status": "해당없음",
+            "overall": "",
+            "listening": "",
+            "reading": "",
+            "writing": "",
+            "speaking": "",
+            "testDate": "",
+            "memo": ""
+          },
+          "englishTestHistory": [],
+          "ossltStatus": "해당없음",
+          "schoolMemo": "",
+          "koreanHighSchool": "",
+          "premiumTrack": false
+        },
+        "extracurriculars": [
+          {
+            "id": "hyqcvcle",
+            "category": "봉사활동",
+            "activityName": "한인회",
+            "organizationName": "토론토 한인회",
+            "startDate": "2025-08-19",
+            "endDate": "2025-08-22",
+            "totalHours": "15",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "",
+            "frequency": "",
+            "contactName": "제임스킴",
+            "contactEmail": "jamsekim1223@gmail.com",
+            "contactPhone": "647-333-3333",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "보통",
+            "proofLink": "",
+            "teacherMemo": ""
+          },
+          {
+            "id": "htavn996",
+            "category": "봉사활동",
+            "activityName": "한글 학교",
+            "organizationName": "영락교회",
+            "startDate": "2025-09-22",
+            "endDate": "2026-01-30",
+            "totalHours": "30",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "",
+            "frequency": "",
+            "contactName": "제시카",
+            "contactEmail": "jesica@gmail.com",
+            "contactPhone": "647-777-7777",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": ""
+          },
+          {
+            "id": "i2ejj0z0",
+            "category": "학교클럽",
+            "activityName": "배드민턴",
+            "organizationName": "학교",
+            "startDate": "2025-09-01",
+            "endDate": "2026-01-30",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "General Member",
+            "frequency": "매주",
+            "contactName": "Michelle",
+            "contactEmail": "Michelle@tdsb.ca",
+            "contactPhone": "647-111-2222",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": "",
+            "positionHistory": [
+              {
+                "year": "2026.2.1~",
+                "position": "Vice President"
+              }
+            ]
+          },
+          {
+            "id": "4hbtrd3l",
+            "category": "학교클럽",
+            "activityName": "배드민턴",
+            "organizationName": "학교",
+            "startDate": "2026-02-01",
+            "endDate": "2026-06-30",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "Vice President",
+            "frequency": "주 1회",
+            "contactName": "Michelle",
+            "contactEmail": "Michelle@tdsb.ca",
+            "contactPhone": "647-111-2222",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": ""
+          },
+          {
+            "id": "1z7rhsx6",
+            "category": "대회 및 수상",
+            "activityName": "Caley",
+            "organizationName": "Waterloo Uni",
+            "startDate": "",
+            "endDate": "",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "",
+            "frequency": "Feb 25, 2025",
+            "contactName": "",
+            "contactEmail": "",
+            "contactPhone": "",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": "",
+            "awardWon": true
+          },
+          {
+            "id": "l0m3k6tv",
+            "category": "학교클럽",
+            "activityName": "배드민턴",
+            "organizationName": "학교",
+            "startDate": "2026-09-01",
+            "endDate": "2027-01-31",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "진행중",
+            "position": "President",
+            "frequency": "",
+            "contactName": "Micehlle",
+            "contactEmail": "michelle@tdsb.ca",
+            "contactPhone": "647-111-2222",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": ""
+          },
+          {
+            "id": "k1ehgm2v",
+            "category": "학교클럽",
+            "activityName": "Math",
+            "organizationName": "학교",
+            "startDate": "2025-09-01",
+            "endDate": "2026-01-31",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "완료",
+            "position": "Member",
+            "frequency": "2주에 한번",
+            "contactName": "Mark",
+            "contactEmail": "mark@tdsb.ca",
+            "contactPhone": "000-0000",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "보통",
+            "proofLink": "",
+            "teacherMemo": ""
+          },
+          {
+            "id": "6xz7vqn3",
+            "category": "학교클럽",
+            "activityName": "Math",
+            "organizationName": "학교",
+            "startDate": "2026-02-01",
+            "endDate": "2026-06-30",
+            "totalHours": "",
+            "recognizedHours": "",
+            "status": "진행중",
+            "position": "Secretary",
+            "frequency": "2주에 한번",
+            "contactName": "Mark",
+            "contactEmail": "mark@tdsb.ca",
+            "contactPhone": "000-0000",
+            "awardDescription": "",
+            "description": "",
+            "growthPoint": "",
+            "admissionsValue": "높음",
+            "proofLink": "",
+            "teacherMemo": ""
+          }
+        ],
+        "academicRecords": [],
+        "accommodation": {
+          "type": "",
+          "status": "",
+          "moveInDate": "",
+          "expectedMoveOutDate": "",
+          "actualMoveOutDate": "",
+          "address": "",
+          "commuteMethod": "",
+          "commuteTime": "",
+          "memo": "",
+          "homestay": {
+            "hostName": "",
+            "hostPhone": "",
+            "hostEmail": "",
+            "familyMembers": "",
+            "mealIncluded": "",
+            "allergyOrDiet": "",
+            "monthlyFee": "",
+            "depositStatus": "",
+            "houseRules": "",
+            "adjustmentStatus": "",
+            "changeRequested": false,
+            "changeRequestDate": "",
+            "changeReason": "",
+            "rearrangementFee": "",
+            "managerMemo": ""
+          },
+          "dormitory": {
+            "dormName": "",
+            "institutionName": "",
+            "contactPerson": "",
+            "phone": "",
+            "email": "",
+            "roomType": "",
+            "roommate": "",
+            "mealPlan": "",
+            "fee": "",
+            "depositStatus": "",
+            "rules": "",
+            "summerStayAvailable": "",
+            "managerMemo": ""
+          }
+        },
+        "accommodationHistory": [],
+        "universityApplications": [],
+        "internalNotes": {
+          "studentPersonality": "",
+          "parentPersonality": "",
+          "counselingNotes": "",
+          "cautions": "",
+          "actionItems": "",
+          "managerMemo": ""
+        },
+        "reports": [],
+        "assignedManager": "젤리"
+      },
+      {
+        "id": "stu_001",
+        "koreanName": "김민준",
+        "englishName": "Min-Jun Kim",
+        "admissionStatus": "재학중",
+        "category": "브듀",
+        "guardianManager": "이지영",
+        "cohort": "BUPP 14기",
+        "currentSchool": "Northern Secondary School",
+        "birthDate": "2009-04-12",
+        "age": "17",
+        "officialGrade": "Grade 11",
+        "actualGrade": "고2",
+        "firstEntryDateCanada": "2024-08-22",
+        "expectedStudyPeriod": {
+          "startDate": "2024-09-01",
+          "endDate": "2027-06-30"
+        },
+        "buppContractPeriod": {
+          "startDate": "2024-09-01",
+          "endDate": "2025-08-31"
+        },
+        "insuranceEndDate": "2025-08-31",
+        "passportExpiryDate": "2028-03-15",
+        "visaExpiryDate": "2027-08-22",
+        "gender": "남",
+        "oen": "123-456-789",
+        "studentId": "NS-22134",
+        "bpid": "BPID-0001",
+        "bppw": "br!2025",
+        "program": "풀가디언",
+        "contact": {
+          "studentPhone": "+1-647-555-0142",
+          "studentEmail": "minjun.kim@brkedu.ca",
+          "parentEmail": "jkim@parent.example",
+          "parentPhone": "+82-10-2222-3333",
+          "emergencyContact": "+1-416-555-9999 (호스트)",
+          "kakaoId": "jkim_dad",
+          "memo": "부모님은 주중 한국시간 저녁 9시 이후 통화 가능"
+        },
+        "academic": {
+          "ieltsStatus": "준비중",
+          "ieltsScore": "6.5 (Overall)",
+          "ossltStatus": "예정",
+          "schoolMemo": "AP Calculus 수강 예정",
+          "asGroupClass": "주 2회 (월/수)",
+          "asPrivateClassSubjects": [
+            "Physics",
+            "English"
+          ],
+          "koreanHighSchool": "대원외고",
+          "premiumTrack": true,
+          "englishTest": {
+            "type": "IELTS",
+            "status": "점수 있음",
+            "testDate": "2025-08-19",
+            "overall": "6.0",
+            "listening": "5.5",
+            "reading": "6.0",
+            "writing": "6.5",
+            "speaking": "5.0"
+          },
+          "englishTestHistory": [
+            {
+              "id": "g4ve74g1",
+              "type": "IELTS",
+              "testDate": "2025-06-04",
+              "overall": "6.0",
+              "listening": "5.5",
+              "reading": "6.0",
+              "writing": "5.0",
+              "speaking": "6.5",
+              "memo": ""
+            },
+            {
+              "id": "fg33dwis",
+              "type": "IELTS",
+              "testDate": "2025-08-19",
+              "overall": "6.0",
+              "listening": "5.5",
+              "reading": "6.0",
+              "writing": "6.5",
+              "speaking": "5.0",
+              "memo": ""
+            }
+          ]
+        },
+        "extracurriculars": [
+          {
+            "id": "49spwtk6",
+            "type": "클럽",
+            "activityName": "Robotics Club",
+            "organizationName": "Northern Secondary",
+            "startDate": "2024-09-15",
+            "endDate": "",
+            "totalHours": "64",
+            "status": "진행중",
+            "studentRole": "Lead Programmer",
+            "description": "FIRST Robotics 대회 출전을 위한 자율주행 알고리즘 구현",
+            "growthPoint": "팀 협업과 문제 해결 능력 향상",
+            "admissionsValue": "높음",
+            "relatedTrack": "Engineering",
+            "proofLink": "https://drive.google.com/sample",
+            "teacherMemo": "리더십이 두드러짐"
+          },
+          {
+            "id": "hjqokuyz",
+            "type": "봉사활동",
+            "activityName": "Local Food Bank Volunteer",
+            "organizationName": "Toronto Food Bank",
+            "startDate": "2024-10-05",
+            "endDate": "2025-05-30",
+            "totalHours": "40",
+            "status": "진행중",
+            "studentRole": "Volunteer",
+            "description": "주말 식료품 패킹 및 배분",
+            "growthPoint": "지역사회 이해도 향상",
+            "admissionsValue": "보통",
+            "relatedTrack": "General",
+            "proofLink": "",
+            "teacherMemo": ""
+          }
+        ],
+        "academicRecords": [
+          {
+            "id": "hlin06de",
+            "grade": "ESL",
+            "schoolId": "sch_001",
+            "semesterSystem": "",
+            "periodLabel": "24-4 (10W)",
+            "startDate": "2024-04-15",
+            "endDate": "2024-06-20",
+            "subjectId": "sub_eslc",
+            "credits": 1,
+            "required": false,
+            "midterm1": "88",
+            "midterm2": "",
+            "final": "91",
+            "late": "1",
+            "absent": "0",
+            "selection": "정규수업",
+            "memo": "ESL C 수료"
+          },
+          {
+            "id": "wbe66l5o",
+            "grade": "ESL",
+            "schoolId": "sch_001",
+            "semesterSystem": "",
+            "periodLabel": "24-7 (1M)",
+            "startDate": "2024-07-01",
+            "endDate": "2024-07-31",
+            "subjectId": "sub_esld",
+            "credits": 1,
+            "required": false,
+            "midterm1": "",
+            "midterm2": "",
+            "final": "89",
+            "late": "0",
+            "absent": "0",
+            "selection": "썸머",
+            "memo": ""
+          },
+          {
+            "id": "j8c6mvqy",
+            "grade": "11",
+            "schoolId": "sch_015",
+            "semesterSystem": "",
+            "periodLabel": "24-9 (Sem1)",
+            "startDate": "2024-09-03",
+            "endDate": "2025-01-30",
+            "subjectId": "sub_chw3m",
+            "credits": 1,
+            "required": true,
+            "midterm1": "89",
+            "midterm2": "",
+            "final": "92",
+            "late": "2",
+            "absent": "1",
+            "selection": "정규수업",
+            "memo": "에세이 강세"
+          },
+          {
+            "id": "bmjsw6dq",
+            "grade": "11",
+            "schoolId": "sch_015",
+            "semesterSystem": "",
+            "periodLabel": "24-9 (Sem1)",
+            "startDate": "2024-09-03",
+            "endDate": "2025-01-30",
+            "subjectId": "sub_ter3m",
+            "credits": 1,
+            "required": true,
+            "midterm1": "95",
+            "midterm2": "",
+            "final": "97",
+            "late": "0",
+            "absent": "0",
+            "selection": "정규수업",
+            "memo": "로보틱스 — 최고점"
+          },
+          {
+            "id": "r4ebfma3",
+            "grade": "11",
+            "schoolId": "sch_015",
+            "semesterSystem": "",
+            "periodLabel": "25-2 (Sem2)",
+            "startDate": "2025-02-03",
+            "endDate": "2025-06-25",
+            "subjectId": "sub_ami3m",
+            "credits": 1,
+            "required": false,
+            "midterm1": "82",
+            "midterm2": "",
+            "final": "85",
+            "late": "3",
+            "absent": "1",
+            "selection": "정규수업",
+            "memo": ""
+          },
+          {
+            "id": "pleia9dq",
+            "grade": "10",
+            "schoolId": "sch_001",
+            "semesterSystem": "",
+            "periodLabel": "25-7 (4W)",
+            "startDate": "2025-07-01",
+            "endDate": "2025-07-31",
+            "subjectId": "sub_chv2o",
+            "credits": 0.5,
+            "required": true,
+            "midterm1": "87",
+            "midterm2": "",
+            "final": "90",
+            "late": "0",
+            "absent": "0",
+            "selection": "온라인수업",
+            "memo": "썸머 보강"
+          },
+          {
+            "id": "zwk56fjm",
+            "grade": "10",
+            "schoolId": "sch_001",
+            "semesterSystem": "",
+            "periodLabel": "25-8 (4W)",
+            "startDate": "2025-08-04",
+            "endDate": "2025-08-31",
+            "subjectId": "sub_glc2o",
+            "credits": 0.5,
+            "required": true,
+            "midterm1": "",
+            "midterm2": "",
+            "final": "93",
+            "late": "0",
+            "absent": "0",
+            "selection": "썸머",
+            "memo": ""
+          }
+        ],
+        "accommodation": {
+          "type": "홈스테이",
+          "status": "거주중",
+          "moveInDate": "2024-08-25",
+          "expectedMoveOutDate": "2025-06-30",
+          "actualMoveOutDate": "",
+          "address": "123 Glenview Ave, Toronto, ON",
+          "commuteMethod": "TTC 버스 + 도보",
+          "commuteTime": "35분",
+          "memo": "집까지 도보 5분 안에 정류장 있음",
+          "homestay": {
+            "hostName": "Lisa Chen",
+            "hostPhone": "+1-416-555-1212",
+            "hostEmail": "lisa.chen@homestay.example",
+            "familyMembers": "호스트 부부 + 자녀 1 (10세)",
+            "mealIncluded": "3끼 모두 포함",
+            "allergyOrDiet": "땅콩 알러지",
+            "monthlyFee": "CAD 1,250",
+            "depositStatus": "납부완료 (CAD 500)",
+            "houseRules": "평일 22:00 통금, 일요일 외출 자유",
+            "adjustmentStatus": "좋음",
+            "changeRequested": false,
+            "changeRequestDate": "",
+            "changeReason": "",
+            "rearrangementFee": "",
+            "managerMemo": "호스트와 관계 양호"
+          },
+          "dormitory": {
+            "dormName": "",
+            "institutionName": "",
+            "contactPerson": "",
+            "phone": "",
+            "email": "",
+            "roomType": "",
+            "roommate": "",
+            "mealPlan": "",
+            "fee": "",
+            "depositStatus": "",
+            "rules": "",
+            "summerStayAvailable": "",
+            "managerMemo": ""
+          }
+        },
+        "accommodationHistory": [],
+        "universityApplications": [
+          {
+            "id": "pz048fs4",
+            "universityName": "University of Toronto",
+            "campus": "St. George",
+            "programName": "Engineering Science",
+            "status": "관심",
+            "scholarship": "국가장학금 검토",
+            "supplementaryRequired": true,
+            "deadline": "2026-01-15",
+            "memo": "Top Choice — 추천서 3장 필요"
+          },
+          {
+            "id": "dc4sph45",
+            "universityName": "University of Waterloo",
+            "campus": "Main",
+            "programName": "Computer Engineering",
+            "status": "지원예정",
+            "scholarship": "",
+            "supplementaryRequired": true,
+            "deadline": "2026-02-01",
+            "memo": "AIF 작성 필요"
+          }
+        ],
+        "internalNotes": {
+          "studentPersonality": "책임감 강하고 내향적. 발표 부담스러워함.",
+          "parentPersonality": "교육열 높음. 주간 보고서 요청.",
+          "counselingNotes": "2025-04: 진로 상담 진행 — Engineering 확정",
+          "cautions": "땅콩 알러지 — 호스트에 재고지 필요",
+          "actionItems": "2025-06: IELTS 모의시험 예약 / 추천서 의뢰",
+          "managerMemo": "Premium Track 학생"
+        },
+        "reports": []
+      },
+      {
+        "id": "stu_002",
+        "koreanName": "이서윤",
+        "englishName": "Seo-Yoon Lee",
+        "admissionStatus": "재학중",
+        "category": "브듀",
+        "guardianManager": "박지훈",
+        "cohort": "BUPP 15기",
+        "currentSchool": "York Mills CI",
+        "birthDate": "2010-09-03",
+        "age": "15",
+        "officialGrade": "Grade 10",
+        "actualGrade": "고1",
+        "firstEntryDateCanada": "2025-01-08",
+        "expectedStudyPeriod": {
+          "startDate": "2025-02-01",
+          "endDate": "2028-06-30"
+        },
+        "buppContractPeriod": {
+          "startDate": "2025-02-01",
+          "endDate": "2026-01-31"
+        },
+        "insuranceEndDate": "2026-01-31",
+        "passportExpiryDate": "2030-12-20",
+        "visaExpiryDate": "2028-01-08",
+        "gender": "여",
+        "oen": "987-654-321",
+        "studentId": "YM-30021",
+        "bpid": "BPID-0002",
+        "bppw": "",
+        "program": "아카데믹 방과후 관리형",
+        "contact": {
+          "studentPhone": "+1-437-555-0188",
+          "studentEmail": "seoyoon.lee@brkedu.ca",
+          "parentEmail": "leemom@parent.example",
+          "parentPhone": "+82-10-9876-5432",
+          "emergencyContact": "이모 +1-647-555-0001",
+          "kakaoId": "leemom_kr",
+          "memo": ""
+        },
+        "academic": {
+          "ieltsStatus": "시험예정",
+          "ieltsScore": "",
+          "ossltStatus": "해당없음",
+          "schoolMemo": "",
+          "asGroupClass": "주 1회 (토)",
+          "asPrivateClassSubjects": [
+            "Math"
+          ],
+          "koreanHighSchool": "",
+          "premiumTrack": false
+        },
+        "extracurriculars": [
+          {
+            "id": "rj824n9p",
+            "type": "리더십",
+            "activityName": "Student Council",
+            "organizationName": "York Mills CI",
+            "startDate": "2025-09-01",
+            "endDate": "",
+            "totalHours": "20",
+            "status": "예정",
+            "studentRole": "Grade 10 Rep",
+            "description": "학생회 학년 대표 — 학생 의견 수렴",
+            "growthPoint": "리더십, 커뮤니케이션",
+            "admissionsValue": "높음",
+            "relatedTrack": "Business",
+            "proofLink": "",
+            "teacherMemo": ""
+          }
+        ],
+        "academicRecords": [],
+        "accommodation": {
+          "type": "기숙사",
+          "status": "거주중",
+          "moveInDate": "2025-01-09",
+          "expectedMoveOutDate": "2026-06-25",
+          "actualMoveOutDate": "",
+          "address": "York Mills Dorm Bldg B",
+          "commuteMethod": "도보",
+          "commuteTime": "5분",
+          "memo": "학교 부속 기숙사",
+          "homestay": {
+            "hostName": "",
+            "hostPhone": "",
+            "hostEmail": "",
+            "familyMembers": "",
+            "mealIncluded": "",
+            "allergyOrDiet": "",
+            "monthlyFee": "",
+            "depositStatus": "",
+            "houseRules": "",
+            "adjustmentStatus": "",
+            "changeRequested": false,
+            "changeRequestDate": "",
+            "changeReason": "",
+            "rearrangementFee": "",
+            "managerMemo": ""
+          },
+          "dormitory": {
+            "dormName": "York Mills Boarding House",
+            "institutionName": "York Mills CI",
+            "contactPerson": "Mr. Daniel Park",
+            "phone": "+1-416-555-7000",
+            "email": "dorm@yorkmills.example",
+            "roomType": "2인실",
+            "roommate": "있음 (Emma Wong)",
+            "mealPlan": "주중 3끼",
+            "fee": "CAD 1,800/월",
+            "depositStatus": "납부완료",
+            "rules": "주중 22:00 / 주말 23:00 통금",
+            "summerStayAvailable": "불가",
+            "managerMemo": "룸메이트 관계 양호"
+          }
+        },
+        "accommodationHistory": [],
+        "universityApplications": [],
+        "internalNotes": {
+          "studentPersonality": "외향적, 활동적",
+          "parentPersonality": "자율적 양육",
+          "counselingNotes": "",
+          "cautions": "",
+          "actionItems": "IELTS 등록 (2025-09)",
+          "managerMemo": ""
+        },
+        "reports": []
+      },
+      {
+        "id": "stu_003",
+        "koreanName": "박지호",
+        "englishName": "Ji-Ho Park",
+        "admissionStatus": "신규",
+        "category": "외부",
+        "guardianManager": "이지영",
+        "cohort": "BUPP 17기",
+        "currentSchool": "Earl Haig Secondary School",
+        "birthDate": "2011-01-20",
+        "age": "15",
+        "officialGrade": "Grade 9",
+        "actualGrade": "중3",
+        "firstEntryDateCanada": "2025-08-15",
+        "expectedStudyPeriod": {
+          "startDate": "2025-09-01",
+          "endDate": "2029-06-30"
+        },
+        "buppContractPeriod": {
+          "startDate": "2025-09-01",
+          "endDate": "2026-08-31"
+        },
+        "insuranceEndDate": "2026-08-31",
+        "passportExpiryDate": "2029-05-10",
+        "visaExpiryDate": "2026-08-15",
+        "gender": "남",
+        "oen": "",
+        "studentId": "",
+        "bpid": "BPID-0003",
+        "bppw": "",
+        "program": "영어집중 방과후 관리형",
+        "contact": {
+          "studentPhone": "",
+          "studentEmail": "",
+          "parentEmail": "park.parent@example",
+          "parentPhone": "+82-10-1111-2222",
+          "emergencyContact": "",
+          "kakaoId": "",
+          "memo": "입국 직후"
+        },
+        "academic": {
+          "ieltsStatus": "해당없음",
+          "ieltsScore": "",
+          "ossltStatus": "해당없음",
+          "schoolMemo": "입학 절차 진행 중",
+          "asGroupClass": "",
+          "asPrivateClassSubjects": [],
+          "koreanHighSchool": "",
+          "premiumTrack": false
+        },
+        "extracurriculars": [],
+        "academicRecords": [],
+        "accommodation": {
+          "type": "홈스테이",
+          "status": "예정",
+          "moveInDate": "2025-08-20",
+          "expectedMoveOutDate": "2026-06-30",
+          "actualMoveOutDate": "",
+          "address": "예정",
+          "commuteMethod": "",
+          "commuteTime": "",
+          "memo": "도착 직후 입주 예정",
+          "homestay": {
+            "hostName": "James & Sarah Miller",
+            "hostPhone": "+1-416-555-0033",
+            "hostEmail": "",
+            "familyMembers": "부부 + 강아지",
+            "mealIncluded": "2끼 (아침,저녁)",
+            "allergyOrDiet": "",
+            "monthlyFee": "CAD 1,300",
+            "depositStatus": "예정",
+            "houseRules": "",
+            "adjustmentStatus": "",
+            "changeRequested": false,
+            "changeRequestDate": "",
+            "changeReason": "",
+            "rearrangementFee": "",
+            "managerMemo": ""
+          },
+          "dormitory": {
+            "dormName": "",
+            "institutionName": "",
+            "contactPerson": "",
+            "phone": "",
+            "email": "",
+            "roomType": "",
+            "roommate": "",
+            "mealPlan": "",
+            "fee": "",
+            "depositStatus": "",
+            "rules": "",
+            "summerStayAvailable": "",
+            "managerMemo": ""
+          }
+        },
+        "accommodationHistory": [],
+        "universityApplications": [],
+        "internalNotes": {
+          "studentPersonality": "",
+          "parentPersonality": "학부모 영어 가능 / 적극적",
+          "counselingNotes": "",
+          "cautions": "",
+          "actionItems": "학교 등록서류 / OEN 발급",
+          "managerMemo": ""
+        },
+        "reports": []
+      },
+      {
+        "id": "stu_004",
+        "koreanName": "최예린",
+        "englishName": "Yerin Choi",
+        "admissionStatus": "졸업",
+        "category": "브듀",
+        "guardianManager": "박지훈",
+        "cohort": "BUPP 13기",
+        "currentSchool": "Branksome Hall (졸업)",
+        "birthDate": "2006-07-15",
+        "age": "19",
+        "officialGrade": "Grade 12 (졸업)",
+        "actualGrade": "고3 (졸업)",
+        "firstEntryDateCanada": "2021-08-10",
+        "expectedStudyPeriod": {
+          "startDate": "2021-09-01",
+          "endDate": "2025-06-15"
+        },
+        "buppContractPeriod": {
+          "startDate": "2024-09-01",
+          "endDate": "2025-06-30"
+        },
+        "insuranceEndDate": "2025-06-30",
+        "passportExpiryDate": "2027-04-22",
+        "visaExpiryDate": "2025-09-01",
+        "gender": "여",
+        "oen": "321-654-987",
+        "studentId": "BH-1001",
+        "bpid": "BPID-0004",
+        "bppw": "",
+        "program": "풀가디언",
+        "contact": {
+          "studentPhone": "+1-647-555-2024",
+          "studentEmail": "yerin@brkedu.ca",
+          "parentEmail": "choi.parent@example",
+          "parentPhone": "+82-10-3333-4444",
+          "emergencyContact": "",
+          "kakaoId": "",
+          "memo": "대학 입학 — UofT Rotman"
+        },
+        "academic": {
+          "ieltsStatus": "점수 있음",
+          "ieltsScore": "7.5 (Overall)",
+          "ossltStatus": "합격",
+          "schoolMemo": "IB Diploma 취득",
+          "asGroupClass": "",
+          "asPrivateClassSubjects": [],
+          "koreanHighSchool": "",
+          "premiumTrack": true
+        },
+        "extracurriculars": [
+          {
+            "id": "wxwz5n55",
+            "type": "리더십",
+            "activityName": "Debate Team Captain",
+            "organizationName": "Branksome Hall",
+            "startDate": "2022-09-01",
+            "endDate": "2025-06-15",
+            "totalHours": "180",
+            "status": "완료",
+            "studentRole": "Captain",
+            "description": "CSDF 전국대회 출전 및 학교 토론팀 운영",
+            "growthPoint": "리더십, 비판적 사고",
+            "admissionsValue": "높음",
+            "relatedTrack": "Business",
+            "proofLink": "",
+            "teacherMemo": "Rotman 지원에 결정적"
+          }
+        ],
+        "academicRecords": [
+          {
+            "id": "mseu7czl",
+            "grade": "12",
+            "schoolId": "sch_017",
+            "semesterSystem": "",
+            "periodLabel": "24-9 (10M)",
+            "startDate": "2024-09-04",
+            "endDate": "2025-06-15",
+            "subjectId": "sub_cln4u",
+            "credits": 1,
+            "required": true,
+            "midterm1": "92",
+            "midterm2": "94",
+            "final": "95",
+            "late": "0",
+            "absent": "2",
+            "selection": "정규수업",
+            "memo": "IB Law"
+          },
+          {
+            "id": "azfuqrjv",
+            "grade": "12",
+            "schoolId": "sch_017",
+            "semesterSystem": "",
+            "periodLabel": "24-9 (10M)",
+            "startDate": "2024-09-04",
+            "endDate": "2025-06-15",
+            "subjectId": "sub_bat4m",
+            "credits": 1,
+            "required": true,
+            "midterm1": "88",
+            "midterm2": "91",
+            "final": "93",
+            "late": "1",
+            "absent": "0",
+            "selection": "정규수업",
+            "memo": "Rotman 진학 핵심 과목"
+          },
+          {
+            "id": "k2jd4ghj",
+            "grade": "12",
+            "schoolId": "sch_017",
+            "semesterSystem": "",
+            "periodLabel": "24-9 (10M)",
+            "startDate": "2024-09-04",
+            "endDate": "2025-06-15",
+            "subjectId": "sub_idc4u1",
+            "credits": 1,
+            "required": false,
+            "midterm1": "95",
+            "midterm2": "97",
+            "final": "98",
+            "late": "0",
+            "absent": "0",
+            "selection": "정규수업",
+            "memo": "Top mark"
+          }
+        ],
+        "accommodation": {
+          "type": "홈스테이",
+          "status": "종료",
+          "moveInDate": "2021-08-12",
+          "expectedMoveOutDate": "2025-06-30",
+          "actualMoveOutDate": "2025-06-25",
+          "address": "88 Forest Hill Rd, Toronto",
+          "commuteMethod": "TTC 지하철",
+          "commuteTime": "25분",
+          "memo": "4년간 동일 호스트",
+          "homestay": {
+            "hostName": "Margaret Bauer",
+            "hostPhone": "+1-416-555-7788",
+            "hostEmail": "mbauer@example",
+            "familyMembers": "독신",
+            "mealIncluded": "3끼",
+            "allergyOrDiet": "",
+            "monthlyFee": "CAD 1,400",
+            "depositStatus": "반환완료",
+            "houseRules": "자유",
+            "adjustmentStatus": "좋음",
+            "changeRequested": false,
+            "changeRequestDate": "",
+            "changeReason": "",
+            "rearrangementFee": "",
+            "managerMemo": "4년 무탈"
+          },
+          "dormitory": {
+            "dormName": "",
+            "institutionName": "",
+            "contactPerson": "",
+            "phone": "",
+            "email": "",
+            "roomType": "",
+            "roommate": "",
+            "mealPlan": "",
+            "fee": "",
+            "depositStatus": "",
+            "rules": "",
+            "summerStayAvailable": "",
+            "managerMemo": ""
+          }
+        },
+        "accommodationHistory": [],
+        "universityApplications": [
+          {
+            "id": "v05qg7m9",
+            "universityName": "University of Toronto",
+            "campus": "St. George",
+            "programName": "Rotman Commerce",
+            "status": "합격",
+            "scholarship": "Entrance Scholarship CAD 5,000",
+            "supplementaryRequired": false,
+            "deadline": "2025-01-15",
+            "memo": "최종 등록"
+          }
+        ],
+        "internalNotes": {
+          "studentPersonality": "성숙함, 리더십",
+          "parentPersonality": "교육열 매우 높음",
+          "counselingNotes": "졸업 처리 완료",
+          "cautions": "",
+          "actionItems": "대학 등록 후 새 BUPP 계약 협의",
+          "managerMemo": "Alumni"
+        },
+        "reports": []
       }
     ],
-
-    "accommodation": {
-      "type": "홈스테이",
-      "status": "거주중",
-      "moveInDate": "2024-08-25",
-      "expectedMoveOutDate": "2025-06-30",
-      "actualMoveOutDate": "",
-      "address": "123 Glenview Ave, Toronto, ON",
-      "commuteMethod": "TTC 버스 + 도보",
-      "commuteTime": "35분",
-      "memo": "집까지 도보 5분 안에 정류장 있음",
-      "homestay": {
+    "bupp_options_v1": {
+      "category": [
+        "브듀",
+        "외부",
+        "단기"
+      ],
+      "cohort": [
+        "BUPP 12기",
+        "BUPP 13기",
+        "BUPP 14기",
+        "BUPP 15기",
+        "BUPP 16기",
+        "BUPP 17기",
+        "BUPP 18기"
+      ],
+      "currentSchool": [
+        "Northern Secondary School",
+        "York Mills CI",
+        "Earl Haig Secondary School",
+        "Branksome Hall (졸업)",
+        "해운대중학교"
+      ]
+    },
+    "bupp_schools_v1": [
+      {
+        "id": "sch_001",
+        "name": "TAIE International Institute",
+        "type": "ESL/언어학교",
+        "semesterSystem": "Quarter (4학기제)",
+        "province": "ON",
+        "offerings": [
+          "ESL"
+        ],
+        "memo": "ESL 사립 어학원, 단기/장기 입학 가능"
+      },
+      {
+        "id": "sch_002",
+        "name": "Loretto Abbey Catholic SS",
+        "type": "공립 TCDSB",
+        "semesterSystem": "Year (1년제)",
+        "province": "ON",
+        "offerings": [
+          "정규",
+          "AP"
+        ],
+        "memo": "여학교, AP 제공"
+      },
+      {
+        "id": "sch_003",
+        "name": "Marshall McLuhan Catholic SS",
+        "type": "공립 TCDSB",
+        "semesterSystem": "Year (1년제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_004",
+        "name": "St.Joseph's Morrow Park",
+        "type": "공립 TCDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_005",
+        "name": "Brebeuf College School",
+        "type": "공립 TCDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": "남학교"
+      },
+      {
+        "id": "sch_006",
+        "name": "Cardinal Carter Academy for the Arts",
+        "type": "공립 TCDSB",
+        "semesterSystem": "Year (1년제)",
+        "province": "ON",
+        "offerings": [
+          "예체능 특화"
+        ],
+        "memo": "예체능 전문"
+      },
+      {
+        "id": "sch_007",
+        "name": "St. Joseph's College School",
+        "type": "공립 TCDSB",
+        "semesterSystem": "",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_008",
+        "name": "St. Gabriel Catholic School",
+        "type": "공립 TCDSB",
+        "semesterSystem": "",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_009",
+        "name": "Leaside High School",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_010",
+        "name": "Northview Heights SS",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_011",
+        "name": "Monarch Park Collegiate Institute",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "IB"
+        ],
+        "memo": "IB 프로그램"
+      },
+      {
+        "id": "sch_012",
+        "name": "Georges Vanier SS",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "AP"
+        ],
+        "memo": "AP 제공"
+      },
+      {
+        "id": "sch_013",
+        "name": "Forest Hill CI",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_014",
+        "name": "Greenwood Secondary School",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_015",
+        "name": "Northern Secondary School",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규",
+          "AP"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_016",
+        "name": "York Mills CI",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규"
+        ],
+        "memo": ""
+      },
+      {
+        "id": "sch_017",
+        "name": "Branksome Hall",
+        "type": "사립",
+        "semesterSystem": "Year (1년제)",
+        "province": "ON",
+        "offerings": [
+          "IB Diploma"
+        ],
+        "memo": "여학교, IB Diploma"
+      },
+      {
+        "id": "sch_018",
+        "name": "Earl Haig Secondary School",
+        "type": "공립 TDSB",
+        "semesterSystem": "Semester (학기제)",
+        "province": "ON",
+        "offerings": [
+          "정규",
+          "AP"
+        ],
+        "memo": ""
+      }
+    ],
+    "bupp_subjects_v1": [
+      {
+        "id": "sub_esla",
+        "code": "ESL AO",
+        "name": "ESL A",
+        "grade": "ESL",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_001"
+        ],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_eslb",
+        "code": "ESLBO",
+        "name": "ESL B",
+        "grade": "ESL",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_001"
+        ],
+        "prerequisiteIds": [
+          "sub_esla"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_eslc",
+        "code": "ESLCO",
+        "name": "ESL C",
+        "grade": "ESL",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_001"
+        ],
+        "prerequisiteIds": [
+          "sub_eslb"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_esld",
+        "code": "ESLDO",
+        "name": "ESL D",
+        "grade": "ESL",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_001"
+        ],
+        "prerequisiteIds": [
+          "sub_eslc"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_enl1w",
+        "code": "ENL1W1",
+        "name": "Grade 9 English",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_mth1w",
+        "code": "MTH1W",
+        "name": "Mathematics 9",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_snc1w",
+        "code": "SNC1W",
+        "name": "Science 9",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_cgc1w",
+        "code": "CGC1W1",
+        "name": "Exploring Canadian Geography",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_fsf1o",
+        "code": "FSF1O1",
+        "name": "Grade 9 Core French",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_hre1o",
+        "code": "HRE1O",
+        "name": "Religion 9",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_002",
+          "sch_003",
+          "sch_004",
+          "sch_005"
+        ],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": "Catholic 학교 한정"
+      },
+      {
+        "id": "sub_amg1o",
+        "code": "AMG1O",
+        "name": "Guitar Music 9",
+        "grade": "9",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_mpm2d",
+        "code": "MPM2D",
+        "name": "Principles of Mathematics 10",
+        "grade": "10",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_mth1w"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_snc2d",
+        "code": "SNC2D",
+        "name": "Science 10",
+        "grade": "10",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_snc1w"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_chv2o",
+        "code": "CHV2O",
+        "name": "Civics and Citizenship 10",
+        "grade": "10",
+        "credits": 0.5,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_glc2o",
+        "code": "GLC2O",
+        "name": "Career Studies 10",
+        "grade": "10",
+        "credits": 0.5,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_avi2o",
+        "code": "AVI2O",
+        "name": "Visual Arts 10",
+        "grade": "10",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ada2o",
+        "code": "ADA2O",
+        "name": "Drama 10",
+        "grade": "10",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ami2o",
+        "code": "AMI2O",
+        "name": "Instrumental Music - Band 10",
+        "grade": "10",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_clu3m",
+        "code": "CLU3M",
+        "name": "Understanding Canadian Law 11",
+        "grade": "11",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ami3m",
+        "code": "AMI3M",
+        "name": "Instrumental Music - Band 11",
+        "grade": "11",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_ami2o"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_awq3o",
+        "code": "AWQ3O",
+        "name": "Photography 11",
+        "grade": "11",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ter3m",
+        "code": "TER3M",
+        "name": "Robotics & Control Systems 11",
+        "grade": "11",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_chw3m",
+        "code": "CHW3M",
+        "name": "World History to the End of the Fifteenth Century 12",
+        "grade": "11",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ppl4o",
+        "code": "PPL4O",
+        "name": "Healthy Active Living Education 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_cln4u",
+        "code": "CLN4U",
+        "name": "Canadian and International Law 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_clu3m"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_idc4u1",
+        "code": "IDC4U1",
+        "name": "Interdisciplinary Studies: Sports & Entertainment Marketing 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ses4u",
+        "code": "SES4U",
+        "name": "Earth and Space Science 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_snc2d"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_bat4m",
+        "code": "BAT4M",
+        "name": "Financial Accounting Principles 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_plf4m",
+        "code": "PLF4M",
+        "name": "Recreation and Healthy Active Living Leadership 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_ami4m",
+        "code": "AMI4M",
+        "name": "Instrumental Music - Band 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [
+          "sub_ami3m"
+        ],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_psk4u1",
+        "code": "PSK4U1",
+        "name": "Introductory Kinesiology 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      },
+      {
+        "id": "sub_hre4m",
+        "code": "HRE4M",
+        "name": "Religious Education 12",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_002",
+          "sch_003",
+          "sch_004",
+          "sch_005"
+        ],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": "Catholic 학교"
+      },
+      {
+        "id": "sub_hre4o",
+        "code": "HRE4O",
+        "name": "Religious Education 12 (Open)",
+        "grade": "12",
+        "credits": 1,
+        "province": "ON",
+        "schoolIds": [
+          "sch_002",
+          "sch_003",
+          "sch_004",
+          "sch_005"
+        ],
+        "prerequisiteIds": [],
+        "materialsLink": "",
+        "memo": ""
+      }
+    ],
+    "bupp_members_v1": [
+      {
+        "id": "mem_001",
+        "name": "젤리",
+        "email": "jelly@breakedu.ca",
+        "role": "admin",
+        "linkedStudentIds": [],
+        "active": true,
+        "memo": "BreakEDU 대표"
+      },
+      {
+        "id": "mem_002",
+        "name": "태원쌤",
+        "email": "taewon@breakedu.ca",
+        "role": "admin",
+        "linkedStudentIds": [],
+        "active": true,
+        "memo": "공동대표 · 회계 총괄"
+      },
+      {
+        "id": "mem_003",
+        "name": "이지영쌤",
+        "email": "jiyoung@breakedu.ca",
+        "role": "bu_staff",
+        "linkedStudentIds": [
+          "stu_001",
+          "stu_003"
+        ],
+        "active": true,
+        "memo": "가디언 담당자"
+      },
+      {
+        "id": "mem_004",
+        "name": "박지훈쌤",
+        "email": "jihoon@breakedu.ca",
+        "role": "bu_staff",
+        "linkedStudentIds": [
+          "stu_002",
+          "stu_004"
+        ],
+        "active": true,
+        "memo": "가디언 담당자"
+      },
+      {
+        "id": "mem_005",
+        "name": "김민준 (학생)",
+        "email": "minjun.kim@brkedu.ca",
+        "role": "student",
+        "linkedStudentIds": [
+          "stu_001"
+        ],
+        "active": true,
+        "memo": "본인 계정"
+      },
+      {
+        "id": "mem_006",
+        "name": "김민준 학부모",
+        "email": "jkim@parent.example",
+        "role": "parent",
+        "linkedStudentIds": [
+          "stu_001"
+        ],
+        "active": true,
+        "memo": "아버지"
+      },
+      {
+        "id": "mem_007",
+        "name": "Sarah Park (튜터)",
+        "email": "sarah.park@tutor.example",
+        "role": "tutor",
+        "linkedStudentIds": [
+          "stu_001",
+          "stu_002"
+        ],
+        "active": true,
+        "memo": "Math/Physics 튜터"
+      },
+      {
+        "id": "mem_008",
+        "name": "Acme 유학원",
+        "email": "partner@acme.example",
+        "role": "partner",
+        "linkedStudentIds": [
+          "stu_003"
+        ],
+        "active": true,
+        "memo": "외부 파트너사"
+      }
+    ],
+    "bupp_universities_v1": [
+      {
+        "id": "uni_uoft_sg",
+        "country": "CA",
+        "region": "ON",
+        "name": "University of Toronto St George",
+        "shortName": "UofT St George",
+        "portalName": "JOINid",
+        "portalUrl": "join.utoronto.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0) *Not accepted the IELTS Indicator test or IELTS One Skill Retake",
+        "duolingoCondition": "120 (Production 120): 2024년 7월 1일 또는 그 후에 본 시험 / 120 (모든 파트 100): 2024년 7월 1일 전에 본 시험",
+        "englishScoreDeadline": "2026-01-05",
+        "memo": ""
+      },
+      {
+        "id": "uni_uoft_sc",
+        "country": "CA",
+        "region": "ON",
+        "name": "University of Toronto Scarborough",
+        "shortName": "UTSC",
+        "portalName": "JOINid",
+        "portalUrl": "join.utoronto.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0)",
+        "duolingoCondition": "120 (Production 120): 2024년 7월 1일 또는 그 후",
+        "englishScoreDeadline": "2026-01-05",
+        "memo": ""
+      },
+      {
+        "id": "uni_uoft_ms",
+        "country": "CA",
+        "region": "ON",
+        "name": "University of Toronto Mississauga",
+        "shortName": "UTM",
+        "portalName": "JOINid",
+        "portalUrl": "join.utoronto.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0)",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-01-05",
+        "memo": ""
+      },
+      {
+        "id": "uni_mcmaster",
+        "country": "CA",
+        "region": "ON",
+        "name": "McMaster University",
+        "shortName": "McMaster",
+        "portalName": "MOSAIC",
+        "portalUrl": "mosaic.mcmaster.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0) *Accepted the IELTS One Skill Retake",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-04-01",
+        "memo": ""
+      },
+      {
+        "id": "uni_western",
+        "country": "CA",
+        "region": "ON",
+        "name": "Western University",
+        "shortName": "Western",
+        "portalName": "Student Center",
+        "portalUrl": "westernu.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0)",
+        "duolingoCondition": "115 overall (100 for each subscore)",
+        "englishScoreDeadline": "2026-04-12",
+        "memo": ""
+      },
+      {
+        "id": "uni_york",
+        "country": "CA",
+        "region": "ON",
+        "name": "York University",
+        "shortName": "York",
+        "portalName": "Myfile",
+        "portalUrl": "myfile.yorku.ca",
+        "ieltsCondition": "6.5 overall",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-04-01",
+        "memo": ""
+      },
+      {
+        "id": "uni_queens",
+        "country": "CA",
+        "region": "ON",
+        "name": "Queen's University",
+        "shortName": "Queen's",
+        "portalName": "Solus",
+        "portalUrl": "solus.queensu.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0)",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-03-31",
+        "memo": ""
+      },
+      {
+        "id": "uni_tmu",
+        "country": "CA",
+        "region": "ON",
+        "name": "Toronto Metropolitan University (TMU)",
+        "shortName": "TMU",
+        "portalName": "Applicant Portal",
+        "portalUrl": "torontomu.ca",
+        "ieltsCondition": "6.5 overall",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-04-01",
+        "memo": ""
+      },
+      {
+        "id": "uni_waterloo",
+        "country": "CA",
+        "region": "ON",
+        "name": "University of Waterloo",
+        "shortName": "Waterloo",
+        "portalName": "Quest",
+        "portalUrl": "uwaterloo.ca/future-students",
+        "ieltsCondition": "6.5 overall (L,R=6.0; W,S=6.5)",
+        "duolingoCondition": "120 (Literacy, Production=125): 7월 1일/ 그 후",
+        "englishScoreDeadline": "2026-01-30",
+        "memo": "엔지니어링은 별도 조건"
+      },
+      {
+        "id": "uni_laurier",
+        "country": "CA",
+        "region": "ON",
+        "name": "Wilfred Laurier University",
+        "shortName": "Laurier",
+        "portalName": "Applicant Portal",
+        "portalUrl": "wlu.ca",
+        "ieltsCondition": "6.5 overall",
+        "duolingoCondition": "120",
+        "englishScoreDeadline": "2026-05-12",
+        "memo": ""
+      },
+      {
+        "id": "uni_ubc",
+        "country": "CA",
+        "region": "BC",
+        "name": "UBC Vancouver",
+        "shortName": "UBC",
+        "portalName": "EducationPlannerBC",
+        "portalUrl": "apply.educationplannerbc.ca",
+        "ieltsCondition": "6.5 overall (L,R,W,S=6.0)",
+        "duolingoCondition": "Not Accepted",
+        "englishScoreDeadline": "2026-02-15",
+        "memo": "Duolingo 불인정"
+      }
+    ],
+    "bupp_programs_v1": [
+      {
+        "id": "prg_001",
+        "universityId": "uni_uoft_sg",
+        "faculty": "FACULTY OF APPLIED SCIENCE & ENGINEERING",
+        "name": "Engineering Science - Mathematics, Statistics, & Finance PEY (Co-op)",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "Online Student Profile (OSP) + Video Interview",
+        "supplementaryDeadline": "2026-01-15",
+        "memo": ""
+      },
+      {
+        "id": "prg_002",
+        "universityId": "uni_uoft_sg",
+        "faculty": "FACULTY OF APPLIED SCIENCE & ENGINEERING",
+        "name": "Chemical Engineering (No Co-op)",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "Online Student Profile (OSP) + Video Interview",
+        "supplementaryDeadline": "2026-01-15",
+        "memo": ""
+      },
+      {
+        "id": "prg_003",
+        "universityId": "uni_uoft_sg",
+        "faculty": "FACULTY OF APPLIED SCIENCE & ENGINEERING",
+        "name": "Industrial Engineering",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "Online Student Profile (OSP) + Video Interview",
+        "supplementaryDeadline": "2026-01-15",
+        "memo": ""
+      },
+      {
+        "id": "prg_004",
+        "universityId": "uni_uoft_sg",
+        "faculty": "Arts & Science",
+        "name": "Kinesiology (BKin)",
+        "groupId": "grp_medsci",
+        "supplementaryType": "Statement of Interest",
+        "supplementaryDeadline": "2026-02-02",
+        "memo": ""
+      },
+      {
+        "id": "prg_005",
+        "universityId": "uni_uoft_sg",
+        "faculty": "Arts & Science",
+        "name": "Computer Science",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "Supplementary Application",
+        "supplementaryDeadline": "2026-02-02",
+        "memo": ""
+      },
+      {
+        "id": "prg_006",
+        "universityId": "uni_uoft_sg",
+        "faculty": "Rotman School of Management",
+        "name": "Rotman Commerce",
+        "groupId": "grp_business",
+        "supplementaryType": "Video Interview",
+        "supplementaryDeadline": "2026-02-02",
+        "memo": ""
+      },
+      {
+        "id": "prg_007",
+        "universityId": "uni_uoft_sc",
+        "faculty": "Management",
+        "name": "Management BBA Co-op - Management & Accounting",
+        "groupId": "grp_business",
+        "supplementaryType": "SAF Form",
+        "supplementaryDeadline": "2026-01-12",
+        "memo": ""
+      },
+      {
+        "id": "prg_008",
+        "universityId": "uni_uoft_ms",
+        "faculty": "Management",
+        "name": "Commerce - Accounting",
+        "groupId": "grp_business",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_009",
+        "universityId": "uni_mcmaster",
+        "faculty": "DeGroote",
+        "name": "Business 1 - Accounting",
+        "groupId": "grp_business",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_010",
+        "universityId": "uni_western",
+        "faculty": "Ivey Business School",
+        "name": "MN: Management & Organizational Studies: Accounting (IVEY - YES)",
+        "groupId": "grp_business",
+        "supplementaryType": "조건부 입학 (Ivey Advanced Entry Opportunity - AEO): IVEY Application",
+        "supplementaryDeadline": "2025-12-18",
+        "memo": "AEO 트랙"
+      },
+      {
+        "id": "prg_011",
+        "universityId": "uni_western",
+        "faculty": "Engineering",
+        "name": "MN: Chemical Engineering (Co-op)",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_012",
+        "universityId": "uni_york",
+        "faculty": "Schulich School of Business",
+        "name": "Business Administration (BBA) - Schulich",
+        "groupId": "grp_business",
+        "supplementaryType": "BBA Schulich 비지니스 추가서류",
+        "supplementaryDeadline": "2026-01-11",
+        "memo": ""
+      },
+      {
+        "id": "prg_013",
+        "universityId": "uni_york",
+        "faculty": "Lassonde School of Engineering",
+        "name": "Computer Science (BSc) - including Co-op",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_014",
+        "universityId": "uni_queens",
+        "faculty": "Smith School of Business",
+        "name": "Smith Commerce",
+        "groupId": "grp_business",
+        "supplementaryType": "Video Interview",
+        "supplementaryDeadline": "2025-12-29",
+        "memo": ""
+      },
+      {
+        "id": "prg_015",
+        "universityId": "uni_tmu",
+        "faculty": "Ted Rogers School",
+        "name": "Ted Rogers - Accounting & Finance Co-op",
+        "groupId": "grp_business",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_016",
+        "universityId": "uni_waterloo",
+        "faculty": "Mathematics + Business",
+        "name": "Business Administration (Laurier) and Mathematics (Waterloo) Double Degree (Co-op only)",
+        "groupId": "grp_business",
+        "supplementaryType": "AIF Form",
+        "supplementaryDeadline": "2026-02-01",
+        "memo": ""
+      },
+      {
+        "id": "prg_017",
+        "universityId": "uni_waterloo",
+        "faculty": "FACULTY OF ENGINEERING",
+        "name": "Management Engineering (Co-op)",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "AIF",
+        "supplementaryDeadline": "2026-02-01",
+        "memo": ""
+      },
+      {
+        "id": "prg_018",
+        "universityId": "uni_waterloo",
+        "faculty": "FACULTY OF ENGINEERING",
+        "name": "Chemical Engineering (Co-op)",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "AIF",
+        "supplementaryDeadline": "2026-02-01",
+        "memo": ""
+      },
+      {
+        "id": "prg_019",
+        "universityId": "uni_waterloo",
+        "faculty": "FACULTY OF ENGINEERING",
+        "name": "Nanotech Engineering",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "AIF",
+        "supplementaryDeadline": "2026-02-01",
+        "memo": ""
+      },
+      {
+        "id": "prg_020",
+        "universityId": "uni_waterloo",
+        "faculty": "FACULTY OF ENGINEERING",
+        "name": "Mechatronics Engineering",
+        "groupId": "grp_eng_it",
+        "supplementaryType": "AIF",
+        "supplementaryDeadline": "2026-02-01",
+        "memo": ""
+      },
+      {
+        "id": "prg_021",
+        "universityId": "uni_laurier",
+        "faculty": "Lazaridis School",
+        "name": "Wilfrid Laurier - Business Administration (BBA) and Mathematics (BMath) at University of Waterloo Double Degree",
+        "groupId": "grp_business",
+        "supplementaryType": "",
+        "supplementaryDeadline": "",
+        "memo": ""
+      },
+      {
+        "id": "prg_022",
+        "universityId": "uni_ubc",
+        "faculty": "Sauder School of Business",
+        "name": "Sauder Business",
+        "groupId": "grp_business",
+        "supplementaryType": "Personal Profile + Video Interview",
+        "supplementaryDeadline": "2026-01-04",
+        "memo": ""
+      }
+    ],
+    "bupp_trackgroups_v1": [
+      {
+        "id": "grp_eng_it",
+        "country": "CA",
+        "name": "그룹1: 엔지니어링 / IT",
+        "requiredSubjects": [
+          "ENG4U",
+          "MHF4U",
+          "MCV4U",
+          "SCH4U",
+          "SPH4U"
+        ],
+        "recommendedSubjects": [
+          "MDM4U"
+        ],
+        "memo": "캐나다 공대 표준"
+      },
+      {
+        "id": "grp_business",
+        "country": "CA",
+        "name": "그룹2: 경영 / 회계 / 경제",
+        "requiredSubjects": [
+          "ENG4U",
+          "MHF4U"
+        ],
+        "recommendedSubjects": [
+          "BAT4M",
+          "MDM4U"
+        ],
+        "memo": "Rotman, Ivey, Schulich 등"
+      },
+      {
+        "id": "grp_medsci",
+        "country": "CA",
+        "name": "그룹3: 의예 / 생명과학",
+        "requiredSubjects": [
+          "ENG4U",
+          "MHF4U",
+          "SCH4U",
+          "SBI4U"
+        ],
+        "recommendedSubjects": [
+          "SPH4U",
+          "MCV4U"
+        ],
+        "memo": "Life Science, Health Science"
+      },
+      {
+        "id": "grp_humsoc",
+        "country": "CA",
+        "name": "그룹4: 인문 / 사회",
+        "requiredSubjects": [
+          "ENG4U"
+        ],
+        "recommendedSubjects": [
+          "MDM4U"
+        ],
+        "memo": "Arts, Social Science"
+      },
+      {
+        "id": "grp_art",
+        "country": "CA",
+        "name": "그룹5: 예체능",
+        "requiredSubjects": [
+          "ENG4U"
+        ],
+        "recommendedSubjects": [],
+        "memo": "포트폴리오 별도"
+      }
+    ],
+    "bupp_accommodations_v1": [
+      {
+        "id": "accm_001",
+        "category": "홈스테이",
+        "subCategory": "캐네디언 홈스테이",
+        "name": "Chen Family Homestay",
+        "active": true,
+        "photos": [
+          "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800",
+          "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800"
+        ],
         "hostName": "Lisa Chen",
         "hostPhone": "+1-416-555-1212",
         "hostEmail": "lisa.chen@homestay.example",
-        "familyMembers": "호스트 부부 + 자녀 1 (10세)",
+        "address": "123 Glenview Ave, Toronto, ON M4R 1P8",
+        "familyMembers": "호스트 부부 + 자녀 1 (10세 여자)",
         "mealIncluded": "3끼 모두 포함",
-        "allergyOrDiet": "땅콩 알러지",
         "monthlyFee": "CAD 1,250",
-        "depositStatus": "납부완료 (CAD 500)",
-        "houseRules": "평일 22:00 통금, 일요일 외출 자유",
-        "adjustmentStatus": "좋음",
-        "changeRequested": false,
-        "changeRequestDate": "",
-        "changeReason": "",
-        "rearrangementFee": "",
-        "managerMemo": "호스트와 관계 양호"
+        "paymentMethod": "E-transfer",
+        "deposit": "CAD 500 (퇴실 시 반환)",
+        "laundry": "주 1회 본인 세탁 (세탁기 사용)",
+        "rules": "평일 22:00 통금 / 흡연 금지 / 친구 외박 불가",
+        "description": "북요크 조용한 주거 단지. 도보 5분 안에 TTC 정류장. 호스트 모두 영어 원어민.",
+        "housematesInfo": "동시 거주 가능 최대 2명. 별도 화장실 사용.",
+        "schoolDistances": [
+          {
+            "school": "Northern Secondary School",
+            "distance": "TTC 25분 (지하철 1개 환승)"
+          },
+          {
+            "school": "Earl Haig SS",
+            "distance": "TTC 15분 (버스)"
+          }
+        ],
+        "individualContractLink": "https://drive.google.com/sample-chen-contract",
+        "buppContractLink": "https://drive.google.com/bupp-unified-homestay-contract",
+        "rateIncreasePlan": "2026년 9월부터 월 CAD 1,300 → 1,350 인상 예정",
+        "rateIncreaseDate": "2026-09-01",
+        "memo": "호스트 3년차, 관계 양호",
+        "rooms": [
+          {
+            "id": "rm_001a",
+            "name": "Room A (2층 안방)",
+            "features": "독립 책상 + 옷장, 창문 동향, 빠른 와이파이",
+            "availableFromDate": "2025-08-25",
+            "monthlyFee": "CAD 1,300",
+            "photos": [
+              "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+              "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600"
+            ],
+            "currentOccupants": [
+              {
+                "studentId": "stu_001",
+                "unknownStudent": false,
+                "unknownStudentName": "",
+                "moveInDate": "2024-08-25",
+                "expectedMoveOutDate": "2025-06-30"
+              }
+            ],
+            "history": []
+          },
+          {
+            "id": "rm_001b",
+            "name": "Room B (2층 작은방)",
+            "features": "책상 + 작은 옷장, 창문 서향",
+            "availableFromDate": "2025-09-01",
+            "monthlyFee": "CAD 1,200",
+            "photos": [
+              "https://images.unsplash.com/photo-1522444690501-d3b3a9e8d4d2?w=600"
+            ],
+            "currentOccupants": [
+              {
+                "studentId": "",
+                "unknownStudent": true,
+                "unknownStudentName": "Tracey (캐나다 학생)",
+                "moveInDate": "2025-01-10",
+                "expectedMoveOutDate": "2025-06-15"
+              }
+            ],
+            "history": [
+              {
+                "studentId": "",
+                "unknownStudent": true,
+                "unknownStudentName": "외부 ESL 학생",
+                "moveInDate": "2023-09-01",
+                "moveOutDate": "2024-08-20"
+              }
+            ]
+          }
+        ]
       },
-      "dormitory": {
-        "dormName": "",
-        "institutionName": "",
-        "contactPerson": "",
-        "phone": "",
-        "email": "",
-        "roomType": "",
-        "roommate": "",
-        "mealPlan": "",
-        "fee": "",
-        "depositStatus": "",
+      {
+        "id": "accm_002",
+        "category": "홈스테이",
+        "subCategory": "한인 홈스테이",
+        "name": "Kim Family Homestay",
+        "active": true,
+        "photos": [
+          "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800"
+        ],
+        "hostName": "김혜선",
+        "hostPhone": "+1-647-555-8800",
+        "hostEmail": "kim.homestay@example",
+        "address": "88 Forest Hill Rd, Toronto, ON",
+        "familyMembers": "호스트 부부 + 자녀 2 (한국어/영어 가능)",
+        "mealIncluded": "3끼 (한식 위주)",
+        "monthlyFee": "CAD 1,400",
+        "paymentMethod": "한국계좌",
+        "deposit": "CAD 500",
+        "laundry": "주 2회 호스트가 함께 세탁",
+        "rules": "평일 22:00 통금 / 외식 시 사전 공지 / 친구 방문 평일 금지",
+        "description": "Forest Hill 위치, 한식 가능, 학생 적응 지원.",
+        "housematesInfo": "동시 거주 1명만",
+        "schoolDistances": [
+          {
+            "school": "Branksome Hall",
+            "distance": "도보 10분"
+          },
+          {
+            "school": "Upper Canada College",
+            "distance": "TTC 15분"
+          }
+        ],
+        "individualContractLink": "",
+        "buppContractLink": "https://drive.google.com/bupp-unified-homestay-contract",
+        "rateIncreasePlan": "인상 계획 없음 (안정 운영)",
+        "rateIncreaseDate": "",
+        "memo": "한식 선호 학생 우선 배정",
+        "rooms": [
+          {
+            "id": "rm_002a",
+            "name": "1층 게스트룸",
+            "features": "독립 화장실, 발코니",
+            "availableFromDate": "2025-09-01",
+            "monthlyFee": "CAD 1,450",
+            "photos": [],
+            "currentOccupants": [],
+            "history": []
+          }
+        ]
+      },
+      {
+        "id": "accm_003",
+        "category": "기숙사",
+        "subCategory": "BUPP 시니어 남학생 기숙사",
+        "name": "BUPP North York Senior Dorm",
+        "active": true,
+        "photos": [],
+        "hostName": "브듀 운영팀",
+        "hostPhone": "+1-647-555-2200",
+        "hostEmail": "dorm@brkedu.ca",
+        "address": "500 Yonge St, Toronto, ON",
+        "familyMembers": "BUPP 운영 — 매니저 상주",
+        "mealIncluded": "주중 3끼",
+        "monthlyFee": "CAD 1,800",
+        "paymentMethod": "E-transfer",
+        "deposit": "CAD 1,000",
+        "laundry": "공용 세탁실 (무료)",
+        "rules": "주중 22:00 / 주말 23:00 통금 / 흡연·음주 금지 / 외박 사전 승인",
+        "description": "11-12학년 남학생 대상. 매니저 상주.",
+        "housematesInfo": "2인실 6개, 1인실 2개",
+        "schoolDistances": [
+          {
+            "school": "Northern Secondary",
+            "distance": "도보 12분"
+          },
+          {
+            "school": "Earl Haig SS",
+            "distance": "TTC 20분"
+          }
+        ],
+        "individualContractLink": "https://drive.google.com/bupp-senior-dorm-contract",
+        "buppContractLink": "https://drive.google.com/bupp-unified-dorm-contract",
+        "rateIncreasePlan": "",
+        "rateIncreaseDate": "",
+        "memo": "",
+        "rooms": [
+          {
+            "id": "rm_003a",
+            "name": "201호 (2인실)",
+            "features": "2층 침대 1개 + 독립 책상 2개",
+            "availableFromDate": "",
+            "monthlyFee": "CAD 1,800",
+            "photos": [],
+            "currentOccupants": [],
+            "history": []
+          },
+          {
+            "id": "rm_003b",
+            "name": "202호 (1인실)",
+            "features": "1인 침대 + 책상 + 옷장",
+            "availableFromDate": "",
+            "monthlyFee": "CAD 2,200",
+            "photos": [],
+            "currentOccupants": [],
+            "history": []
+          }
+        ]
+      },
+      {
+        "id": "accm_004",
+        "category": "보딩스쿨",
+        "subCategory": "여학교 보딩",
+        "name": "Branksome Hall Boarding",
+        "active": true,
+        "photos": [],
+        "hostName": "Margaret Bauer (Residence Coordinator)",
+        "hostPhone": "+1-416-555-7788",
+        "hostEmail": "boarding@branksome.example",
+        "address": "10 Elm Ave, Toronto, ON",
+        "familyMembers": "학교 부속 기숙사",
+        "mealIncluded": "3끼 + 방학 미제공",
+        "monthlyFee": "CAD 22,000/년",
+        "paymentMethod": "E-transfer",
+        "deposit": "CAD 2,000",
+        "laundry": "학교 세탁 서비스 포함",
+        "rules": "학교 규정 준수",
+        "description": "여학교 부속 보딩, IB Diploma 운영.",
+        "housematesInfo": "학년별 층 분리",
+        "schoolDistances": [
+          {
+            "school": "Branksome Hall",
+            "distance": "캠퍼스 내"
+          }
+        ],
+        "individualContractLink": "",
+        "buppContractLink": "",
+        "rateIncreasePlan": "",
+        "rateIncreaseDate": "",
+        "memo": "",
+        "rooms": []
+      },
+      {
+        "id": "accm_005",
+        "category": "가족과 거주",
+        "subCategory": "",
+        "name": "가족 동반 거주 (기록용)",
+        "active": true,
+        "photos": [],
+        "hostName": "",
+        "hostPhone": "",
+        "hostEmail": "",
+        "address": "",
+        "familyMembers": "",
+        "mealIncluded": "",
+        "monthlyFee": "",
+        "paymentMethod": "",
+        "deposit": "",
+        "laundry": "",
         "rules": "",
-        "summerStayAvailable": "",
-        "managerMemo": ""
-      }
-    },
-
-    "accommodationHistory": [
-      {
-        "id": "hist_x1y2z3",
-        "previousType": "홈스테이",
-        "previousAddress": "45 Elm St, Toronto",
-        "previousHostOrDormName": "Smith Family",
-        "startDate": "2023-09-01",
-        "endDate": "2024-08-24",
-        "changeReason": "통학거리 단축 요청",
-        "feeCharged": "재배정비 CAD 200",
-        "memo": "호스트와 마찰 없음, 위치 문제만 해결"
+        "description": "학생이 부모와 동반 거주하는 경우 기록 용도.",
+        "housematesInfo": "",
+        "schoolDistances": [],
+        "individualContractLink": "",
+        "buppContractLink": "",
+        "rateIncreasePlan": "",
+        "rateIncreaseDate": "",
+        "memo": "",
+        "rooms": []
       }
     ],
-
-    "universityApplications": [
+    "bupp_applications_v1": [
       {
-        "id": "uni_p1q2r3",
-        "universityName": "University of Toronto",
-        "campus": "St. George",
-        "programName": "Engineering Science",
-        "status": "관심",
-        "scholarship": "국가장학금 검토",
-        "supplementaryRequired": true,
-        "deadline": "2026-01-15",
-        "memo": "Top Choice — 추천서 3장 필요"
+        "id": "app_001",
+        "status": "invoiced",
+        "studentNumber": "BUPP-2026-001",
+        "invoiceNumber": "",
+        "familyName": "김",
+        "givenName": "재준",
+        "gender": "Male",
+        "dateOfBirth": "2008-04-22",
+        "address": "88-12 Yonge St",
+        "city": "Toronto",
+        "country": "Canada",
+        "contactNumber": "+1-647-555-9911",
+        "email": "jaejun.kim@example.ca",
+        "agencyName": "Acme 유학원",
+        "immigrationStatus": "Student Visa",
+        "immigrationOther": "",
+        "familyMembers": [
+          {
+            "relationship": "부",
+            "name": "김상호",
+            "dateOfBirth": "1972-03-10",
+            "homeAddress": "서울시 강남구 역삼동",
+            "city": "서울",
+            "country": "South Korea",
+            "contactNumber": "+82-10-1234-5678",
+            "email": "sangho.kim@example"
+          },
+          {
+            "relationship": "모",
+            "name": "이미경",
+            "dateOfBirth": "1975-08-21",
+            "homeAddress": "서울시 강남구 역삼동",
+            "city": "서울",
+            "country": "South Korea",
+            "contactNumber": "+82-10-9876-5432",
+            "email": "mikyung.lee@example"
+          }
+        ],
+        "currentSchoolName": "대원외국어고등학교",
+        "lastGradeCompleted": "Grade 11",
+        "schoolAddress": "서울특별시 광진구",
+        "schoolCity": "서울",
+        "schoolCountry": "South Korea",
+        "program": "풀가디언",
+        "startGrade": "Grade 12",
+        "foundationTerm": "",
+        "semesterTerm": "September",
+        "numCredits": "8",
+        "accommodationCategory": "홈스테이",
+        "accommodationSubCategory": "캐네디언 홈스테이",
+        "accommodationId": "accm_001",
+        "futureSchoolType": "University",
+        "favouriteSubjects": "Mathematics, Physics, Computer Science",
+        "proposedMajor": "Engineering",
+        "proposedMajorOther": "",
+        "submittedAt": "2025-04-15",
+        "submittedBy": "이지영쌤",
+        "signedDate": "2025-04-15",
+        "studentSignature": "김재준",
+        "parentSignature": "김상호",
+        "assignedManager": "이지영쌤",
+        "cohort": "BUPP 14기",
+        "notes": "엔지니어링 진학 희망. 동생 17기도 등록 예정.",
+        "invoiceId": "inv_001",
+        "linkedStudentId": ""
+      },
+      {
+        "id": "app_002",
+        "status": "invoiced",
+        "studentNumber": "",
+        "invoiceNumber": "BUPP-2026-INV-6943",
+        "koreanName": "박서연",
+        "familyName": "Park",
+        "givenName": "Seoyeon",
+        "gender": "Female",
+        "dateOfBirth": "2010-09-15",
+        "address": "",
+        "city": "",
+        "country": "South Korea",
+        "contactNumber": "+82-10-5555-7777",
+        "email": "seoyeon.park@example",
+        "agencyName": "직접 문의",
+        "immigrationStatus": "Other",
+        "immigrationOther": "입국 예정 (학생 비자 신청 중)",
+        "familyMembers": [
+          {
+            "relationship": "모",
+            "name": "최영주",
+            "dateOfBirth": "1980-11-03",
+            "homeAddress": "부산시 해운대구",
+            "city": "부산",
+            "country": "South Korea",
+            "contactNumber": "+82-10-2222-3333",
+            "email": "youngju.choi@example"
+          }
+        ],
+        "currentSchoolName": "해운대중학교",
+        "lastGradeCompleted": "중3 (한국)",
+        "schoolAddress": "",
+        "schoolCity": "",
+        "schoolCountry": "",
+        "program": "영어집중 방과후 관리형",
+        "startGrade": "Grade 10",
+        "foundationTerm": "",
+        "semesterTerm": "September",
+        "numCredits": "",
+        "accommodationCategory": "홈스테이",
+        "accommodationSubCategory": "한인 홈스테이",
+        "accommodationId": "accm_002",
+        "futureSchoolType": "University",
+        "favouriteSubjects": "",
+        "proposedMajor": "Business",
+        "proposedMajorOther": "",
+        "submittedAt": "2025-05-22",
+        "submittedBy": "박지훈쌤",
+        "signedDate": "2025-05-22",
+        "studentSignature": "박서연",
+        "parentSignature": "",
+        "assignedManager": "젤리",
+        "cohort": "BUPP 17기",
+        "notes": "한식 우선 배정 요청",
+        "invoiceId": "4vozjf70",
+        "linkedStudentId": "83lfnt0k"
       }
     ],
-
-    "internalNotes": {
-      "studentPersonality": "책임감 강하고 내향적. 발표 부담스러워함.",
-      "parentPersonality": "교육열 높음. 주간 보고서 요청.",
-      "counselingNotes": "2025-04: 진로 상담 진행 — Engineering 확정",
-      "cautions": "땅콩 알러지 — 호스트에 재고지 필요",
-      "actionItems": "2025-06: IELTS 모의시험 예약 / 추천서 의뢰",
-      "managerMemo": "Premium Track 학생"
-    }
+    "bupp_invoices_v1": [
+      {
+        "id": "inv_001",
+        "invoiceNumber": "BUPP-2026-INV-001",
+        "applicationId": "app_001",
+        "studentName": "김재준 (Jaejun Kim)",
+        "studentNumber": "BUPP-2026-001",
+        "issueDate": "2025-04-20",
+        "dueDate": "2025-05-20",
+        "items": [
+          {
+            "description": "풀가디언 프로그램 — 2025-09 ~ 2026-06 (10개월) · 세금 포함",
+            "quantity": 1,
+            "amount": 28250
+          },
+          {
+            "description": "홈스테이 비용 — 9개월 (CAD 1,469/월) · 세금 포함",
+            "quantity": 9,
+            "amount": 1469
+          },
+          {
+            "description": "입학 어드미션 비용 · 세금 포함",
+            "quantity": 1,
+            "amount": 565
+          }
+        ],
+        "grossTotal": 42036,
+        "partnerCompany": "Acme 유학원",
+        "commissionType": "rate",
+        "commissionRate": 15,
+        "commissionAmountInput": 0,
+        "commissionAmount": 6305.4,
+        "netTotal": 35730.6,
+        "currency": "CAD",
+        "paymentInstructions": "E-transfer: payment@brkedu.ca\n한국계좌: BUPP 안내 받은 계좌",
+        "status": "sent",
+        "createdAt": "2026-06-19",
+        "createdBy": "이지영쌤",
+        "paidAt": "",
+        "notes": ""
+      },
+      {
+        "id": "fc8qaarb",
+        "invoiceNumber": "BUPP-2026-INV-9625",
+        "applicationId": "",
+        "linkedStudentId": "stu_004",
+        "studentName": "최예린 (Yerin Choi)",
+        "studentNumber": "BH-1001",
+        "issueDate": "2026-06-22",
+        "dueDate": "2026-06-30",
+        "items": [
+          {
+            "itemId": "ii_004",
+            "description": "풀가디언비, 교육청학비, 보험료, 한인 홈스테이 (쉐어화장실)",
+            "quantity": 1,
+            "amount": "49500"
+          }
+        ],
+        "grossTotal": 49500,
+        "partnerCompany": "",
+        "commissionType": "amount",
+        "commissionRate": 0,
+        "commissionAmountInput": 0,
+        "commissionAmount": 0,
+        "netTotal": 49500,
+        "currency": "CAD",
+        "paymentInstructions": "E-transfer: payment@brkedu.ca\n또는 한국계좌 입금 (담당자 안내)",
+        "status": "sent",
+        "paidAt": "",
+        "paymentConfirmedAt": "",
+        "paidAmount": 0,
+        "paymentReceivedMethod": "",
+        "paymentConfirmedBy": "",
+        "paymentMemo": "",
+        "createdAt": "2026-06-22",
+        "createdBy": "젤리",
+        "notes": "",
+        "publicMemo": "입국은 2026년 8월20일부터 가능하며 2027년 6월30일 이후 체류시 추가비용이 발생됩니다"
+      },
+      {
+        "id": "4vozjf70",
+        "invoiceNumber": "BUPP-2026-INV-6943",
+        "applicationId": "app_002",
+        "linkedStudentId": "83lfnt0k",
+        "studentName": "박서연 (Seoyeon Park)",
+        "studentNumber": "BUPP-17-NT0K",
+        "issueDate": "2026-06-22",
+        "dueDate": "2026-06-30",
+        "items": [
+          {
+            "itemId": "ii_002",
+            "description": "베이직 프로그램 — 9월 ~ 6월 (10개월) · 세금 포함",
+            "quantity": 1,
+            "amount": 18500
+          }
+        ],
+        "grossTotal": 18500,
+        "partnerCompany": "직접 문의",
+        "commissionType": "rate",
+        "commissionRate": 0,
+        "commissionAmountInput": 0,
+        "commissionAmount": 0,
+        "netTotal": 18500,
+        "currency": "CAD",
+        "paymentInstructions": "E-transfer: payment@brkedu.ca\n또는 한국계좌 입금 (담당자 안내)",
+        "status": "draft",
+        "paidAt": "",
+        "paymentConfirmedAt": "",
+        "paidAmount": 0,
+        "paymentReceivedMethod": "",
+        "paymentConfirmedBy": "",
+        "paymentMemo": "",
+        "createdAt": "2026-06-22",
+        "createdBy": "젤리",
+        "notes": ""
+      }
+    ],
+    "bupp_partners_v1": [
+      {
+        "id": "ptr_001",
+        "name": "Acme 유학원",
+        "country": "South Korea",
+        "contactPerson": "김태경 실장",
+        "phone": "+82-2-555-1234",
+        "email": "acme@yuhak.example",
+        "address": "서울특별시 강남구 테헤란로 123",
+        "website": "https://acme-yuhak.example",
+        "representativeName": "김태경",
+        "businessNumber": "123-45-67890",
+        "defaultCommissionRate": "15",
+        "active": true,
+        "memo": "캐나다 대학 진학 위주 추천. 분기별 정산.",
+        "createdAt": "2024-03-15"
+      },
+      {
+        "id": "ptr_002",
+        "name": "Best Education Korea",
+        "country": "South Korea",
+        "contactPerson": "박혜원 부장",
+        "phone": "+82-2-777-8888",
+        "email": "park@bestedu.kr",
+        "address": "서울특별시 송파구",
+        "website": "",
+        "representativeName": "박혜원",
+        "businessNumber": "987-65-43210",
+        "defaultCommissionRate": "12",
+        "active": true,
+        "memo": "주로 중학생 어린 학생 위주. 신규 파트너.",
+        "createdAt": "2025-01-20"
+      },
+      {
+        "id": "ptr_003",
+        "name": "Toronto Global Edu",
+        "country": "Canada",
+        "contactPerson": "James Park",
+        "phone": "+1-416-555-9000",
+        "email": "james@tgedu.ca",
+        "address": "500 Yonge St, Toronto, ON",
+        "website": "https://tgedu.ca",
+        "representativeName": "James Park",
+        "businessNumber": "",
+        "defaultCommissionRate": "10",
+        "active": true,
+        "memo": "캐나다 현지 에이전시. 학생 전입 케이스 위주.",
+        "createdAt": "2024-08-10"
+      }
+    ],
+    "bupp_invoice_items_v1": [
+      {
+        "id": "ii_001",
+        "code": "BUPP-FULL-10M",
+        "name": "풀가디언 프로그램 (10개월)",
+        "category": "프로그램",
+        "defaultAmount": 28250,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "풀가디언 프로그램 — 9월 ~ 6월 (10개월) · 세금 포함",
+        "active": true,
+        "memo": "정규 학기 1년 풀세트",
+        "createdAt": "2024-01-10"
+      },
+      {
+        "id": "ii_002",
+        "code": "BUPP-BASIC-10M",
+        "name": "베이직 프로그램 (10개월)",
+        "category": "프로그램",
+        "defaultAmount": 18500,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "베이직 프로그램 — 9월 ~ 6월 (10개월) · 세금 포함",
+        "active": true,
+        "memo": "",
+        "createdAt": "2024-01-10"
+      },
+      {
+        "id": "ii_003",
+        "code": "ACCOM-REA",
+        "name": "배정비",
+        "category": "숙소",
+        "defaultAmount": 200,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "1회 기준",
+        "active": true,
+        "memo": "단가는 9월 인상 반영",
+        "createdAt": "2024-08-01"
+      },
+      {
+        "id": "ii_004",
+        "code": "TDSB-K-Shared",
+        "name": "토론토교육청 10개월",
+        "category": "풀가디언",
+        "defaultAmount": 49500,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "풀가디언비, 교육청학비, 보험료, 한인 홈스테이 (쉐어화장실)",
+        "active": true,
+        "memo": "",
+        "createdAt": "2026-06-22"
+      },
+      {
+        "id": "ii_005",
+        "code": "ADMISSION-FEE",
+        "name": "입학 어드미션 비용",
+        "category": "어드미션",
+        "defaultAmount": 565,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "입학 어드미션 비용 · 세금 포함",
+        "active": true,
+        "memo": "학교 변경 시 별도 청구",
+        "createdAt": "2024-01-10"
+      },
+      {
+        "id": "ii_006",
+        "code": "SCHOOL-REG-PUB",
+        "name": "공립학교 등록비",
+        "category": "학교 등록비",
+        "defaultAmount": 15500,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "공립학교 연간 등록비 (TDSB/YRDSB 등) · 학교 직납",
+        "active": true,
+        "memo": "학교별 차이 있음",
+        "createdAt": "2024-01-10"
+      },
+      {
+        "id": "ii_007",
+        "code": "TUTOR-PRIVATE",
+        "name": "1:1 튜터링 (시간)",
+        "category": "튜터링",
+        "defaultAmount": 75,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "1:1 튜터링 — 시간당 · 세금 포함",
+        "active": true,
+        "memo": "AP/IB 대비 인기",
+        "createdAt": "2024-01-10"
+      },
+      {
+        "id": "ii_008",
+        "code": "IELTS-PREP",
+        "name": "IELTS 준비 패키지",
+        "category": "시험·인증",
+        "defaultAmount": 1200,
+        "defaultCurrency": "CAD",
+        "defaultDescription": "IELTS 준비 패키지 — 20시간 · 모의시험 2회 포함",
+        "active": true,
+        "memo": "",
+        "createdAt": "2024-05-01"
+      }
+    ],
+    "bupp_invoice_item_extra_categories": []
   }
 }

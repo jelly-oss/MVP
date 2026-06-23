@@ -775,6 +775,54 @@ const SAMPLE_STUDENTS = [
       cautions: '', actionItems: '대학 등록 후 새 BUPP 계약 협의',
       managerMemo: 'Alumni'
     }
+  },
+  // 베타테스트용 학생 — 학부모(준영맘) + 학생(아이든) 로그인 검증 대상
+  {
+    ...emptyStudent(),
+    id: 'stu_005',
+    koreanName: '권준영', englishName: 'Aiden Kwon',
+    admissionStatus: '재학중', category: '브듀', guardianManager: '스텔라쌤',
+    cohort: 'BUPP 14기', currentSchool: 'North Toronto Collegiate Institute',
+    birthDate: '2008-05-22', age: '17',
+    actualGrade: 'Grade 12',
+    firstEntryDateCanada: '2023-08-25',
+    expectedStudyPeriod: { startDate: '2023-09-01', endDate: '2026-06-30' },
+    buppContractPeriod: { startDate: '2025-09-01', endDate: '2026-08-31' },
+    insuranceEndDate: '2026-08-31',
+    passportExpiryDate: '2029-02-10', visaExpiryDate: '2026-08-25',
+    gender: '남', oen: '555-666-777', studentId: 'NTCI-24501', bpid: 'BPID-0005', bppw: '',
+    program: '풀가디언',
+    contact: {
+      studentPhone: '+1-647-555-3344', studentEmail: 'aidenkwon16@gmail.com',
+      parentEmail: 'bupptoronto@gmail.com', parentPhone: '+82-10-9876-5432',
+      emergencyContact: '+1-416-555-2024 (호스트)', kakaoId: 'aidenkwon',
+      memo: '학부모 권한 + 학생 권한 베타테스트 대상'
+    },
+    academic: {
+      englishTest: { type:'IELTS', status:'준비중', overall:'6.5', listening:'7.0', reading:'6.5', writing:'6.0', speaking:'6.5', testDate:'2025-09-12', memo:'목표 7.0+' },
+      englishTestHistory: [
+        { id:'et_005a', type:'IELTS', testDate:'2025-09-12', overall:'6.5', listening:'7.0', reading:'6.5', writing:'6.0', speaking:'6.5', memo:'첫 응시' }
+      ],
+      ossltStatus: '합격',
+      schoolMemo: 'AP Computer Science A 수강',
+      koreanHighSchool: '서울외고',
+      premiumTrack: false
+    },
+    extracurriculars: [],
+    accommodation: { type:'홈스테이', status:'거주중', moveInDate:'2023-08-25', address:'45 Yonge Blvd, Toronto', commuteMethod:'TTC 버스', commuteTime:'25분', memo:'호스트와 관계 양호',
+      homestay: { hostName:'Linda Park', hostPhone:'+1-416-555-2024', hostEmail:'linda@homestay.example', familyMembers:'호스트 부부 + 자녀 1 (12세)', mealIncluded:'3끼 모두 포함', allergyOrDiet:'', monthlyFee:'CAD 1,500', depositStatus:'납부완료', houseRules:'평일 22:00 통금', adjustmentStatus:'좋음', changeRequested:false, managerMemo:'' },
+      dormitory: { dormName:'', institutionName:'', contactPerson:'', phone:'', email:'', roomType:'', roommate:'', mealPlan:'', fee:'', depositStatus:'', rules:'', summerStayAvailable:'', managerMemo:'' }
+    },
+    accommodationHistory: [],
+    universityApplications: [],
+    internalNotes: {
+      studentPersonality: '책임감 강하고 외향적',
+      parentPersonality: '소통 활발, 자주 연락',
+      counselingNotes: '2025-09: 진로 상담 — Computer Science 확정',
+      cautions: '',
+      actionItems: '2026-01: 대학 원서 제출',
+      managerMemo: '베타테스트 시연용 학생'
+    }
   }
 ];
 
@@ -1586,7 +1634,9 @@ const SAMPLE_MEMBERS = [
   { id:'mem_003', name:'이지영쌤', fullName:'Rim Jennie', email:'jennie@breakedu.ca', role:'bu_staff', linkedStudentIds:['stu_001','stu_003'], active:true, memo:'가디언 담당자' },
   { id:'mem_004', name:'스텔라쌤', fullName:'Chung Stella', email:'stella@breakedu.ca', role:'bu_staff', linkedStudentIds:[], active:true, memo:'가디언 담당자' },
   { id:'mem_005', name:'니콜쌤', fullName:'Moon Nicole', email:'nicole@breakedu.ca', role:'bu_staff', linkedStudentIds:[], active:true, memo:'가디언 담당자' },
-  { id:'mem_006', name:'Acme 유학원', fullName:'Yoori', email:'loveyoori@gmail.com', role:'partner', linkedStudentIds:['stu_003'], active:true, memo:'외부 파트너사' }
+  { id:'mem_006', name:'Acme 유학원', fullName:'Yoori', email:'loveyoori@gmail.com', role:'partner', linkedStudentIds:['stu_003'], active:true, memo:'외부 파트너사' },
+  { id:'mem_007', name:'준영맘 (김혜진)', fullName:'Kim Hyejin', email:'bupptoronto@gmail.com', role:'parent', linkedStudentIds:['stu_005'], active:true, memo:'권준영(stu_005) 학부모 — 베타테스트' },
+  { id:'mem_008', name:'권준영 (Aiden)', fullName:'Aiden Kwon', email:'aidenkwon16@gmail.com', role:'student', linkedStudentIds:['stu_005'], active:true, memo:'본인 계정 — 베타테스트' }
 ];
 const loadMembers = () => {
   try {

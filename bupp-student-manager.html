@@ -10572,22 +10572,97 @@ const AuthGate = ({ children }) => {
   return children({ firebaseUser: authState.user, member: matchedMember, signOut });
 };
 
+/* ============================================================
+   🔥 Firestore 실시간 동기화 훅
+   - 컬렉션 onSnapshot으로 다른 사용자 변경 자동 반영
+   - 로컬 setState 호출 → Firestore에 자동 write
+   - localStorage는 오프라인 캐시 (defaultLoader가 fallback)
+   ============================================================ */
+const useFirestoreState = (collectionName, defaultLoader, options = {}) => {
+  const { isObjectCollection = false, docId = null } = options;
+  const [items, setItems] = useState(() => defaultLoader());
+
+  useEffect(() => {
+    if (!window.fbDB) return;
+    let unsub;
+    if (isObjectCollection) {
+      unsub = window.fbDB.collection('settings').doc(docId).onSnapshot(
+        (snap) => {
+          if (snap.exists && snap.data().value !== undefined) {
+            setItems(snap.data().value);
+          }
+        },
+        (err) => console.error('[Firestore listen ' + docId + ']', err)
+      );
+    } else {
+      unsub = window.fbDB.collection(collectionName).onSnapshot(
+        (snap) => {
+          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          // Firestore에 데이터가 있으면 그것으로 덮어쓰기 (없으면 로컬 default 유지)
+          if (docs.length > 0) setItems(docs);
+        },
+        (err) => console.error('[Firestore listen ' + collectionName + ']', err)
+      );
+    }
+    return () => { if (unsub) unsub(); };
+  }, [collectionName, docId, isObjectCollection]);
+
+  // 로컬 변경 + Firestore 자동 write
+  const setItemsSync = (updater) => {
+    setItems(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        if (window.fbDB) {
+          if (isObjectCollection) {
+            window.fbDB.collection('settings').doc(docId).set({
+              value: next,
+              updatedAt: new Date().toISOString()
+            }).catch(err => console.error('[Firestore write ' + docId + ']', err));
+          } else {
+            const nextIds = new Set();
+            next.forEach(item => {
+              const id = item.id || window.fbDB.collection(collectionName).doc().id;
+              nextIds.add(id);
+              window.fbDB.collection(collectionName).doc(id)
+                .set({ ...item, id })
+                .catch(err => console.error('[Firestore write ' + collectionName + '/' + id + ']', err));
+            });
+            // 삭제된 항목 처리
+            prev.forEach(item => {
+              if (item.id && !nextIds.has(item.id)) {
+                window.fbDB.collection(collectionName).doc(item.id).delete()
+                  .catch(err => console.error('[Firestore delete ' + collectionName + '/' + item.id + ']', err));
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[Firestore sync ' + collectionName + ']', err);
+      }
+      return next;
+    });
+  };
+
+  return [items, setItemsSync];
+};
+
 function App({ authMember, firebaseUser, signOut }) {
-  const [students, setStudents] = useState(() => loadStudents());
-  const [customOptions, setCustomOptions] = useState(() => loadOptions());
-  const [schools, setSchools] = useState(() => loadSchools());
-  const [subjects, setSubjects] = useState(() => loadSubjects());
-  const [members, setMembers] = useState(() => loadMembers());
-  const [currentUserId, setCurrentUserId] = useState(() => loadCurrentUserId());
-  const [universities, setUniversities] = useState(() => loadUniversities());
-  const [programs, setPrograms] = useState(() => loadPrograms());
-  const [trackGroups, setTrackGroups] = useState(() => loadTrackGroups());
-  const [accommodations, setAccommodations] = useState(() => loadAccommodations());
-  const [applications, setApplications] = useState(() => loadApplications());
-  const [invoices, setInvoices] = useState(() => loadInvoices());
-  const [partners, setPartners] = useState(() => loadPartners());
-  const [invoiceItems, setInvoiceItems] = useState(() => loadInvoiceItems());
-  const [ecMasters, setEcMasters] = useState(() => loadEcMasters());
+  // 🔥 Firestore 실시간 동기화 — 모든 사용자 변경이 1~2초 안에 반영
+  const [students, setStudents] = useFirestoreState('students', loadStudents);
+  const [customOptions, setCustomOptions] = useFirestoreState('settings', loadOptions, { isObjectCollection: true, docId: 'customOptions' });
+  const [schools, setSchools] = useFirestoreState('schools', loadSchools);
+  const [subjects, setSubjects] = useFirestoreState('subjects', loadSubjects);
+  const [members, setMembers] = useFirestoreState('members', loadMembers);
+  const [currentUserId, setCurrentUserId] = useState(() => loadCurrentUserId()); // 로컬 전용 (사용자 시뮬레이션)
+  const [universities, setUniversities] = useFirestoreState('universities', loadUniversities);
+  const [programs, setPrograms] = useFirestoreState('programs', loadPrograms);
+  const [trackGroups, setTrackGroups] = useFirestoreState('trackGroups', loadTrackGroups);
+  const [accommodations, setAccommodations] = useFirestoreState('accommodations', loadAccommodations);
+  const [applications, setApplications] = useFirestoreState('applications', loadApplications);
+  const [invoices, setInvoices] = useFirestoreState('invoices', loadInvoices);
+  const [partners, setPartners] = useFirestoreState('partners', loadPartners);
+  const [invoiceItems, setInvoiceItems] = useFirestoreState('invoiceItems', loadInvoiceItems);
+  const [ecMasters, setEcMasters] = useFirestoreState('ecMasters', loadEcMasters);
   const [pdfAccom, setPdfAccom] = useState(null); // PDF 미리보기 대상
   const [pdfInvoice, setPdfInvoice] = useState(null); // 인보이스 PDF 미리보기
   const [invoiceEditing, setInvoiceEditing] = useState(null); // 인보이스 편집 대상 (app or invoice)

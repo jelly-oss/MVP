@@ -10393,7 +10393,7 @@ const pushObjectToFirestore = async (docId, data) => {
 
 // 빈 상태로 시작 — 멤버 6명만 푸시
 const migrateToFirestoreEmpty = async () => {
-  if (!confirm('Firestore를 빈 상태로 초기화합니다 (멤버 6명만 등록).\n\n⚠️ Firestore에 기존 데이터가 있다면 그대로 유지됩니다 (덮어쓰기 X).\n새로 시작하려면 먼저 Firestore Console에서 수동 삭제 후 진행하세요.\n\n계속하시겠습니까?')) return;
+  if (!confirm(`Firestore를 빈 상태로 초기화합니다 (멤버 ${SAMPLE_MEMBERS.length}명만 등록).\n\n⚠️ Firestore에 기존 데이터가 있다면 그대로 유지됩니다 (덮어쓰기 X).\n새로 시작하려면 먼저 Firestore Console에서 수동 삭제 후 진행하세요.\n\n계속하시겠습니까?`)) return;
   try {
     await pushArrayToFirestore('members', SAMPLE_MEMBERS);
     alert(`✅ 멤버 ${SAMPLE_MEMBERS.length}명 Firestore 등록 완료.\n\nFirebase Console > Firestore에서 'members' 컬렉션 확인 가능.\n\n다음 단계: Phase 2.2에서 실시간 동기화를 활성화합니다.`);

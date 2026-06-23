@@ -8,6 +8,29 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+
+<!-- 🔥 Firebase SDK (compat) — Auth + Firestore -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script>
+  // BUPP-BreakEDU Firebase 프로젝트
+  const firebaseConfig = {
+    apiKey: "AIzaSyCuCMCAmF1bYeyWEVdGSxn9Rtl0DKwbOCQ",
+    authDomain: "bupp-breakedu.firebaseapp.com",
+    projectId: "bupp-breakedu",
+    storageBucket: "bupp-breakedu.firebasestorage.app",
+    messagingSenderId: "423472953018",
+    appId: "1:423472953018:web:00bf606445879367373483"
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.fbAuth = firebase.auth();
+  window.fbDB = firebase.firestore();
+  window.fbGoogleProvider = new firebase.auth.GoogleAuthProvider();
+  // 오프라인 캐시 활성화 — 네트워크 끊겨도 작동
+  try { window.fbDB.enablePersistence({ synchronizeTabs: true }); } catch {}
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   /* BreakEDU 브랜드 팔레트 */
@@ -343,6 +366,23 @@ const calcAge = (birth) => {
   const m = today.getMonth() - b.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
   return String(age);
+};
+
+// 공식학년 — 만나이 기반 자동 계산 (캐나다 표준)
+// 만 14 → Grade 9, 만 15 → Grade 10, 만 16 → Grade 11, 만 17 → Grade 12
+// 만 13 이하 → 중학교 / 만 18 이상 → 졸업
+const calcOfficialGrade = (birth) => {
+  const ageStr = calcAge(birth);
+  if (!ageStr) return '';
+  const age = parseInt(ageStr);
+  if (isNaN(age)) return '';
+  if (age <= 13) return 'Pre-Grade 9';
+  if (age === 14) return 'Grade 9';
+  if (age === 15) return 'Grade 10';
+  if (age === 16) return 'Grade 11';
+  if (age === 17) return 'Grade 12';
+  if (age >= 18) return 'Post-Grade 12';
+  return '';
 };
 
 /* ============================================================
@@ -1417,15 +1457,15 @@ Object.assign(BADGE_COLOR, {
 /* 멤버 마스터 데이터 */
 const MEMBERS_KEY = 'bupp_members_v1';
 const CURRENT_USER_KEY = 'bupp_current_user_v1';
+// 🔐 베타 참여자 — Google 로그인 이메일 기준 화이트리스트
+// 이 명단에 없는 Google 계정은 로그인 후 차단됨
 const SAMPLE_MEMBERS = [
-  { id:'mem_001', name:'젤리', email:'jelly@breakedu.ca', role:'admin', linkedStudentIds:[], active:true, memo:'BreakEDU 대표' },
-  { id:'mem_002', name:'태원쌤', email:'taewon@breakedu.ca', role:'admin', linkedStudentIds:[], active:true, memo:'공동대표 · 회계 총괄' },
-  { id:'mem_003', name:'이지영쌤', email:'jiyoung@breakedu.ca', role:'bu_staff', linkedStudentIds:['stu_001','stu_003'], active:true, memo:'가디언 담당자' },
-  { id:'mem_004', name:'박지훈쌤', email:'jihoon@breakedu.ca', role:'bu_staff', linkedStudentIds:['stu_002','stu_004'], active:true, memo:'가디언 담당자' },
-  { id:'mem_005', name:'김민준 (학생)', email:'minjun.kim@brkedu.ca', role:'student', linkedStudentIds:['stu_001'], active:true, memo:'본인 계정' },
-  { id:'mem_006', name:'김민준 학부모', email:'jkim@parent.example', role:'parent', linkedStudentIds:['stu_001'], active:true, memo:'아버지' },
-  { id:'mem_007', name:'Sarah Park (튜터)', email:'sarah.park@tutor.example', role:'tutor', linkedStudentIds:['stu_001','stu_002'], active:true, memo:'Math/Physics 튜터' },
-  { id:'mem_008', name:'Acme 유학원', email:'partner@acme.example', role:'partner', linkedStudentIds:['stu_003'], active:true, memo:'외부 파트너사' }
+  { id:'mem_001', name:'젤리쌤', fullName:'Cho Jelly', email:'jelly@breakedu.ca', role:'admin', linkedStudentIds:[], active:true, memo:'BreakEDU 대표' },
+  { id:'mem_002', name:'태원쌤', fullName:'Kwon Taewon', email:'tony@breakedu.com', role:'admin', linkedStudentIds:[], active:true, memo:'공동대표 · 회계 총괄' },
+  { id:'mem_003', name:'이지영쌤', fullName:'Rim Jennie', email:'jennie@breakedu.ca', role:'bu_staff', linkedStudentIds:['stu_001','stu_003'], active:true, memo:'가디언 담당자' },
+  { id:'mem_004', name:'스텔라쌤', fullName:'Chung Stella', email:'stella@breakedu.ca', role:'bu_staff', linkedStudentIds:[], active:true, memo:'가디언 담당자' },
+  { id:'mem_005', name:'니콜쌤', fullName:'Moon Nicole', email:'nicole@breakedu.ca', role:'bu_staff', linkedStudentIds:[], active:true, memo:'가디언 담당자' },
+  { id:'mem_006', name:'Acme 유학원', fullName:'Yoori', email:'loveyoori@gmail.com', role:'partner', linkedStudentIds:['stu_003'], active:true, memo:'외부 파트너사' }
 ];
 const loadMembers = () => {
   try {
@@ -4029,8 +4069,16 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
             {calcAge(s.birthDate) ? `만 ${calcAge(s.birthDate)}세` : <span className="text-gray-400">생년월일 입력 시 자동 표시</span>}
           </div>
         </Field>
-        <Field label="공식학년"><TextInput value={s.officialGrade} onChange={(v) => update({ officialGrade: v })} placeholder="Grade 11" /></Field>
-        <Field label="실제학년"><TextInput value={s.actualGrade} onChange={(v) => update({ actualGrade: v })} placeholder="고2" /></Field>
+        <Field label="공식학년 (자동)">
+          <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
+            {calcOfficialGrade(s.birthDate) || <span className="text-gray-400">생년월일 입력 시 자동 표시</span>}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">만 15→G10·16→G11·17→G12 (참고용, 학적과 다를 수 있음)</div>
+        </Field>
+        <Field label="실제학년 *">
+          <TextInput value={s.actualGrade} onChange={(v) => update({ actualGrade: v })} placeholder="Grade 10" />
+          <div className="text-xs text-gray-500 mt-1">크레딧 기준 — 학생 상단에 노출되는 학년</div>
+        </Field>
         <Field label="캐나다 최초 입국일">
           <TextInput type="date" value={s.firstEntryDateCanada} onChange={(v) => update({ firstEntryDateCanada: v })} />
         </Field>
@@ -7177,26 +7225,26 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
         )}
       </div>
 
-      {/* 헤더 */}
-      <div className="notion-card p-6 mb-4">
+      {/* 헤더 — 다크 네이비 + 골드 톤앤매너 */}
+      <div className="p-6 mb-4 rounded-lg" style={{ background:'#202731', color:'#e8e0d5' }}>
         <div className="flex items-center gap-5">
           <div className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl"
-            style={{ background:'#e8e0d5', color:'#c20206', border:'2px solid #fff', boxShadow:'0 1px 3px rgba(32,39,49,.08)' }}>
+            style={{ background:'#F0B429', color:'#202731', border:'2px solid rgba(240,180,41,0.3)', boxShadow:'0 2px 8px rgba(0,0,0,.25)' }}>
             {initials}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-2xl font-bold">{student.koreanName || '이름 없음'}</h2>
-              <span className="text-gray-400">{student.englishName}</span>
+              <h2 className="text-2xl font-bold" style={{color:'#ffffff'}}>{student.koreanName || '이름 없음'}</h2>
+              <span style={{color:'#cabaab'}}>{student.englishName}</span>
               <Badge value={student.admissionStatus}/>
               <Badge value={student.category}/>
               {student.program && <Badge value={student.program}/>}
             </div>
-            <div className="mt-2 text-sm text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
-              {student.currentSchool && <span>🎓 {student.currentSchool}</span>}
-              {student.officialGrade && <span>📚 {student.officialGrade}</span>}
-              {student.cohort && <span>🎫 기수 {student.cohort}</span>}
-              {student.accommodation?.type && <span>🏠 {student.accommodation.type}</span>}
+            <div className="mt-2 text-sm flex flex-wrap gap-x-4 gap-y-1" style={{color:'#cabaab'}}>
+              {student.currentSchool && <span><span style={{color:'#F0B429'}}>🎓</span> {student.currentSchool}</span>}
+              {student.actualGrade && <span><span style={{color:'#F0B429'}}>📚</span> {student.actualGrade}</span>}
+              {student.cohort && <span><span style={{color:'#F0B429'}}>🎫</span> 기수 {student.cohort}</span>}
+              {student.accommodation?.type && <span><span style={{color:'#F0B429'}}>🏠</span> {student.accommodation.type}</span>}
             </div>
           </div>
         </div>
@@ -9525,7 +9573,119 @@ const DataIOMenu = () => {
   );
 };
 
-function App() {
+/* ============================================================
+   🔐 인증 — Google 로그인 + 화이트리스트 (베타 참여자만)
+   ============================================================ */
+const LoginScreen = ({ onError }) => {
+  const [loading, setLoading] = useState(false);
+  const signIn = async () => {
+    setLoading(true);
+    try {
+      await window.fbAuth.signInWithPopup(window.fbGoogleProvider);
+      // onAuthStateChanged가 처리
+    } catch (err) {
+      console.error('[BUPP Auth] 로그인 실패:', err);
+      onError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'#202731'}}>
+      <div className="text-center px-8 py-12 rounded-xl" style={{background:'#ffffff', maxWidth:420, boxShadow:'0 20px 50px rgba(0,0,0,.3)'}}>
+        <div className="text-3xl font-bold mb-2" style={{color:'#c20206'}}>BreakEDU</div>
+        <div className="text-lg mb-1" style={{color:'#202731'}}>BUPP 학생 관리 시스템</div>
+        <div className="text-sm mb-8" style={{color:'#787774'}}>로그인하여 시작하세요</div>
+        <button
+          onClick={signIn}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg transition-colors"
+          style={{
+            background: loading ? '#cabaab' : '#202731',
+            color:'#fff', fontWeight:600, fontSize:14,
+            cursor: loading ? 'wait' : 'pointer'
+          }}
+        >
+          {loading ? (
+            <span>로그인 중…</span>
+          ) : (
+            <Fragment>
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/>
+                <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+              </svg>
+              <span>Google 계정으로 로그인</span>
+            </Fragment>
+          )}
+        </button>
+        <div className="text-xs mt-6" style={{color:'#787774'}}>
+          베타 참여자 계정만 접근 가능합니다.<br/>
+          접근 권한이 필요하시면 BreakEDU 관리자에게 문의하세요.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AccessDeniedScreen = ({ email, onSignOut }) => (
+  <div className="min-h-screen flex items-center justify-center" style={{background:'#202731'}}>
+    <div className="text-center px-8 py-12 rounded-xl" style={{background:'#ffffff', maxWidth:480, boxShadow:'0 20px 50px rgba(0,0,0,.3)'}}>
+      <div className="text-2xl font-bold mb-2" style={{color:'#c20206'}}>접근 권한 없음</div>
+      <div className="text-sm mb-6" style={{color:'#202731'}}>
+        <strong>{email}</strong> 계정은 BUPP 베타 참여자 명단에 등록되어 있지 않습니다.
+      </div>
+      <div className="text-xs mb-6 p-3 rounded text-left" style={{background:'#faf3e3', color:'#760305', border:'1px solid #e8c97a'}}>
+        💡 다른 Google 계정으로 로그인하려면 아래 버튼을 눌러 로그아웃 후 다시 시도하세요.<br/>
+        새 베타 참여자 등록은 BreakEDU 관리자(jelly@breakedu.ca)에게 요청해주세요.
+      </div>
+      <button
+        onClick={onSignOut}
+        className="px-6 py-2 rounded-lg"
+        style={{background:'#202731', color:'#fff', fontSize:14, fontWeight:500}}
+      >로그아웃하고 다시 로그인</button>
+    </div>
+  </div>
+);
+
+const AuthGate = ({ children }) => {
+  const [authState, setAuthState] = useState({ loading: true, user: null, error: null });
+  useEffect(() => {
+    const unsub = window.fbAuth.onAuthStateChanged(
+      (user) => setAuthState({ loading: false, user, error: null }),
+      (error) => setAuthState({ loading: false, user: null, error })
+    );
+    return unsub;
+  }, []);
+  const signOut = async () => {
+    await window.fbAuth.signOut();
+    window.location.reload();
+  };
+
+  if (authState.loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{background:'#202731', color:'#cabaab'}}>
+        <div className="text-center">
+          <div className="text-2xl font-bold mb-2" style={{color:'#F0B429'}}>BreakEDU</div>
+          <div className="text-sm">인증 확인 중...</div>
+        </div>
+      </div>
+    );
+  }
+  if (!authState.user) {
+    return <LoginScreen onError={(err) => alert('로그인 실패: ' + (err?.message || err))}/>;
+  }
+  const email = (authState.user.email || '').toLowerCase();
+  const matchedMember = SAMPLE_MEMBERS.find(m => (m.email || '').toLowerCase() === email);
+  if (!matchedMember) {
+    return <AccessDeniedScreen email={authState.user.email} onSignOut={signOut}/>;
+  }
+  // 인증 통과 — App에 사용자 정보 전달
+  return children({ firebaseUser: authState.user, member: matchedMember, signOut });
+};
+
+function App({ authMember, firebaseUser, signOut }) {
   const [students, setStudents] = useState(() => loadStudents());
   const [customOptions, setCustomOptions] = useState(() => loadOptions());
   const [schools, setSchools] = useState(() => loadSchools());
@@ -9573,7 +9733,10 @@ function App() {
   useEffect(() => { saveInvoiceItems(invoiceItems); }, [invoiceItems]);
 
   // 현재 사용자 정보 + 권한
-  const currentUser = members.find(m => m.id === currentUserId) || members[0];
+  // 🔐 인증된 사용자를 현재 사용자로 사용 (authMember 우선, 없으면 시뮬레이션 기존 방식)
+  const currentUser = authMember
+    ? (members.find(m => (m.email || '').toLowerCase() === (authMember.email || '').toLowerCase()) || authMember)
+    : (members.find(m => m.id === currentUserId) || members[0]);
   const role = currentUser?.role || 'admin';
   const access = PAGE_ACCESS[role] || PAGE_ACCESS.admin;
   const scope = STUDENT_SCOPE[role] || 'all';
@@ -9722,7 +9885,20 @@ function App() {
         </div>
         <div className="flex items-center gap-2">
           {access.accounting && <DataIOMenu/>}
-          <CurrentUserSwitcher members={members} currentUserId={currentUserId} onChange={(id) => { setCurrentUserId(id); setOpenId(null); setView('students'); }}/>
+          {authMember ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1 rounded" style={{background:'#faf7f3', border:'1px solid var(--border)'}}>
+                {firebaseUser?.photoURL && <img src={firebaseUser.photoURL} alt="" style={{width:24, height:24, borderRadius:'50%'}}/>}
+                <div className="text-xs">
+                  <div className="font-semibold" style={{color:'#202731'}}>{currentUser?.name}</div>
+                  <div style={{color:'#787774', fontSize:10}}>{currentUser?.email} · <Badge value={ROLE_LABEL[role]}/></div>
+                </div>
+              </div>
+              <button className="btn-ghost text-xs" onClick={signOut} title="로그아웃">↪ 로그아웃</button>
+            </div>
+          ) : (
+            <CurrentUserSwitcher members={members} currentUserId={currentUserId} onChange={(id) => { setCurrentUserId(id); setOpenId(null); setView('students'); }}/>
+          )}
         </div>
       </header>
 
@@ -9978,7 +10154,13 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <AuthGate>
+    {({ firebaseUser, member, signOut }) => (
+      <App authMember={member} firebaseUser={firebaseUser} signOut={signOut}/>
+    )}
+  </AuthGate>
+);
 </script>
 </body>
 </html>

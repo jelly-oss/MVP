@@ -6639,14 +6639,38 @@ const buildReportAutoSummary = (student, schools, subjects, universities, progra
   // 누적 학점
   const totalCredits = recs.reduce((sum, r) => sum + (parseFloat(r.credits) || 0), 0);
 
-  // Top 6 평균
+  // Top 6 평균 — 진행 중인 12학년 과목 대상 (현재 듣고 있는 과목만)
   const top6 = recs.filter(r => r.grade === '12' && r.top6);
-  const top6Scores = top6.map(r => {
-    const vals = [r.final, r.midterm2, r.midterm1, r.targetScore];
-    for (const v of vals) { const n = parseFloat(v); if (!isNaN(n)) return n; }
-    return null;
+  // 1년제(Year) 학기시스템은 midterm1·midterm2 두 개 모두 존재 → 평균을 미드텀 점수로 사용
+  const isYearLong = (r) => {
+    const school = schools.find(s => s.id === r.schoolId);
+    const sys = r.semesterSystem || school?.semesterSystem || '';
+    return sys.startsWith('Year');
+  };
+  // 진행 중인 Top6 12학년 과목 — endDate 미래 또는 final 없음
+  const top6InProgress = top6.filter(r => !r.final || (r.endDate && r.endDate >= today));
+  // 미드텀 점수: 1년제는 (m1+m2)/2, 학기제는 m1만
+  const midtermScores = top6InProgress.map(r => {
+    const m1 = parseFloat(r.midterm1);
+    const m2 = parseFloat(r.midterm2);
+    if (isYearLong(r)) {
+      if (!isNaN(m1) && !isNaN(m2)) return (m1 + m2) / 2;
+      if (!isNaN(m1)) return m1; // m2 아직 없으면 m1만
+      return null;
+    }
+    return !isNaN(m1) ? m1 : null;
   }).filter(n => n !== null);
-  const top6Avg = top6Scores.length ? (top6Scores.reduce((a,b) => a+b, 0) / top6Scores.length).toFixed(2) : null;
+  // 파이널 점수 — final 입력된 과목만
+  const finalScores = top6InProgress.map(r => {
+    const f = parseFloat(r.final);
+    return !isNaN(f) ? f : null;
+  }).filter(n => n !== null);
+
+  const top6MidtermAvg = midtermScores.length ? (midtermScores.reduce((a,b) => a+b, 0) / midtermScores.length).toFixed(2) : null;
+  const top6FinalAvg = finalScores.length ? (finalScores.reduce((a,b) => a+b, 0) / finalScores.length).toFixed(2) : null;
+
+  // 호환용 — 기존 코드가 참조하는 top6Avg (파이널 우선, 없으면 미드텀)
+  const top6Avg = top6FinalAvg || top6MidtermAvg;
 
   // 출석 — 최근 행들의 지각/결석 합산
   const recentLate = recs.reduce((sum, r) => sum + (parseInt(r.late) || 0), 0);
@@ -6778,12 +6802,28 @@ const buildReportAutoSummary = (student, schools, subjects, universities, progra
   const reports = (student.reports || []).slice().sort((a,b) => (a.date||'').localeCompare(b.date||''));
   const top6History = reports.map(r => r._top6AvgSnapshot).filter(v => v !== undefined && v !== null && !isNaN(v));
 
+  // 진행 중 과목 상세 (과목 코드·이름 칩용)
+  const inProgressDetails = inProgress.map(r => {
+    const sub = subjects.find(x => x.id === r.subjectId);
+    return sub ? { id: r.id, code: sub.code, name: sub.name } : null;
+  }).filter(Boolean);
+
+  // OSSLT — 학생 academic.ossltStatus + (별도 날짜 필드 없음, 메모 활용)
+  const ossltStatus = student.academic?.ossltStatus || '해당없음';
+
   return {
     inProgressCount: inProgress.length,
     inProgressNames,
+    inProgressDetails,
     totalCredits,
     top6Avg,
+    top6MidtermAvg,
+    top6FinalAvg,
     top6Count: top6.length,
+    top6InProgressCount: top6InProgress.length,
+    top6MidtermInputCount: midtermScores.length,
+    top6FinalInputCount: finalScores.length,
+    ossltStatus,
     recentLate, recentAbsent,
     activeAppsCount: activeApps.length,
     acceptedCount: accepted.length,
@@ -6988,126 +7028,201 @@ const ReportCard = ({ rep, onEdit, onRemove }) => {
 // 📊 학생 데이터 자동 요약 — 재사용 컴포넌트 (기본정보 + 리포트 양쪽에서 사용 가능)
 const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[], programs=[] }) => {
   const summary = buildReportAutoSummary(student, schools, subjects, universities, programs);
-  return (
-    <div className="notion-card p-4 mb-4" style={{ background:'#fff', borderColor:'#cabaab' }}>
-      <div className="font-semibold mb-3" style={{color:'#760305'}}>📊 학생 데이터 자동 요약 (참고용)</div>
 
-      {/* Row 1: 5개 핵심 위젯 */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-        <div className="notion-card p-3" style={{ background:'#faf7f3' }}>
+  // 섹션 헤더 스타일
+  const SectionTitle = ({ children }) => (
+    <div className="flex items-center gap-2 mb-3 mt-5">
+      <span style={{ width:3, height:18, background:'#c20206', borderRadius:2 }}/>
+      <span className="font-bold text-base" style={{color:'#202731'}}>{children}</span>
+    </div>
+  );
+
+  const ossltCfg = {
+    '예정':       { color:'#a47007', bg:'#faf3e3', icon:'📅', label:'응시 예정' },
+    '응시':       { color:'#0b6e99', bg:'#ddebf1', icon:'✏️', label:'응시 완료 (결과 대기)' },
+    '합격':       { color:'#0f7b6c', bg:'#ddedea', icon:'✅', label:'합격' },
+    '불합격':     { color:'#c20206', bg:'#fbe0e0', icon:'❌', label:'불합격 (재응시 필요)' },
+    '해당없음':   { color:'#787774', bg:'#f5f5f5', icon:'—',  label:'해당없음' }
+  }[summary.ossltStatus] || { color:'#787774', bg:'#f5f5f5', icon:'—', label:summary.ossltStatus };
+
+  return (
+    <div className="mb-6">
+      {/* ⏰ 다가오는 마일스톤 — 최상단 */}
+      {summary.milestones.length > 0 && (
+        <Fragment>
+          <SectionTitle>다가오는 마일스톤</SectionTitle>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {summary.milestones.map((m, i) => (
+              <div key={i} className="notion-card p-3 flex items-center gap-3" style={{background:'#fff'}}>
+                <DDayChip date={m.date} label=""/>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold" style={{color:'#202731'}}>{m.label}</div>
+                  <div className="text-xs text-gray-500">{m.date}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Fragment>
+      )}
+
+      {/* 🎓 졸업 요건 현황 — 누적 학점 / 봉사 시간 / OSSLT */}
+      <SectionTitle>졸업 요건 현황 <span className="text-xs font-normal text-gray-500 ml-1">OSSD 기준 · 자동 집계</span></SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="notion-card p-4" style={{background:'#fff'}}>
           <div className="text-xs text-gray-500 mb-1">🎓 누적 학점</div>
-          <div className="text-2xl font-bold" style={{color:'#c20206'}}>{summary.totalCredits}<span className="text-sm text-gray-400"> / 30</span></div>
-          <div className="mt-2">
-            <ProgressBar value={summary.totalCredits} max={30} color="#c20206" showLabel={false}/>
-            <div className="text-xs text-gray-500 mt-1">OSSD 졸업 기준</div>
-          </div>
-        </div>
-        <div className="notion-card p-3 flex flex-col items-center" style={{ background:'#faf7f3' }}>
-          <div className="text-xs text-gray-500 mb-1 self-start">🎯 Top 6 평균</div>
-          {summary.top6Avg != null
-            ? <Donut percent={parseFloat(summary.top6Avg)} color="#c20206" subLabel={`${summary.top6Count}/6`}/>
-            : <div className="text-sm text-gray-400 py-4">미선정</div>}
-        </div>
-        <div className="notion-card p-3 flex flex-col items-center" style={{ background:'#faf7f3' }}>
-          <div className="text-xs text-gray-500 mb-1 self-start">📅 출석률 (누적)</div>
-          <Donut percent={summary.attendanceRate}
-            color={summary.attendanceRate >= 95 ? '#0f7b6c' : summary.attendanceRate >= 90 ? '#cb912f' : '#c20206'}
-            subLabel={`지각${summary.recentLate}·결석${summary.recentAbsent}`}/>
-        </div>
-        <div className="notion-card p-3" style={{ background:'#faf7f3' }}>
-          <div className="text-xs text-gray-500 mb-1">🤝 봉사 시간</div>
-          <div className="text-2xl font-bold" style={{color: summary.volunteerHours >= 40 ? '#0f7b6c' : '#c20206'}}>
-            {summary.volunteerHours}<span className="text-sm text-gray-400"> / 40h</span>
-          </div>
-          <div className="mt-2">
-            <ProgressBar value={Math.min(summary.volunteerHours, 40)} max={40}
-              color={summary.volunteerHours >= 40 ? '#0f7b6c' : summary.volunteerHours >= 20 ? '#cb912f' : '#c20206'}
-              showLabel={false}/>
-            <div className="text-xs text-gray-500 mt-1">
-              {summary.volunteerHours >= 40 ? '✓ 졸업 조건 충족' : `${40 - summary.volunteerHours}h 부족`}
+          <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.totalCredits}<span className="text-base font-medium text-gray-400 ml-1">/ 30</span></div>
+          <div className="mt-3">
+            <ProgressBar value={summary.totalCredits} max={30} color="#cb912f" showLabel={false}/>
+            <div className="text-xs text-gray-500 mt-1.5">
+              {summary.totalCredits >= 30
+                ? '✓ 졸업 학점 충족'
+                : `졸업까지 ${30 - summary.totalCredits}학점 남음 · 진행률 ${Math.round(summary.totalCredits/30*100)}%`}
             </div>
           </div>
         </div>
-        <div className="notion-card p-3" style={{ background:'#faf7f3' }}>
-          <div className="text-xs text-gray-500 mb-1">📚 진행 중 과목</div>
-          <div className="text-2xl font-bold" style={{color:'#c20206'}}>{summary.inProgressCount}</div>
-          {summary.top6Avg != null && (
-            <div className="mt-2">
-              <TrendIndicator values={summary.top6History} current={parseFloat(summary.top6Avg)} label="Top6" format={v => Number(v).toFixed(1)}/>
+        <div className="notion-card p-4" style={{background:'#fff'}}>
+          <div className="text-xs text-gray-500 mb-1">🤝 봉사 시간</div>
+          <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.volunteerHours}<span className="text-base font-medium text-gray-400 ml-1">/ 40h</span></div>
+          <div className="mt-3">
+            <ProgressBar value={Math.min(summary.volunteerHours, 40)} max={40}
+              color={summary.volunteerHours >= 40 ? '#0f7b6c' : summary.volunteerHours >= 20 ? '#cb912f' : '#c20206'}
+              showLabel={false}/>
+            <div className="text-xs mt-1.5" style={{color: summary.volunteerHours >= 40 ? '#0f7b6c' : '#787774'}}>
+              {summary.volunteerHours >= 40 ? '● 졸업 조건 충족' : `${40 - summary.volunteerHours}h 부족`}
+            </div>
+          </div>
+        </div>
+        <div className="notion-card p-4" style={{background:'#fff'}}>
+          <div className="text-xs text-gray-500 mb-1">📝 OSSLT</div>
+          <div className="text-xl font-bold flex items-center gap-2" style={{color:ossltCfg.color}}>
+            <span>{ossltCfg.icon}</span> {ossltCfg.label}
+          </div>
+          <div className="mt-2 px-2 py-1.5 rounded text-xs" style={{background:ossltCfg.bg, color:ossltCfg.color}}>
+            {summary.ossltStatus === '합격' && 'OSSD 졸업 영어 능력 시험 통과'}
+            {summary.ossltStatus === '예정' && '응시 후 학업 메타에서 결과 업데이트'}
+            {summary.ossltStatus === '응시' && '응시 완료 — 학교에서 결과 통보 대기'}
+            {summary.ossltStatus === '불합격' && '재응시 또는 OLC4O로 대체 가능'}
+            {summary.ossltStatus === '해당없음' && 'Grade 10 응시 대상 (또는 해당사항 없음)'}
+          </div>
+        </div>
+      </div>
+
+      {/* 📅 출결 추이 */}
+      {summary.attendanceGroups.length > 0 && (
+        <Fragment>
+          <SectionTitle>출결 추이 <span className="text-xs font-normal text-gray-500 ml-1">학교 학기 시스템 기준 · 누적 변화</span></SectionTitle>
+          <div className="notion-card p-3" style={{background:'#fff'}}>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {summary.attendanceGroups.map(g => {
+                const total = g.late + g.absent;
+                const trendCfg = {
+                  better: { color:'#0f7b6c', bg:'#ddedea', icon:'↗', label:'개선' },
+                  worse: { color:'#c20206', bg:'#fbe0e0', icon:'↘', label:'주의' },
+                  same: { color:'#787774', bg:'#f5f5f5', icon:'→', label:'동일' },
+                  first: { color:'#cabaab', bg:'#faf7f3', icon:'•', label:'시작' }
+                }[g.trend];
+                return (
+                  <div key={g.key} className="rounded p-2 text-xs" style={{ background:'#faf7f3', border:'1px solid #e8e0d5' }}>
+                    <div className="font-semibold text-center" style={{color:'#202731'}}>{g.label}</div>
+                    <div className="text-center text-gray-500 truncate mb-2" style={{fontSize:10}}>{g.schoolName}</div>
+                    <div className="flex items-center justify-around text-xs">
+                      <span>지각 <strong style={{color:'#202731'}}>{g.late}</strong></span>
+                      <span>결석 <strong style={{color:'#202731'}}>{g.absent}</strong></span>
+                    </div>
+                    <div className="mt-2 text-center inline-block w-full">
+                      <span className="rounded px-2 py-0.5" style={{background:trendCfg.bg, color:trendCfg.color, fontSize:10, fontWeight:600}}>
+                        {trendCfg.icon} {trendCfg.label} {g.trend !== 'first' && total > 0 && `· 누계 ${total}`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Fragment>
+      )}
+
+      {/* 📚 진행 중 과목 */}
+      {summary.inProgressDetails.length > 0 && (
+        <Fragment>
+          <SectionTitle>진행 중 과목 <span className="text-xs font-normal text-gray-500 ml-1">{summary.inProgressCount}과목</span></SectionTitle>
+          <div className="notion-card p-3" style={{background:'#fff'}}>
+            <div className="flex flex-wrap gap-1.5">
+              {summary.inProgressDetails.slice(0, 10).map(s => (
+                <span key={s.id} className="text-xs px-2.5 py-1 rounded" style={{background:'#faf7f3', border:'1px solid #cabaab', color:'#202731'}}>
+                  <strong>{s.code}</strong> <span className="text-gray-500">{s.name}</span>
+                </span>
+              ))}
+              {summary.inProgressDetails.length > 10 && (
+                <span className="text-xs text-gray-500 px-2.5 py-1">+ {summary.inProgressDetails.length - 10}과목 더보기</span>
+              )}
+            </div>
+          </div>
+        </Fragment>
+      )}
+
+      {/* 🌟 EC 카테고리 분포 + 🎯 대학 지원 단계 */}
+      <SectionTitle>지원 & 활동 현황</SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="notion-card p-3" style={{background:'#fff'}}>
+          <div className="text-xs font-semibold mb-2 text-gray-500">🎯 대학 지원 단계</div>
+          <UniFunnel stages={summary.funnelStages}/>
+        </div>
+        <div className="notion-card p-3" style={{background:'#fff'}}>
+          <div className="text-xs font-semibold mb-2 text-gray-500">🌟 EC 카테고리 분포</div>
+          <EcDistribution counts={summary.ecCounts}/>
+          {summary.ecActive.length > 0 && (
+            <div className="mt-3 pt-3" style={{borderTop:'1px solid #e8e0d5'}}>
+              <div className="text-xs text-gray-500 mb-1.5">진행 중인 활동</div>
+              <div className="flex flex-wrap gap-1">
+                {summary.ecActive.slice(0, 5).map((name, i) => (
+                  <span key={i} className="text-xs px-2 py-0.5 rounded" style={{background:'#faf3e3', color:'#760305'}}>{name}</span>
+                ))}
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* 출결 추이 */}
-      {summary.attendanceGroups.length > 0 && (
-        <div className="notion-card p-3 mb-4" style={{ background:'#faf7f3' }}>
-          <div className="text-xs font-semibold mb-3" style={{color:'#760305'}}>📅 출결 추이 (학교 학기시스템 기준 — 개선/동일/악화)</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-            {summary.attendanceGroups.map(g => {
-              const total = g.late + g.absent;
-              const trendCfg = {
-                better: { color:'#0f7b6c', bg:'#ddedea', icon:'↗', label:'개선' },
-                worse: { color:'#c20206', bg:'#fbe0e0', icon:'↘', label:'악화' },
-                same: { color:'#787774', bg:'#f5f5f5', icon:'→', label:'동일' },
-                first: { color:'#cabaab', bg:'#fff', icon:'•', label:'시작' }
-              }[g.trend];
-              return (
-                <div key={g.key} className="notion-card p-2 text-xs" style={{ background: trendCfg.bg, borderColor: trendCfg.color, borderWidth:1 }}>
-                  <div className="flex items-start justify-between gap-1">
-                    <div>
-                      <div className="font-semibold" style={{color:'#202731'}}>{g.label}</div>
-                      <div className="text-gray-500 truncate" style={{fontSize:10, maxWidth:120}}>{g.schoolName}</div>
-                    </div>
-                    <span className="badge b-gray text-xs" style={{padding:'1px 4px', fontSize:9}}>{g.sysLabel}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2 text-xs">
-                    <span>지각 <strong style={{color:'#202731'}}>{g.late}</strong></span>
-                    <span>결석 <strong style={{color:'#202731'}}>{g.absent}</strong></span>
-                  </div>
-                  <div className="mt-1 text-center font-semibold" style={{color:trendCfg.color, fontSize:11}}>
-                    {trendCfg.icon} {trendCfg.label} {g.trend !== 'first' && `(누계 ${total})`}
-                  </div>
-                </div>
-              );
-            })}
+      {/* 🎯 Top 6 — 미드텀/파이널 분리 */}
+      <SectionTitle>Top 6 평균 <span className="text-xs font-normal text-gray-500 ml-1">현재 이수 중 12학년 과목 {summary.top6InProgressCount}과목</span></SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="notion-card p-4" style={{background:'#fff'}}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold text-gray-500">📊 미드텀 평균</div>
+            <span className="text-xs text-gray-400">{summary.top6MidtermInputCount}/{summary.top6InProgressCount}과목 입력</span>
           </div>
-          <div className="text-xs text-gray-500 mt-2">💡 학년제 → 학년별 / 학기제 → 학기별(Sem1·Sem2·Summer) / 쿼터제 → Q1~Q4 단위로 자동 그룹화됩니다.</div>
+          {summary.top6MidtermAvg != null ? (
+            <Fragment>
+              <div className="text-3xl font-bold" style={{color:'#0b6e99'}}>{summary.top6MidtermAvg}</div>
+              <div className="text-xs text-gray-500 mt-2">💡 1년제 과목은 (Midterm1 + Midterm2) ÷ 2로 평균 계산. 대학 조건부 합격(conditional offer)의 주요 기준이 됩니다.</div>
+            </Fragment>
+          ) : (
+            <div className="text-sm text-gray-400 py-3">아직 미드텀 점수 입력된 과목이 없습니다.</div>
+          )}
         </div>
-      )}
-
-      {/* D-day 마일스톤 */}
-      {summary.milestones.length > 0 && (
-        <div className="mb-4">
-          <div className="text-xs font-semibold mb-2" style={{color:'#760305'}}>⏰ 다가오는 마일스톤 (D-day)</div>
-          <div className="flex gap-2 flex-wrap">
-            {summary.milestones.map((m, i) => (
-              <DDayChip key={i} date={m.date} label={m.label}/>
-            ))}
+        <div className="notion-card p-4" style={{background:'#fff'}}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold text-gray-500">🏆 파이널 평균</div>
+            <span className="text-xs text-gray-400">{summary.top6FinalInputCount}/{summary.top6InProgressCount}과목 입력</span>
           </div>
-        </div>
-      )}
-
-      {/* 대학 지원 깔때기 + EC 카테고리 분포 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-        {(summary.activeAppsCount > 0 || summary.acceptedCount > 0) && (
-          <div className="notion-card p-3" style={{ background:'#faf7f3' }}>
-            <div className="text-xs font-semibold mb-2" style={{color:'#760305'}}>🎯 대학 지원 단계 (Funnel)</div>
-            <UniFunnel stages={summary.funnelStages}/>
-          </div>
-        )}
-        <div className="notion-card p-3" style={{ background:'#faf7f3' }}>
-          <div className="text-xs font-semibold mb-2" style={{color:'#760305'}}>🌟 EC 카테고리 분포</div>
-          <EcDistribution counts={summary.ecCounts}/>
+          {summary.top6FinalAvg != null ? (
+            <Fragment>
+              <div className="text-3xl font-bold" style={{color:'#0f7b6c'}}>{summary.top6FinalAvg}</div>
+              <div className="text-xs text-gray-500 mt-2">최종 입학 확정(unconditional offer) 판정 기준. 모든 과목 final이 입력되면 자동 갱신됩니다.</div>
+            </Fragment>
+          ) : (
+            <div className="text-sm text-gray-400 py-3">아직 파이널 점수 입력된 과목이 없습니다.</div>
+          )}
         </div>
       </div>
 
-      {/* 꼬리표 */}
-      <div className="text-xs text-gray-600 pt-3" style={{ borderTop:'1px solid #cabaab' }}>
-        {summary.inProgressNames.length > 0 && <div className="mb-1">📚 진행 중: {summary.inProgressNames.slice(0,5).join(', ')}{summary.inProgressNames.length > 5 && ` 외 ${summary.inProgressNames.length - 5}`}</div>}
-        {summary.ecActive.length > 0 && <div className="mb-1">🌟 진행 중 EC: {summary.ecActive.join(', ')}</div>}
-        {summary.finalChoice && <div>🎓 최종 선택: <strong style={{color:'#c20206'}}>{summary.finalChoice}</strong></div>}
-      </div>
+      {/* 꼬리표 — 최종 선택 학교 */}
+      {summary.finalChoice && (
+        <div className="text-sm mt-4 p-3 rounded" style={{background:'#faf3e3', border:'1px solid #e8c97a', color:'#760305'}}>
+          🎓 최종 선택: <strong>{summary.finalChoice}</strong>
+        </div>
+      )}
     </div>
   );
 };

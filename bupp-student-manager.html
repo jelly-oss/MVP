@@ -1000,6 +1000,127 @@ const loadInvoiceItems = () => {
 };
 const saveInvoiceItems = (d) => { try { localStorage.setItem(INVOICE_ITEMS_KEY, JSON.stringify(d)); } catch {} };
 
+/* ============================================================
+   🌟 EC 마스터 카탈로그 — BreakEDU가 큐레이션한 EC 활동 풀
+   ============================================================ */
+const EC_MASTERS_KEY = 'bupp_ec_masters_v1';
+const EC_FREQUENCY_TYPES = ['정기', '비정기', '일회성', '자율 진행'];
+const EC_PARTICIPATION_TYPES = ['그룹', '개인', '둘 다'];
+const EC_ORG_TYPES = ['외부 단체', '학교', 'BUPP 자체'];
+const EC_MASTER_STATUSES = ['모집 중', '진행 중', '종료', '검토 중 (후보)'];
+const EC_INTEREST_AREAS = ['Engineering', 'Business', 'Medical-Science', 'IT', 'Art', 'Social Science', 'General'];
+
+const emptyEcMaster = () => ({
+  id: '', name: '',
+  category: '',                    // 5종 카테고리 (EC_CATEGORIES)
+  organizationName: '',
+  organizationType: '외부 단체',
+  frequencyType: '비정기',
+  frequency: '',                   // 예) "매주 화요일 18:00"
+  participationType: '그룹',
+  recommendedGrades: [],           // ['Grade 9','Grade 10',...]
+  interestAreas: [],
+  applicationMethod: '',
+  deadline: '',
+  capacity: '',                    // 정원
+  cost: '',
+  hoursPerSession: '',
+  recognizesVolunteerHours: false,
+  admissionsValue: '보통',
+  contactName: '',
+  contactEmail: '',
+  contactPhone: '',
+  managerInternal: '',             // BUPP 담당자
+  description: '',
+  studentReview: '',
+  mediaLinks: '',
+  status: '모집 중',
+  notes: '',                       // 내부 메모
+  createdAt: new Date().toISOString().slice(0, 10),
+  updatedAt: new Date().toISOString().slice(0, 10)
+});
+
+const SAMPLE_EC_MASTERS = [
+  {
+    id:'ecm_001', name:'Toronto Food Bank 봉사',
+    category:'봉사활동', organizationName:'Toronto Food Bank', organizationType:'외부 단체',
+    frequencyType:'정기', frequency:'매주 토요일 10:00-13:00 (3시간)',
+    participationType:'그룹', recommendedGrades:['Grade 9','Grade 10','Grade 11','Grade 12'],
+    interestAreas:['Social Science','General'],
+    applicationMethod:'BUPP 담당자에게 신청 → 단체 등록',
+    deadline:'', capacity:'10명', cost:'무료', hoursPerSession:'3',
+    recognizesVolunteerHours:true, admissionsValue:'높음',
+    contactName:'Sarah Chen', contactEmail:'volunteer@tfb.org', contactPhone:'+1-416-203-0050',
+    managerInternal:'스텔라쌤',
+    description:'토론토 푸드뱅크에서 식품 분류·포장·배포 봉사. OSSD 봉사시간 인정 + 사회 기여 경험.',
+    studentReview:'2024-25 시즌 김민준·박서연 참여 — "조직력과 협업이 좋아짐"',
+    mediaLinks:'https://www.dailybread.ca/volunteer',
+    status:'모집 중', notes:'',
+    createdAt:'2024-01-15', updatedAt:'2025-08-01'
+  },
+  {
+    id:'ecm_002', name:'FIRST FRC Robotics',
+    category:'대회 및 수상', organizationName:'FIRST Canada', organizationType:'학교',
+    frequencyType:'정기', frequency:'학기 중 주 3회 (월/수/금 방과 후)',
+    participationType:'그룹', recommendedGrades:['Grade 10','Grade 11','Grade 12'],
+    interestAreas:['Engineering','IT'],
+    applicationMethod:'각 학교 로보틱스 팀에 가입',
+    deadline:'매년 9월', capacity:'팀별 다름', cost:'학교 부담',
+    hoursPerSession:'4', recognizesVolunteerHours:false, admissionsValue:'매우 높음',
+    contactName:'', contactEmail:'', contactPhone:'',
+    managerInternal:'니콜쌤',
+    description:'캐나다 최대 고등학생 로보틱스 대회. 자율주행 알고리즘·기계 설계·팀워크. 공대 입시 핵심 EC.',
+    studentReview:'2024 시즌 김민준 (Northern S.S.) — Excellence in Engineering Award',
+    mediaLinks:'https://www.firstroboticscanada.org',
+    status:'진행 중', notes:'학교별 팀 가입 필수, 9월 트라이아웃',
+    createdAt:'2024-08-01', updatedAt:'2025-09-15'
+  },
+  {
+    id:'ecm_003', name:'BUPP 영어 토론 클럽',
+    category:'학교클럽', organizationName:'BUPP', organizationType:'BUPP 자체',
+    frequencyType:'정기', frequency:'매주 일요일 14:00-16:00',
+    participationType:'그룹', recommendedGrades:['Grade 9','Grade 10','Grade 11'],
+    interestAreas:['General','Social Science','Business'],
+    applicationMethod:'BUPP 담당자에게 신청',
+    deadline:'', capacity:'8명', cost:'무료 (BUPP 멤버 한정)',
+    hoursPerSession:'2', recognizesVolunteerHours:false, admissionsValue:'보통',
+    contactName:'', contactEmail:'', contactPhone:'',
+    managerInternal:'이지영쌤',
+    description:'BUPP 자체 운영 토론 클럽. 시사 이슈로 영어 토론 연습 + 발표력 강화. Grade 10 IELTS 준비에 효과적.',
+    studentReview:'',
+    mediaLinks:'',
+    status:'모집 중', notes:'2025-09 학기부터 신규 시작',
+    createdAt:'2025-08-20', updatedAt:'2025-08-20'
+  },
+  {
+    id:'ecm_004', name:'UofT Engineering Summer Academy',
+    category:'특별 프로그램', organizationName:'University of Toronto', organizationType:'외부 단체',
+    frequencyType:'일회성', frequency:'2026년 7월 (2주)',
+    participationType:'개인', recommendedGrades:['Grade 10','Grade 11'],
+    interestAreas:['Engineering','IT','Medical-Science'],
+    applicationMethod:'UofT 홈페이지 신청 + 추천서',
+    deadline:'2026-03-31', capacity:'30명 (선발)', cost:'CAD 3,500',
+    hoursPerSession:'', recognizesVolunteerHours:false, admissionsValue:'매우 높음',
+    contactName:'Nicola Carozza', contactEmail:'engsummer@utoronto.ca', contactPhone:'',
+    managerInternal:'젤리쌤',
+    description:'UofT 공대 여름 캠프. 실험실 견학 + 미니 프로젝트. 추천서 작성 시 UofT 교수 추천.',
+    studentReview:'',
+    mediaLinks:'https://outreach.engineering.utoronto.ca/engineering-summer-academy/',
+    status:'모집 중', notes:'마감 임박 — 1월부터 추천서 준비 권장',
+    createdAt:'2025-06-01', updatedAt:'2025-12-01'
+  }
+];
+
+const loadEcMasters = () => {
+  try {
+    const raw = localStorage.getItem(EC_MASTERS_KEY);
+    if (!raw) return SAMPLE_EC_MASTERS;
+    const p = JSON.parse(raw);
+    return Array.isArray(p) && p.length ? p : SAMPLE_EC_MASTERS;
+  } catch { return SAMPLE_EC_MASTERS; }
+};
+const saveEcMasters = (d) => { try { localStorage.setItem(EC_MASTERS_KEY, JSON.stringify(d)); } catch {} };
+
 // 신청서 (Application) — 학생 등록 신청
 const emptyApplication = () => ({
   id: '', status: 'pending', studentNumber: '', invoiceNumber: '',
@@ -1426,12 +1547,12 @@ const ROLE_COLOR_KEY = {
 };
 // 메뉴/페이지 접근 권한 (true = 메뉴 노출 + 페이지 접근 가능)
 const PAGE_ACCESS = {
-  admin:    { students:true, schools:true, subjects:true, uniData:true, accomData:true, cohortDash:true, members:true, matrix:true, accounting:true, tutor:true, parent:true, applications:true, invoices:true, partners:true },
-  bu_staff: { students:true, schools:true, subjects:true, uniData:true, accomData:true, cohortDash:true, members:false, matrix:true, accounting:false, tutor:true, parent:true, applications:true, invoices:true, partners:true },
-  student:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:false, invoices:false, partners:false },
-  parent:   { students:true, schools:false, subjects:false, uniData:false, accomData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:true, applications:false, invoices:false, partners:false },
-  tutor:    { students:true, schools:false, subjects:false, uniData:false, accomData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:true, parent:false, applications:false, invoices:false, partners:false },
-  partner:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:true, invoices:false, partners:false }
+  admin:    { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:true, matrix:true, accounting:true, tutor:true, parent:true, applications:true, invoices:true, partners:true },
+  bu_staff: { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:false, matrix:true, accounting:false, tutor:true, parent:true, applications:true, invoices:true, partners:true },
+  student:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:false, invoices:false, partners:false },
+  parent:   { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:true, applications:false, invoices:false, partners:false },
+  tutor:    { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:true, parent:false, applications:false, invoices:false, partners:false },
+  partner:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:true, invoices:false, partners:false }
 };
 // 학생 데이터 접근 범위
 const STUDENT_SCOPE = {
@@ -4999,12 +5120,32 @@ const EC_TYPE_TO_CATEGORY = {
   '기타': '개별 특성화 활동'
 };
 
-const ECEditor = ({ ec, onSave, onCancel }) => {
+const ECEditor = ({ ec, ecMasters=[], onSave, onCancel }) => {
   const [draft, setDraft] = useState(ec);
   const set = (k, v) => setDraft({ ...draft, [k]: v });
   const cat = draft.category || EC_TYPE_TO_CATEGORY[draft.type] || '';
   const contactRequired = EC_CONTACT_REQUIRED.includes(cat);
   const star = (txt) => contactRequired ? `${txt} *` : txt;
+
+  // 🌟 마스터에서 선택 시 자동 채움
+  const selectMaster = (masterId) => {
+    if (!masterId) { setDraft({...draft, ecMasterId: ''}); return; }
+    const m = ecMasters.find(x => x.id === masterId);
+    if (!m) return;
+    setDraft({
+      ...draft,
+      ecMasterId: m.id,
+      category: m.category || draft.category,
+      activityName: m.name || draft.activityName,
+      organizationName: m.organizationName || draft.organizationName,
+      frequency: m.frequency || draft.frequency,
+      contactName: m.contactName || draft.contactName,
+      contactEmail: m.contactEmail || draft.contactEmail,
+      contactPhone: m.contactPhone || draft.contactPhone,
+      admissionsValue: m.admissionsValue || draft.admissionsValue,
+      description: draft.description || m.description || ''
+    });
+  };
 
   const validate = () => {
     if (!cat) return 'EC 카테고리를 선택해주세요.';
@@ -5026,6 +5167,27 @@ const ECEditor = ({ ec, onSave, onCancel }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {/* 🌟 EC 마스터 카탈로그에서 선택 (선택 사항) */}
+      <Field label="🌟 EC 카탈로그에서 선택 (선택 사항 — 자동 채움)" span={3}>
+        <RefSelect
+          value={draft.ecMasterId || ''}
+          onChange={selectMaster}
+          options={ecMasters.filter(m => m.status !== '검토 중 (후보)').map(m => ({
+            id: m.id,
+            label: `[${m.category}] ${m.name}${m.organizationName ? ` — ${m.organizationName}` : ''}`
+          }))}
+          placeholder="BUPP가 큐레이션한 활동에서 선택 (또는 직접 입력)"
+        />
+        {draft.ecMasterId && (() => {
+          const m = ecMasters.find(x => x.id === draft.ecMasterId);
+          return m ? (
+            <div className="text-xs mt-1.5 p-2 rounded" style={{background:'#ddedea', color:'#0f7b6c', border:'1px solid #0f7b6c'}}>
+              ✓ <strong>{m.name}</strong> 연결됨 · 활동 정보가 자동으로 채워졌습니다. 학생 본인 정보(시작일·시간·포지션 등)만 입력하세요.
+            </div>
+          ) : null;
+        })()}
+      </Field>
+
       {/* 카테고리 선택 (최상위) */}
       <Field label="EC 카테고리 *" span={3}>
         <Select value={cat} onChange={(v) => set('category', v)} options={EC_CATEGORIES} placeholder="카테고리 선택"/>
@@ -5135,7 +5297,7 @@ const ECEditor = ({ ec, onSave, onCancel }) => {
 // 카테고리 정규화 헬퍼
 const getECCategory = (e) => e.category || EC_TYPE_TO_CATEGORY[e.type] || '';
 
-const TabEC = ({ s, update }) => {
+const TabEC = ({ s, update, ecMasters=[] }) => {
   const [editing, setEditing] = useState(null);
   const [filters, setFilters] = useState({ category:'', status:'' });
 
@@ -5171,11 +5333,11 @@ const TabEC = ({ s, update }) => {
       count={list.length}
       right={
         <button className="btn-primary" onClick={() => setEditing({
-          id:'', category:'', activityName:'', organizationName:'',
+          id:'', ecMasterId:'', category:'', activityName:'', organizationName:'',
           startDate:'', endDate:'', totalHours:'', recognizedHours:'',
           status:'예정', position:'', frequency:'',
           contactName:'', contactEmail:'', contactPhone:'',
-          awardDescription:'',
+          awardDescription:'', awardWon:false,
           description:'', growthPoint:'',
           admissionsValue:'', proofLink:'', teacherMemo:''
         })}>+ EC 추가</button>
@@ -5239,7 +5401,7 @@ const TabEC = ({ s, update }) => {
       {/* 편집 폼 */}
       {editing && (
         <div className="notion-card p-4 mb-4 bg-gray-50">
-          <ECEditor ec={editing} onSave={upsert} onCancel={() => setEditing(null)} />
+          <ECEditor ec={editing} ecMasters={ecMasters} onSave={upsert} onCancel={() => setEditing(null)} />
         </div>
       )}
 
@@ -7194,7 +7356,7 @@ const TabNotes = ({ s, update }) => {
 /* ============================================================
    학생 상세 페이지
    ============================================================ */
-const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, addOption, removeOption, schools, subjects, universities=[], programs=[], trackGroups=[], accommodations=[], invoices=[], role='admin' }) => {
+const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, addOption, removeOption, schools, subjects, universities=[], programs=[], trackGroups=[], accommodations=[], invoices=[], ecMasters=[], role='admin' }) => {
   const allTabs = [
     { id:'basic', label:'A. 기본 정보' },
     { id:'contact', label:'B. 연락처' },
@@ -7265,7 +7427,7 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
       {tab === 'contact' && <TabContact s={student} update={update}/>}
       {tab === 'academic' && <TabAcademic s={student} update={update}/>}
       {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects}/>}
-      {tab === 'ec' && <TabEC s={student} update={update}/>}
+      {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters}/>}
       {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations}/>}
       {tab === 'uni' && <TabUni s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} trackGroups={trackGroups}/>}
       {tab === 'report' && <TabReport s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} invoices={invoices} canEdit={canEdit}/>}
@@ -8575,6 +8737,371 @@ const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChan
   );
 };
 
+/* ============================================================
+   🌟 EC 마스터 카탈로그 페이지 — BUPP가 큐레이션한 활동 풀
+   ============================================================ */
+const EcMasterPage = ({ ecMasters, onChange, students=[] }) => {
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({ category:'', frequencyType:'', status:'', orgType:'', admissionsValue:'' });
+  const [editing, setEditing] = useState(null);
+  const [openId, setOpenId] = useState(null);
+
+  const filtered = ecMasters.filter(m => {
+    const q = search.trim().toLowerCase();
+    if (q && !(m.name||'').toLowerCase().includes(q) && !(m.organizationName||'').toLowerCase().includes(q)) return false;
+    if (filters.category && m.category !== filters.category) return false;
+    if (filters.frequencyType && m.frequencyType !== filters.frequencyType) return false;
+    if (filters.status && m.status !== filters.status) return false;
+    if (filters.orgType && m.organizationType !== filters.orgType) return false;
+    if (filters.admissionsValue && m.admissionsValue !== filters.admissionsValue) return false;
+    return true;
+  }).sort((a, b) => {
+    // 모집 중 우선, 그 다음 진행 중, 종료, 검토 중 순
+    const order = { '모집 중':1, '진행 중':2, '종료':3, '검토 중 (후보)':4 };
+    return (order[a.status]||9) - (order[b.status]||9) || (a.name||'').localeCompare(b.name||'');
+  });
+
+  const countByCategory = EC_CATEGORIES.reduce((acc, c) => {
+    acc[c] = ecMasters.filter(m => m.category === c).length;
+    return acc;
+  }, {});
+
+  const upsert = (d) => {
+    if (!d.name?.trim()) { alert('활동명을 입력해주세요.'); return; }
+    const withTimestamp = { ...d, updatedAt: new Date().toISOString().slice(0, 10) };
+    const next = d.id ? ecMasters.map(m => m.id === d.id ? withTimestamp : m) : [...ecMasters, { ...withTimestamp, id: uid() }];
+    onChange(next);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    const using = students.filter(s => (s.extracurriculars || []).some(e => e.ecMasterId === id)).length;
+    if (using > 0) {
+      if (!confirm(`이 활동을 ${using}명의 학생이 EC에 등록했습니다.\n그래도 마스터에서 삭제하시겠습니까? (학생 EC 항목은 유지되지만 카탈로그 연결이 끊깁니다)`)) return;
+    } else {
+      if (!confirm('이 EC 마스터를 삭제하시겠습니까?')) return;
+    }
+    onChange(ecMasters.filter(m => m.id !== id));
+  };
+
+  // 참여 학생 집계 — 카탈로그 EC별
+  const getParticipants = (ecmId) => students
+    .filter(s => (s.extracurriculars || []).some(e => e.ecMasterId === ecmId))
+    .map(s => ({ id: s.id, name: s.koreanName }));
+
+  if (editing) {
+    return <EcMasterEditor draft={editing} onSave={upsert} onCancel={() => setEditing(null)}/>;
+  }
+  if (openId) {
+    const opened = ecMasters.find(m => m.id === openId);
+    if (opened) return <EcMasterDetailView ecm={opened} participants={getParticipants(opened.id)} onEdit={() => setEditing(opened)} onClose={() => setOpenId(null)}/>;
+  }
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-8 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">🌟 EC 데이터 (활동 카탈로그)</h1>
+          <p className="text-sm text-gray-500 mt-1">BUPP가 큐레이션한 EC 활동 풀 · 전체 {ecMasters.length}개 · 필터 결과 {filtered.length}개</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input className="notion-input w-64" placeholder="활동명·기관 검색..." value={search} onChange={(e) => setSearch(e.target.value)}/>
+          <button className="btn-primary" onClick={() => setEditing(emptyEcMaster())}>+ 새 EC 활동</button>
+        </div>
+      </div>
+
+      {/* 카테고리 카드 */}
+      <div className="grid grid-cols-5 gap-2 mb-4">
+        {EC_CATEGORIES.map(c => (
+          <div key={c} className="notion-card p-3 text-center cursor-pointer"
+            onClick={() => setFilters({...filters, category: filters.category === c ? '' : c})}
+            style={{background: filters.category === c ? '#ebebea' : '#fff'}}
+          >
+            <div className="text-xs text-gray-500">{c}</div>
+            <div className="text-xl font-bold mt-1">{countByCategory[c]}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 필터 */}
+      <div className="notion-card p-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Field label="기간 유형"><Select value={filters.frequencyType} onChange={(v) => setFilters({...filters, frequencyType:v})} options={EC_FREQUENCY_TYPES} placeholder="전체"/></Field>
+          <Field label="주최 유형"><Select value={filters.orgType} onChange={(v) => setFilters({...filters, orgType:v})} options={EC_ORG_TYPES} placeholder="전체"/></Field>
+          <Field label="대입 활용도"><Select value={filters.admissionsValue} onChange={(v) => setFilters({...filters, admissionsValue:v})} options={EC_VALUES} placeholder="전체"/></Field>
+          <Field label="상태"><Select value={filters.status} onChange={(v) => setFilters({...filters, status:v})} options={EC_MASTER_STATUSES} placeholder="전체"/></Field>
+        </div>
+      </div>
+
+      {/* 목록 */}
+      <div className="notion-card overflow-hidden">
+        <table className="w-full">
+          <thead><tr>
+            <th className="table-th">활동명</th>
+            <th className="table-th">카테고리</th>
+            <th className="table-th">기관</th>
+            <th className="table-th">기간 유형</th>
+            <th className="table-th">대입 활용</th>
+            <th className="table-th">참여 학생</th>
+            <th className="table-th">상태</th>
+            <th className="table-th"></th>
+          </tr></thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan="8" className="text-center py-12 text-gray-400 text-sm">조건에 맞는 EC가 없습니다.</td></tr>
+            ) : filtered.map(m => {
+              const participants = getParticipants(m.id);
+              return (
+                <tr key={m.id} className="row-hover cursor-pointer" onClick={() => setOpenId(m.id)}>
+                  <td className="table-td">
+                    <div className="font-medium">{m.name}</div>
+                    {m.frequency && <div className="text-xs text-gray-500 mt-0.5">{m.frequency}</div>}
+                  </td>
+                  <td className="table-td"><Badge value={m.category}/></td>
+                  <td className="table-td text-sm">
+                    <div>{m.organizationName || '—'}</div>
+                    <div className="text-xs text-gray-400">{m.organizationType}</div>
+                  </td>
+                  <td className="table-td"><Badge value={m.frequencyType}/></td>
+                  <td className="table-td"><Badge value={m.admissionsValue}/></td>
+                  <td className="table-td text-xs">
+                    {participants.length > 0 ? (
+                      <span style={{color:'#0f7b6c', fontWeight:600}}>👥 {participants.length}명</span>
+                    ) : <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="table-td"><Badge value={m.status}/></td>
+                  <td className="table-td text-right whitespace-nowrap">
+                    <button className="btn-ghost text-xs" onClick={(e) => { e.stopPropagation(); setEditing(m); }}>수정</button>
+                    <button className="btn-danger text-xs" onClick={(e) => { e.stopPropagation(); remove(m.id); }}>삭제</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const EcMasterEditor = ({ draft: initialDraft, onSave, onCancel }) => {
+  const [draft, setDraft] = useState(initialDraft);
+  const set = (k, v) => setDraft(prev => ({...prev, [k]: v}));
+  const toggleArrayValue = (k, v) => {
+    const arr = draft[k] || [];
+    set(k, arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
+  };
+  return (
+    <div className="max-w-[1100px] mx-auto px-8 py-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{draft.id ? 'EC 마스터 수정' : '새 EC 활동 추가'}</h1>
+        <button className="btn-ghost" onClick={onCancel}>취소</button>
+      </div>
+
+      <div className="notion-card p-5">
+        <h4 className="font-semibold mb-4" style={{color:'#760305'}}>기본 정보</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Field label="활동명 *" span={3}><TextInput value={draft.name} onChange={(v) => set('name', v)} placeholder="예) Toronto Food Bank 봉사"/></Field>
+          <Field label="카테고리 *"><Select value={draft.category} onChange={(v) => set('category', v)} options={EC_CATEGORIES} placeholder="선택"/></Field>
+          <Field label="상태"><Select value={draft.status} onChange={(v) => set('status', v)} options={EC_MASTER_STATUSES}/></Field>
+          <Field label="대입 활용도"><Select value={draft.admissionsValue} onChange={(v) => set('admissionsValue', v)} options={EC_VALUES}/></Field>
+          <Field label="주최기관" span={2}><TextInput value={draft.organizationName} onChange={(v) => set('organizationName', v)} placeholder="예) Toronto Food Bank"/></Field>
+          <Field label="주최 유형"><Select value={draft.organizationType} onChange={(v) => set('organizationType', v)} options={EC_ORG_TYPES}/></Field>
+        </div>
+      </div>
+
+      <div className="notion-card p-5">
+        <h4 className="font-semibold mb-4" style={{color:'#760305'}}>일정 · 참여</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Field label="기간 유형"><Select value={draft.frequencyType} onChange={(v) => set('frequencyType', v)} options={EC_FREQUENCY_TYPES}/></Field>
+          <Field label="참여 형태"><Select value={draft.participationType} onChange={(v) => set('participationType', v)} options={EC_PARTICIPATION_TYPES}/></Field>
+          <Field label="회당 시간"><TextInput value={draft.hoursPerSession} onChange={(v) => set('hoursPerSession', v)} placeholder="예) 3"/></Field>
+          <Field label="일정/빈도" span={3}><TextInput value={draft.frequency} onChange={(v) => set('frequency', v)} placeholder="예) 매주 토요일 10:00-13:00 또는 2026년 7월 (2주)"/></Field>
+          <Field label="신청 마감일"><TextInput type="date" value={draft.deadline} onChange={(v) => set('deadline', v)}/></Field>
+          <Field label="정원"><TextInput value={draft.capacity} onChange={(v) => set('capacity', v)} placeholder="예) 10명"/></Field>
+          <Field label="비용"><TextInput value={draft.cost} onChange={(v) => set('cost', v)} placeholder="예) 무료 또는 CAD 500"/></Field>
+          <Field label="신청 방법" span={3}><TextArea value={draft.applicationMethod} onChange={(v) => set('applicationMethod', v)} rows={2} placeholder="예) BUPP 담당자에게 연락 / 홈페이지 직접 신청 / 추천서 제출 등"/></Field>
+          <Field label="OSSD 봉사시간 인정"><div className="pt-2"><Toggle value={draft.recognizesVolunteerHours} onChange={(v) => set('recognizesVolunteerHours', v)} label="인정됨"/></div></Field>
+        </div>
+      </div>
+
+      <div className="notion-card p-5">
+        <h4 className="font-semibold mb-4" style={{color:'#760305'}}>매칭 정보 — 추천 학년 · 관심 분야</h4>
+        <Field label="추천 학년 (중복 선택)" span={3}>
+          <div className="flex flex-wrap gap-1.5">
+            {['Grade 9','Grade 10','Grade 11','Grade 12'].map(g => {
+              const on = (draft.recommendedGrades || []).includes(g);
+              return (
+                <button key={g} onClick={() => toggleArrayValue('recommendedGrades', g)}
+                  className="text-xs px-3 py-1.5 rounded"
+                  style={on ? {background:'#c20206', color:'#fff'} : {background:'#fff', color:'#202731', border:'1px solid #cabaab'}}
+                >{g}</button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="관심 분야 (중복 선택)" span={3}>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {EC_INTEREST_AREAS.map(a => {
+              const on = (draft.interestAreas || []).includes(a);
+              return (
+                <button key={a} onClick={() => toggleArrayValue('interestAreas', a)}
+                  className="text-xs px-3 py-1.5 rounded"
+                  style={on ? {background:'#202731', color:'#F0B429', border:'1px solid #F0B429'} : {background:'#fff', color:'#202731', border:'1px solid #cabaab'}}
+                >{a}</button>
+              );
+            })}
+          </div>
+        </Field>
+      </div>
+
+      <div className="notion-card p-5">
+        <h4 className="font-semibold mb-4" style={{color:'#760305'}}>담당자 · 연락처</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Field label="BUPP 내 담당자"><TextInput value={draft.managerInternal} onChange={(v) => set('managerInternal', v)} placeholder="예) 스텔라쌤"/></Field>
+          <Field label="외부 담당자 이름"><TextInput value={draft.contactName} onChange={(v) => set('contactName', v)}/></Field>
+          <Field label="외부 담당자 이메일"><TextInput type="email" value={draft.contactEmail} onChange={(v) => set('contactEmail', v)}/></Field>
+          <Field label="외부 담당자 연락처"><TextInput value={draft.contactPhone} onChange={(v) => set('contactPhone', v)}/></Field>
+        </div>
+      </div>
+
+      <div className="notion-card p-5">
+        <h4 className="font-semibold mb-4" style={{color:'#760305'}}>설명 · 후기</h4>
+        <div className="space-y-3">
+          <Field label="활동 설명"><TextArea value={draft.description} onChange={(v) => set('description', v)} rows={3} placeholder="이 활동이 어떤 것이고 학생에게 어떤 가치가 있는지"/></Field>
+          <Field label="학생 후기 / 참여 경험"><TextArea value={draft.studentReview} onChange={(v) => set('studentReview', v)} rows={2} placeholder="예) 2024-25 시즌 김민준 — '조직력과 협업이 좋아짐'"/></Field>
+          <Field label="관련 링크 / 미디어"><TextInput value={draft.mediaLinks} onChange={(v) => set('mediaLinks', v)} placeholder="https://... 사진/영상/공식 홈페이지"/></Field>
+          <Field label="내부 메모 (BUPP 전용)"><TextArea value={draft.notes} onChange={(v) => set('notes', v)} rows={2} placeholder="외부에 노출되지 않는 내부 메모"/></Field>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <button className="btn-ghost" onClick={onCancel}>취소</button>
+        <button className="btn-primary" onClick={() => onSave(draft)}>저장</button>
+      </div>
+    </div>
+  );
+};
+
+const EcMasterDetailView = ({ ecm, participants, onEdit, onClose }) => (
+  <div className="max-w-[1100px] mx-auto px-8 py-6 space-y-4">
+    <div className="flex items-center justify-between">
+      <button className="btn-ghost" onClick={onClose}>← 카탈로그</button>
+      <button className="btn-primary" onClick={onEdit}>수정</button>
+    </div>
+
+    {/* 헤더 */}
+    <div className="p-6 rounded-lg" style={{background:'#202731', color:'#e8e0d5'}}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <h2 className="text-2xl font-bold" style={{color:'#ffffff'}}>{ecm.name}</h2>
+            <Badge value={ecm.category}/>
+            <Badge value={ecm.status}/>
+            <Badge value={ecm.admissionsValue}/>
+          </div>
+          <div className="text-sm flex flex-wrap gap-x-4 gap-y-1" style={{color:'#cabaab'}}>
+            <span><span style={{color:'#F0B429'}}>🏢</span> {ecm.organizationName} · {ecm.organizationType}</span>
+            <span><span style={{color:'#F0B429'}}>📅</span> {ecm.frequencyType}</span>
+            <span><span style={{color:'#F0B429'}}>👥</span> {ecm.participationType}</span>
+            {ecm.managerInternal && <span><span style={{color:'#F0B429'}}>👤</span> 담당 {ecm.managerInternal}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* 참여 학생 */}
+    <div className="notion-card p-4">
+      <h4 className="font-semibold mb-3" style={{color:'#0f7b6c'}}>👥 참여 학생 ({participants.length}명)</h4>
+      {participants.length === 0 ? (
+        <div className="text-sm text-gray-400">아직 참여 학생이 없습니다. 학생 EC 추가 시 이 카탈로그에서 선택하면 여기 자동 표시됩니다.</div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {participants.map(p => (
+            <span key={p.id} className="badge b-green" style={{padding:'4px 10px'}}>{p.name}</span>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* 일정 · 신청 */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="notion-card p-4">
+        <h4 className="font-semibold mb-2" style={{color:'#760305'}}>📅 일정 · 비용</h4>
+        <div className="text-sm space-y-1">
+          {ecm.frequency && <div><strong>일정/빈도:</strong> {ecm.frequency}</div>}
+          {ecm.hoursPerSession && <div><strong>회당 시간:</strong> {ecm.hoursPerSession}시간</div>}
+          {ecm.deadline && <div><strong>신청 마감:</strong> {ecm.deadline}</div>}
+          {ecm.capacity && <div><strong>정원:</strong> {ecm.capacity}</div>}
+          {ecm.cost && <div><strong>비용:</strong> {ecm.cost}</div>}
+          {ecm.recognizesVolunteerHours && <div style={{color:'#0f7b6c'}}>✓ OSSD 봉사시간 인정</div>}
+        </div>
+      </div>
+      <div className="notion-card p-4">
+        <h4 className="font-semibold mb-2" style={{color:'#760305'}}>📝 신청 방법</h4>
+        <div className="text-sm whitespace-pre-wrap">{ecm.applicationMethod || '—'}</div>
+      </div>
+    </div>
+
+    {/* 매칭 */}
+    {((ecm.recommendedGrades || []).length > 0 || (ecm.interestAreas || []).length > 0) && (
+      <div className="notion-card p-4">
+        <h4 className="font-semibold mb-3" style={{color:'#760305'}}>🎯 추천 매칭</h4>
+        {ecm.recommendedGrades?.length > 0 && (
+          <div className="mb-2 text-sm">
+            <strong className="text-gray-500">추천 학년:</strong>
+            <span className="ml-2">{ecm.recommendedGrades.map(g => <span key={g} className="badge b-blue mr-1">{g}</span>)}</span>
+          </div>
+        )}
+        {ecm.interestAreas?.length > 0 && (
+          <div className="text-sm">
+            <strong className="text-gray-500">관심 분야:</strong>
+            <span className="ml-2">{ecm.interestAreas.map(a => <span key={a} className="badge b-purple mr-1">{a}</span>)}</span>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* 연락처 */}
+    {(ecm.contactName || ecm.contactEmail || ecm.contactPhone) && (
+      <div className="notion-card p-4">
+        <h4 className="font-semibold mb-2" style={{color:'#760305'}}>📞 외부 담당자</h4>
+        <div className="text-sm space-y-1">
+          {ecm.contactName && <div><strong>이름:</strong> {ecm.contactName}</div>}
+          {ecm.contactEmail && <div><strong>이메일:</strong> <a href={`mailto:${ecm.contactEmail}`} className="text-blue-600 hover:underline">{ecm.contactEmail}</a></div>}
+          {ecm.contactPhone && <div><strong>연락처:</strong> {ecm.contactPhone}</div>}
+        </div>
+      </div>
+    )}
+
+    {/* 설명 */}
+    <div className="notion-card p-4">
+      <h4 className="font-semibold mb-2" style={{color:'#760305'}}>활동 설명</h4>
+      <div className="text-sm whitespace-pre-wrap">{ecm.description || '—'}</div>
+    </div>
+
+    {ecm.studentReview && (
+      <div className="notion-card p-4" style={{background:'#faf3e3'}}>
+        <h4 className="font-semibold mb-2" style={{color:'#a47007'}}>💬 학생 후기 / 참여 경험</h4>
+        <div className="text-sm whitespace-pre-wrap">{ecm.studentReview}</div>
+      </div>
+    )}
+
+    {ecm.mediaLinks && (
+      <div className="notion-card p-4">
+        <h4 className="font-semibold mb-2" style={{color:'#760305'}}>🔗 관련 링크</h4>
+        <a href={ecm.mediaLinks} target="_blank" rel="noopener" className="text-sm text-blue-600 hover:underline">{ecm.mediaLinks}</a>
+      </div>
+    )}
+
+    {ecm.notes && (
+      <div className="notion-card p-4" style={{background:'#fbe0e0'}}>
+        <h4 className="font-semibold mb-1" style={{color:'#760305'}}>🔒 내부 메모 (BUPP 전용)</h4>
+        <div className="text-sm whitespace-pre-wrap">{ecm.notes}</div>
+      </div>
+    )}
+  </div>
+);
+
 const InvoiceItemsPage = ({ items, onChange }) => {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ category: '', active: '' });
@@ -9371,7 +9898,8 @@ const EXPORT_KEYS = [
   'bupp_students_v1', 'bupp_options_v1', 'bupp_schools_v1', 'bupp_subjects_v1',
   'bupp_members_v1', 'bupp_universities_v1', 'bupp_programs_v1', 'bupp_trackgroups_v1',
   'bupp_accommodations_v1', 'bupp_applications_v1', 'bupp_invoices_v1',
-  'bupp_partners_v1', 'bupp_invoice_items_v1', 'bupp_invoice_item_extra_categories'
+  'bupp_partners_v1', 'bupp_invoice_items_v1', 'bupp_invoice_item_extra_categories',
+  'bupp_ec_masters_v1'
 ];
 const AUTO_LOAD_FLAG = 'bupp_data_initialized_v1';
 const GITHUB_URL_KEY = 'bupp_github_data_url_v1';
@@ -9574,6 +10102,123 @@ const DataIOMenu = () => {
 };
 
 /* ============================================================
+   🔥 Firestore 마이그레이션 — localStorage → Firestore 1회 푸시
+   ============================================================ */
+// localStorage 키 → Firestore 컬렉션 이름 매핑
+const FIRESTORE_COLLECTION_MAP = {
+  'bupp_students_v1':       { name: 'students',       isArray: true,  isObject: false },
+  'bupp_applications_v1':   { name: 'applications',   isArray: true,  isObject: false },
+  'bupp_invoices_v1':       { name: 'invoices',       isArray: true,  isObject: false },
+  'bupp_partners_v1':       { name: 'partners',       isArray: true,  isObject: false },
+  'bupp_invoice_items_v1':  { name: 'invoiceItems',   isArray: true,  isObject: false },
+  'bupp_members_v1':        { name: 'members',        isArray: true,  isObject: false },
+  'bupp_schools_v1':        { name: 'schools',        isArray: true,  isObject: false },
+  'bupp_subjects_v1':       { name: 'subjects',       isArray: true,  isObject: false },
+  'bupp_universities_v1':   { name: 'universities',   isArray: true,  isObject: false },
+  'bupp_programs_v1':       { name: 'programs',       isArray: true,  isObject: false },
+  'bupp_trackgroups_v1':    { name: 'trackGroups',    isArray: true,  isObject: false },
+  'bupp_accommodations_v1': { name: 'accommodations', isArray: true,  isObject: false },
+  'bupp_ec_masters_v1':     { name: 'ecMasters',      isArray: true,  isObject: false },
+  // 단일 객체/배열 (settings 컬렉션의 단일 문서)
+  'bupp_options_v1':                       { name: 'settings', docId: 'customOptions',              isObject: true },
+  'bupp_invoice_item_extra_categories':    { name: 'settings', docId: 'extraInvoiceItemCategories', isObject: true }
+};
+
+// Firestore에 배열을 한 번에 푸시 (배치 — 최대 500개씩)
+const pushArrayToFirestore = async (collectionName, items, onProgress) => {
+  if (!Array.isArray(items)) return 0;
+  const batchSize = 400;
+  let pushed = 0;
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = window.fbDB.batch();
+    const chunk = items.slice(i, i + batchSize);
+    chunk.forEach(item => {
+      const id = item.id || window.fbDB.collection(collectionName).doc().id;
+      const ref = window.fbDB.collection(collectionName).doc(id);
+      batch.set(ref, { ...item, id });
+    });
+    await batch.commit();
+    pushed += chunk.length;
+    if (onProgress) onProgress(pushed, items.length);
+  }
+  return pushed;
+};
+
+// settings 컬렉션의 단일 문서 푸시
+const pushObjectToFirestore = async (docId, data) => {
+  await window.fbDB.collection('settings').doc(docId).set({ value: data, updatedAt: new Date().toISOString() });
+};
+
+// 빈 상태로 시작 — 멤버 6명만 푸시
+const migrateToFirestoreEmpty = async () => {
+  if (!confirm('Firestore를 빈 상태로 초기화합니다 (멤버 6명만 등록).\n\n⚠️ Firestore에 기존 데이터가 있다면 그대로 유지됩니다 (덮어쓰기 X).\n새로 시작하려면 먼저 Firestore Console에서 수동 삭제 후 진행하세요.\n\n계속하시겠습니까?')) return;
+  try {
+    await pushArrayToFirestore('members', SAMPLE_MEMBERS);
+    alert(`✅ 멤버 ${SAMPLE_MEMBERS.length}명 Firestore 등록 완료.\n\nFirebase Console > Firestore에서 'members' 컬렉션 확인 가능.\n\n다음 단계: Phase 2.2에서 실시간 동기화를 활성화합니다.`);
+  } catch (err) {
+    console.error('[BUPP Migration] 빈 상태 마이그레이션 실패:', err);
+    alert('마이그레이션 실패: ' + (err?.message || err) + '\n\n콘솔(F12)에서 자세한 로그 확인.');
+  }
+};
+
+// 현재 localStorage 전체 푸시
+const migrateToFirestoreFull = async () => {
+  // 현재 데이터 통계
+  const stats = {};
+  Object.entries(FIRESTORE_COLLECTION_MAP).forEach(([key, conf]) => {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        stats[conf.name + (conf.docId ? '/'+conf.docId : '')] = Array.isArray(data) ? `${data.length}건` : '1개';
+      } catch {}
+    }
+  });
+  const summary = Object.entries(stats).map(([k, v]) => `• ${k}: ${v}`).join('\n');
+  if (!confirm(`현재 localStorage의 모든 데이터를 Firestore로 푸시합니다.\n\n${summary}\n\n⚠️ Firestore에 같은 id가 있으면 덮어쓰기됩니다.\n계속하시겠습니까?`)) return;
+  try {
+    let total = 0;
+    for (const [key, conf] of Object.entries(FIRESTORE_COLLECTION_MAP)) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const data = JSON.parse(raw);
+      if (conf.isArray && Array.isArray(data)) {
+        const n = await pushArrayToFirestore(conf.name, data, (cur, tot) => {
+          console.log(`[Migration] ${conf.name}: ${cur}/${tot}`);
+        });
+        total += n;
+      } else if (conf.isObject) {
+        await pushObjectToFirestore(conf.docId, data);
+        total += 1;
+      }
+    }
+    alert(`✅ 마이그레이션 완료 — 총 ${total}개 데이터 Firestore 푸시.\n\nFirebase Console에서 확인 가능.`);
+  } catch (err) {
+    console.error('[BUPP Migration] 전체 마이그레이션 실패:', err);
+    alert('마이그레이션 실패: ' + (err?.message || err) + '\n\n콘솔(F12)에서 자세한 로그 확인.');
+  }
+};
+
+const FirestoreMigrationMenu = () => {
+  return (
+    <Fragment>
+      <button
+        className="btn-ghost text-xs"
+        style={{padding:'4px 10px', background:'#faf3e3', color:'#a47007', border:'1px solid #cb912f'}}
+        title="Firestore 빈 상태 마이그레이션 (멤버 6명만)"
+        onClick={migrateToFirestoreEmpty}
+      >🚀 Firestore (빈 상태)</button>
+      <button
+        className="btn-ghost text-xs"
+        style={{padding:'4px 10px', background:'#ddebf1', color:'#0b6e99', border:'1px solid #0b6e99'}}
+        title="현재 localStorage 전체를 Firestore로 푸시"
+        onClick={migrateToFirestoreFull}
+      >📤 Firestore (전체)</button>
+    </Fragment>
+  );
+};
+
+/* ============================================================
    🔐 인증 — Google 로그인 + 화이트리스트 (베타 참여자만)
    ============================================================ */
 const LoginScreen = ({ onError }) => {
@@ -9700,6 +10345,7 @@ function App({ authMember, firebaseUser, signOut }) {
   const [invoices, setInvoices] = useState(() => loadInvoices());
   const [partners, setPartners] = useState(() => loadPartners());
   const [invoiceItems, setInvoiceItems] = useState(() => loadInvoiceItems());
+  const [ecMasters, setEcMasters] = useState(() => loadEcMasters());
   const [pdfAccom, setPdfAccom] = useState(null); // PDF 미리보기 대상
   const [pdfInvoice, setPdfInvoice] = useState(null); // 인보이스 PDF 미리보기
   const [invoiceEditing, setInvoiceEditing] = useState(null); // 인보이스 편집 대상 (app or invoice)
@@ -9731,6 +10377,7 @@ function App({ authMember, firebaseUser, signOut }) {
   useEffect(() => { saveInvoices(invoices); }, [invoices]);
   useEffect(() => { savePartners(partners); }, [partners]);
   useEffect(() => { saveInvoiceItems(invoiceItems); }, [invoiceItems]);
+  useEffect(() => { saveEcMasters(ecMasters); }, [ecMasters]);
 
   // 현재 사용자 정보 + 권한
   // 🔐 인증된 사용자를 현재 사용자로 사용 (authMember 우선, 없으면 시뮬레이션 기존 방식)
@@ -9884,6 +10531,7 @@ function App({ authMember, firebaseUser, signOut }) {
           <span className="badge b-orange text-xs">시뮬레이션 모드</span>
         </div>
         <div className="flex items-center gap-2">
+          {role === 'admin' && <FirestoreMigrationMenu/>}
           {access.accounting && <DataIOMenu/>}
           {authMember ? (
             <div className="flex items-center gap-2">
@@ -9950,6 +10598,10 @@ function App({ authMember, firebaseUser, signOut }) {
           <div className={`sidebar-item ${view === 'accomData' ? 'active':''}`}
             onClick={() => { setView('accomData'); setOpenId(null); }}><NavIcon name="home"/>숙소 데이터</div>
         )}
+        {access.ecData && (
+          <div className={`sidebar-item ${view === 'ecData' ? 'active':''}`}
+            onClick={() => { setView('ecData'); setOpenId(null); }}><NavIcon name="book"/>EC 데이터</div>
+        )}
         {access.partners && (
           <div className={`sidebar-item ${view === 'partners' ? 'active':''}`}
             onClick={() => { setView('partners'); setOpenId(null); }}><NavIcon name="handshake"/>파트너 관리</div>
@@ -9982,7 +10634,6 @@ function App({ authMember, firebaseUser, signOut }) {
         {role === 'admin' || role === 'bu_staff' ? (
           <>
             <div className="sidebar-item opacity-50 cursor-not-allowed"><NavIcon name="cap"/>대학지원 통합</div>
-            <div className="sidebar-item opacity-50 cursor-not-allowed"><NavIcon name="book"/>EC 통합</div>
             <div className="sidebar-item opacity-50 cursor-not-allowed"><NavIcon name="home"/>숙소 통합</div>
           </>
         ) : null}
@@ -10010,6 +10661,7 @@ function App({ authMember, firebaseUser, signOut }) {
             trackGroups={trackGroups}
             accommodations={accommodations}
             invoices={invoices}
+            ecMasters={ecMasters}
             role={role}
           />
         ) : view === 'schools' && access.schools ? (
@@ -10034,6 +10686,8 @@ function App({ authMember, firebaseUser, signOut }) {
           />
         ) : view === 'partners' && access.partners ? (
           <PartnersPage partners={partners} onChange={setPartners}/>
+        ) : view === 'ecData' && access.ecData ? (
+          <EcMasterPage ecMasters={ecMasters} onChange={setEcMasters} students={students}/>
         ) : view === 'applications' && access.applications ? (
           <ApplicationsPage
             applications={applications}

@@ -429,6 +429,8 @@ const emptyStudent = () => ({
     },
     englishTestHistory: [],  // [{id, type, testDate, overall, listening, reading, writing, speaking, memo}]
     ossltStatus: '해당없음',
+    ossltExamYear: '',
+    ossltExamMonth: '',  // '4월' / '11월'
     schoolMemo: '',
     koreanHighSchool: '',
     premiumTrack: false  // 데이터 호환용
@@ -1611,7 +1613,7 @@ const STUDENT_SCOPE = {
 const VISIBLE_TABS = {
   admin:    ['basic','contact','academic','roadmap','ec','accom','uni','report'],
   bu_staff: ['basic','contact','academic','roadmap','ec','accom','uni','report'],
-  student:  ['basic','academic','roadmap','ec','uni'],
+  student:  ['basic','academic','roadmap','ec','uni'], // 학생은 EC 추가·수정 가능 (삭제는 요청만)
   parent:   ['basic','contact','academic','roadmap','ec','accom','uni','report'],
   tutor:    ['basic','academic','roadmap','report'],
   partner:  ['basic','contact','academic','roadmap','ec','accom','uni','report']
@@ -3628,14 +3630,14 @@ const PermissionMatrix = () => {
           </tr></thead>
           <tbody>
             {[
-              { id:'basic', label:'👤 기본 정보' },
-              { id:'contact', label:'📞 연락처' },
-              { id:'academic', label:'📋 학업 메타' },
-              { id:'roadmap', label:'📚 대입로드맵' },
-              { id:'ec', label:'🌟 EC 관리' },
-              { id:'accom', label:'🏠 숙소' },
-              { id:'uni', label:'🎓 대학 지원' },
-              { id:'report', label:'📝 리포트' }
+              { id:'basic', label:'기본 정보' },
+              { id:'contact', label:'연락처' },
+              { id:'academic', label:'학업 메타' },
+              { id:'roadmap', label:'대입 로드맵' },
+              { id:'ec', label:'EC 관리' },
+              { id:'accom', label:'숙소' },
+              { id:'uni', label:'대학 지원' },
+              { id:'report', label:'리포트' }
             ].map(t => (
               <tr key={t.id} className="row-hover">
                 <td className="table-td font-medium">{t.label}</td>
@@ -4199,7 +4201,7 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
     {/* 📊 학생 데이터 자동 요약 — 기본 정보 위 (가장 직관적 대시보드) */}
     <StudentDataSummary student={s} schools={schools} subjects={subjects} universities={universities} programs={programs}/>
 
-    <Section title="👤 기본 정보">
+    <Section title="기본 정보">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Field label="한글 이름"><TextInput value={s.koreanName} onChange={(v) => update({ koreanName: v })} /></Field>
         <Field label="영어 이름"><TextInput value={s.englishName} onChange={(v) => update({ englishName: v })} /></Field>
@@ -4300,7 +4302,7 @@ const TabContact = ({ s, update }) => {
   const c = s.contact;
   const set = (k, v) => update({ contact: { ...c, [k]: v } });
   return (
-    <Section title="B. 연락처 정보">
+    <Section title="연락처 정보">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="학생 전화번호"><TextInput value={c.studentPhone} onChange={(v) => set('studentPhone', v)} /></Field>
         <Field label="학생 이메일"><TextInput value={c.studentEmail} onChange={(v) => set('studentEmail', v)} type="email"/></Field>
@@ -4544,7 +4546,7 @@ const TabAcademic = ({ s, update }) => {
   const latestHistory = [...history].sort((a, b) => (b.testDate||'').localeCompare(a.testDate||''))[0];
 
   return (
-    <Section title="C. 학업 메타">
+    <Section title="학업 메타">
       {/* 공인영어점수 */}
       <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3' }}>
         <h4 className="font-semibold mb-3" style={{color:'#c20206'}}>🌐 공인 영어 점수</h4>
@@ -4577,14 +4579,28 @@ const TabAcademic = ({ s, update }) => {
         <EnglishTestHistoryTable history={history} onChange={setHistory}/>
       </div>
 
-      {/* 기타 학업 메타 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {/* OSSLT — 응시 년월 + 상태 (4월·11월 시험) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Field label="OSSLT 상태"><Select value={a.ossltStatus} onChange={(v) => setAcademic('ossltStatus', v)} options={OSSLT_STATUSES}/></Field>
-        <Field label="한국 고등학교"><TextInput value={a.koreanHighSchool} onChange={(v) => setAcademic('koreanHighSchool', v)}/></Field>
-        <Field label="재학 학교 링크 / 메모" span={3}><TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/></Field>
+        <Field label="OSSLT 응시 년도">
+          <Select
+            value={a.ossltExamYear || ''}
+            onChange={(v) => setAcademic('ossltExamYear', v)}
+            options={(() => {
+              const y = new Date().getFullYear();
+              return [String(y-2), String(y-1), String(y), String(y+1), String(y+2)];
+            })()}
+            placeholder="선택"
+          />
+        </Field>
+        <Field label="OSSLT 응시 월">
+          <Select value={a.ossltExamMonth || ''} onChange={(v) => setAcademic('ossltExamMonth', v)} options={['4월', '11월']} placeholder="선택"/>
+        </Field>
+        <Field label="재학 학교 링크 / 메모" span={4}><TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/></Field>
       </div>
+      <div className="text-xs text-gray-500 mt-2">💡 OSSLT는 매년 <strong>4월</strong>과 <strong>11월</strong>에 실시. 응시 예정/응시 완료 년월을 기록하면 기본 정보 대시보드에 자동 표시됩니다.</div>
 
-      <div className="text-xs text-gray-400 mt-3">💡 방과후 수업(AS Group/1:1)은 별도 플랫폼에서 관리됩니다.</div>
+      <div className="text-xs text-gray-400 mt-3">방과후 수업(AS Group/1:1)은 별도 플랫폼에서 관리됩니다.</div>
     </Section>
   );
 };
@@ -5347,9 +5363,12 @@ const ECEditor = ({ ec, ecMasters=[], onSave, onCancel }) => {
 // 카테고리 정규화 헬퍼
 const getECCategory = (e) => e.category || EC_TYPE_TO_CATEGORY[e.type] || '';
 
-const TabEC = ({ s, update, ecMasters=[] }) => {
+const TabEC = ({ s, update, ecMasters=[], role='admin' }) => {
   const [editing, setEditing] = useState(null);
   const [filters, setFilters] = useState({ category:'', status:'' });
+  // 권한: 추가·수정은 학생도 가능, 삭제는 브듀쌤 이상만
+  const canDelete = role === 'admin' || role === 'bu_staff';
+  const isStudent = role === 'student';
 
   const list = (s.extracurriculars || []).map(e => ({ ...e, category: getECCategory(e) }));
 
@@ -5367,8 +5386,17 @@ const TabEC = ({ s, update, ecMasters=[] }) => {
     setEditing(null);
   };
   const remove = (id) => {
+    if (!canDelete) return;
     if (!confirm('정말 삭제하시겠습니까?')) return;
     update({ extracurriculars: list.filter(e => e.id !== id) });
+  };
+  const requestDelete = (e) => {
+    // 학생용 — 활동에 'deletionRequested' 플래그를 달아 브듀쌤이 검토 후 처리
+    const reason = prompt(`"${e.activityName}" 삭제 요청 사유를 적어주세요 (선택):`, '');
+    if (reason === null) return;
+    const next = list.map(x => x.id === e.id ? { ...x, deletionRequested: true, deletionRequestedAt: new Date().toISOString().slice(0,10), deletionReason: reason } : x);
+    update({ extracurriculars: next });
+    alert('삭제 요청이 접수됐어요. 브듀쌤이 확인 후 처리합니다.');
   };
 
   // 카테고리별 카운트 요약
@@ -5379,7 +5407,7 @@ const TabEC = ({ s, update, ecMasters=[] }) => {
 
   return (
     <Section
-      title="D. EC 관리"
+      title="EC 관리"
       count={list.length}
       right={
         <button className="btn-primary" onClick={() => setEditing({
@@ -5393,6 +5421,10 @@ const TabEC = ({ s, update, ecMasters=[] }) => {
         })}>+ EC 추가</button>
       }
     >
+      {/* 권한 안내 */}
+      <div className="text-xs p-3 rounded mb-4" style={{background:'#faf3e3', color:'#760305', border:'1px solid #e8c97a'}}>
+        💡 EC 추가 · 수정은 <strong>학생이 직접</strong> 할 수 있습니다. 단, 삭제는 브듀쌤이 검토하므로 학생은 <strong>"삭제 요청"</strong> 버튼을 이용해주세요.
+      </div>
       {/* 카테고리별 요약 카드 — 봉사: 시간 / 학교클럽: 진급한 활동 / 대회: 수상 건수 */}
       {(() => {
         const volTotalHours = list
@@ -5553,7 +5585,16 @@ const TabEC = ({ s, update, ecMasters=[] }) => {
                     <td className="table-td"><Badge value={e.admissionsValue}/></td>
                     <td className="table-td text-right whitespace-nowrap">
                       <button className="btn-ghost" onClick={() => setEditing(e)}>수정</button>
-                      <button className="btn-danger" onClick={() => remove(e.id)}>삭제</button>
+                      {canDelete ? (
+                        <button className="btn-danger" onClick={() => remove(e.id)}>삭제</button>
+                      ) : (
+                        <button
+                          className="btn-ghost text-xs"
+                          style={e.deletionRequested ? {color:'#a47007'} : {color:'#c20206'}}
+                          onClick={() => !e.deletionRequested && requestDelete(e)}
+                          disabled={e.deletionRequested}
+                        >{e.deletionRequested ? '⏳ 요청 대기' : '🗑 삭제 요청'}</button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -6372,7 +6413,7 @@ const TabUni = ({ s, update, schools, subjects, universities, programs, trackGro
     })}
 
     {/* 새 지원 추가 (국가별 시작 버튼) */}
-    <Section title="F. 새 대학 지원 추가" defaultOpen={list.length === 0}>
+    <Section title="새 대학 지원 추가" defaultOpen={list.length === 0}>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         {COUNTRIES.map(c => (
           <button key={c} className="notion-card p-3 text-sm hover:bg-gray-50"
@@ -6490,7 +6531,7 @@ const DDayChip = ({ date, label }) => {
   else if (diffDays === 0) { color='#fff'; bg='#c20206'; text='D-DAY'; }
   else if (diffDays <= 14) { color='#fff'; bg='#c20206'; text=`D-${diffDays}`; }
   else if (diffDays <= 30) { color='#fff'; bg='#cb912f'; text=`D-${diffDays}`; }
-  else { color='#fff'; bg='#0b6e99'; text=`D-${diffDays}`; }
+  else { color='#fff'; bg='#202731'; text=`D-${diffDays}`; }
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background:'#fff', border:'1px solid #e8e0d5' }}>
       <span style={{ background:bg, color, fontWeight:700, fontSize:11, padding:'3px 8px', borderRadius:4 }}>{text}</span>
@@ -6832,8 +6873,11 @@ const buildReportAutoSummary = (student, schools, subjects, universities, progra
     return sub ? { id: r.id, code: sub.code, name: sub.name } : null;
   }).filter(Boolean);
 
-  // OSSLT — 학생 academic.ossltStatus + (별도 날짜 필드 없음, 메모 활용)
+  // OSSLT — 상태 + 응시 년월
   const ossltStatus = student.academic?.ossltStatus || '해당없음';
+  const ossltExamYear = student.academic?.ossltExamYear || '';
+  const ossltExamMonth = student.academic?.ossltExamMonth || '';
+  const ossltExamLabel = (ossltExamYear && ossltExamMonth) ? `${ossltExamYear}년 ${ossltExamMonth}` : '';
 
   return {
     inProgressCount: inProgress.length,
@@ -6848,6 +6892,7 @@ const buildReportAutoSummary = (student, schools, subjects, universities, progra
     top6MidtermInputCount: midtermScores.length,
     top6FinalInputCount: finalScores.length,
     ossltStatus,
+    ossltExamLabel,
     recentLate, recentAbsent,
     activeAppsCount: activeApps.length,
     acceptedCount: accepted.length,
@@ -7093,7 +7138,7 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
       <SectionTitle>졸업 요건 현황 <span className="text-xs font-normal text-gray-500 ml-1">OSSD 기준 · 자동 집계</span></SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">🎓 누적 학점</div>
+          <div className="text-xs text-gray-500 mb-1">누적 학점</div>
           <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.totalCredits}<span className="text-base font-medium text-gray-400 ml-1">/ 30</span></div>
           <div className="mt-3">
             <ProgressBar value={summary.totalCredits} max={30} color="#cb912f" showLabel={false}/>
@@ -7105,7 +7150,7 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
           </div>
         </div>
         <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">🤝 봉사 시간</div>
+          <div className="text-xs text-gray-500 mb-1">봉사 시간</div>
           <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.volunteerHours}<span className="text-base font-medium text-gray-400 ml-1">/ 40h</span></div>
           <div className="mt-3">
             <ProgressBar value={Math.min(summary.volunteerHours, 40)} max={40}
@@ -7117,10 +7162,14 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
           </div>
         </div>
         <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">📝 OSSLT</div>
-          <div className="text-xl font-bold flex items-center gap-2" style={{color:ossltCfg.color}}>
-            <span>{ossltCfg.icon}</span> {ossltCfg.label}
-          </div>
+          <div className="text-xs text-gray-500 mb-1">OSSLT</div>
+          <div className="text-xl font-bold" style={{color:ossltCfg.color}}>{ossltCfg.label}</div>
+          {summary.ossltExamLabel && (
+            <div className="mt-1 text-sm font-semibold" style={{color:'#202731'}}>
+              {summary.ossltStatus === '합격' ? '합격 일자: ' : summary.ossltStatus === '응시' ? '응시 일자: ' : '예정 일자: '}
+              {summary.ossltExamLabel}
+            </div>
+          )}
           <div className="mt-2 px-2 py-1.5 rounded text-xs" style={{background:ossltCfg.bg, color:ossltCfg.color}}>
             {summary.ossltStatus === '합격' && 'OSSD 졸업 영어 능력 시험 통과'}
             {summary.ossltStatus === '예정' && '응시 후 학업 메타에서 결과 업데이트'}
@@ -7189,11 +7238,11 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
       <SectionTitle>지원 & 활동 현황</SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="notion-card p-3" style={{background:'#fff'}}>
-          <div className="text-xs font-semibold mb-2 text-gray-500">🎯 대학 지원 단계</div>
+          <div className="text-xs font-semibold mb-2 text-gray-500">대학 지원 단계</div>
           <UniFunnel stages={summary.funnelStages}/>
         </div>
         <div className="notion-card p-3" style={{background:'#fff'}}>
-          <div className="text-xs font-semibold mb-2 text-gray-500">🌟 EC 카테고리 분포</div>
+          <div className="text-xs font-semibold mb-2 text-gray-500">EC 카테고리 분포</div>
           <EcDistribution counts={summary.ecCounts}/>
           {summary.ecActive.length > 0 && (
             <div className="mt-3 pt-3" style={{borderTop:'1px solid #e8e0d5'}}>
@@ -7213,7 +7262,7 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="notion-card p-4" style={{background:'#fff'}}>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-gray-500">📊 미드텀 평균</div>
+            <div className="text-xs font-semibold text-gray-500">미드텀 평균</div>
             <span className="text-xs text-gray-400">{summary.top6MidtermInputCount}/{summary.top6InProgressCount}과목 입력</span>
           </div>
           {summary.top6MidtermAvg != null ? (
@@ -7227,7 +7276,7 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
         </div>
         <div className="notion-card p-4" style={{background:'#fff'}}>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-gray-500">🏆 파이널 평균</div>
+            <div className="text-xs font-semibold text-gray-500">파이널 평균</div>
             <span className="text-xs text-gray-400">{summary.top6FinalInputCount}/{summary.top6InProgressCount}과목 입력</span>
           </div>
           {summary.top6FinalAvg != null ? (
@@ -7551,14 +7600,14 @@ const TabNotes = ({ s, update }) => {
    ============================================================ */
 const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, addOption, removeOption, schools, subjects, universities=[], programs=[], trackGroups=[], accommodations=[], invoices=[], ecMasters=[], role='admin' }) => {
   const allTabs = [
-    { id:'basic', label:'👤 기본 정보' },
-    { id:'contact', label:'📞 연락처' },
-    { id:'academic', label:'📋 학업 메타' },
-    { id:'roadmap', label:'📚 대입로드맵' },
-    { id:'ec', label:'🌟 EC 관리' },
-    { id:'accom', label:'🏠 숙소' },
-    { id:'uni', label:'🎓 대학 지원' },
-    { id:'report', label:'📝 리포트' },
+    { id:'basic', label:'기본 정보' },
+    { id:'contact', label:'연락처' },
+    { id:'academic', label:'학업 메타' },
+    { id:'roadmap', label:'대입 로드맵' },
+    { id:'ec', label:'EC 관리' },
+    { id:'accom', label:'숙소' },
+    { id:'uni', label:'대학 지원' },
+    { id:'report', label:'리포트' },
   ];
   const visibleTabIds = VISIBLE_TABS[role] || allTabs.map(t => t.id);
   const tabs = allTabs.filter(t => visibleTabIds.includes(t.id));
@@ -7596,10 +7645,10 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
               {student.program && <Badge value={student.program}/>}
             </div>
             <div className="mt-2 text-sm flex flex-wrap gap-x-4 gap-y-1" style={{color:'#cabaab'}}>
-              {student.currentSchool && <span><span style={{color:'#F0B429'}}>🎓</span> {student.currentSchool}</span>}
-              {student.actualGrade && <span><span style={{color:'#F0B429'}}>📚</span> {student.actualGrade}</span>}
-              {student.cohort && <span><span style={{color:'#F0B429'}}>🎫</span> 기수 {student.cohort}</span>}
-              {student.accommodation?.type && <span><span style={{color:'#F0B429'}}>🏠</span> {student.accommodation.type}</span>}
+              {student.currentSchool && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.currentSchool}</span>}
+              {student.actualGrade && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.actualGrade}</span>}
+              {student.cohort && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>기수 {student.cohort}</span>}
+              {student.accommodation?.type && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.accommodation.type}</span>}
             </div>
           </div>
         </div>
@@ -7620,7 +7669,7 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
       {tab === 'contact' && <TabContact s={student} update={update}/>}
       {tab === 'academic' && <TabAcademic s={student} update={update}/>}
       {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects}/>}
-      {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters}/>}
+      {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters} role={role}/>}
       {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations}/>}
       {tab === 'uni' && <TabUni s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} trackGroups={trackGroups}/>}
       {tab === 'report' && <TabReport s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} invoices={invoices} canEdit={canEdit}/>}
@@ -10716,7 +10765,7 @@ function App({ authMember, firebaseUser, signOut }) {
   const opened = visibleStudents.find(s => s.id === openId);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background:'#ffffff' }}>
+    <div className="min-h-screen flex flex-col" style={{ background:'#f7f5f1' }}>
       {/* 상단 헤더 — 시뮬레이션 모드 + 사용자 전환 */}
       <header className="app-header flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-3">
@@ -10830,7 +10879,7 @@ function App({ authMember, firebaseUser, signOut }) {
       </aside>
 
       {/* 메인 컨텐츠 */}
-      <main className="flex-1 overflow-auto" style={{background:'#ffffff'}}>
+      <main className="flex-1 overflow-auto" style={{background:'#f7f5f1'}}>
         {opened ? (
           <StudentDetail
             student={opened}

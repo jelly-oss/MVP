@@ -31,32 +31,52 @@
   try { window.fbDB.enablePersistence({ synchronizeTabs: true }); } catch {}
 </script>
 
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* BreakEDU 브랜드 팔레트 */
+  /* BreakEDU 디자인 토큰 — Design Handoff 기준 */
   :root {
-    --brand-red: #c20206;
-    --brand-red-dark: #760305;
-    --brand-gold: #F0B429;
-    --brand-navy: #202731;
-    --brand-tan: #cabaab;
-    --brand-cream: #e8e0d5;
-    --brand-gray: #4a4a4a;
-    --brand-bg: #f5f5f5;
-    --bg: #ffffff;
-    --bg-soft: #f5f5f5;
-    --border: #e8e0d5;
-    --border-soft: #efe9e0;
-    --text: #202731;
-    --text-soft: #4a4a4a;
-    --accent: #c20206;
+    /* 브랜드 */
+    --red:#c20206; --maroon:#760305; --gold:#F0B429; --charcoal:#202731;
+    --gray:#4a4a4a; --taupe:#cabaab; --cream:#e8e0d5; --light:#f5f5f5; --white:#fff;
+    /* 표면 (warm neutral) */
+    --paper:#f7f5f1; --ink:#202731; --muted:#6E6A63; --faint:#A89F92;
+    --line:#E7E1D7; --line-soft:#EFEAE2;
+    /* 상태 색 */
+    --good:#2F8A63; --good-bg:#E8F2EC;
+    --warn:#B07A12; --warn-bg:#FBF1D8;
+    --alert:#c20206; --alert-bg:#FBEAEA;
+    --gold-bg:#FDF3D6;
+    /* 형태 */
+    --radius:14px;
+    --shadow:0 1px 2px rgba(32,39,49,.05),0 6px 20px rgba(32,39,49,.05);
+    --shadow-sm:0 1px 2px rgba(32,39,49,.06);
+
+    /* ────── 레거시 별칭 (기존 코드 호환) ────── */
+    --brand-red: var(--red);
+    --brand-red-dark: var(--maroon);
+    --brand-gold: var(--gold);
+    --brand-navy: var(--charcoal);
+    --brand-tan: var(--taupe);
+    --brand-cream: var(--cream);
+    --brand-gray: var(--gray);
+    --brand-bg: var(--light);
+    --bg: var(--white);
+    --bg-soft: var(--paper);
+    --border: var(--line);
+    --border-soft: var(--line-soft);
+    --text: var(--ink);
+    --text-soft: var(--muted);
+    --accent: var(--red);
   }
   html, body, #root { height: 100%; }
   body {
-    font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: 'Pretendard', 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum";
+    font-size: 14px;
   }
   /* 따뜻한 톤 스크롤바 */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -217,6 +237,127 @@
     border-bottom: 1px solid var(--border);
   }
   .brand-title { color: var(--brand-red); font-weight: 700; letter-spacing: -0.01em; }
+
+  /* ────────── Design Handoff: 새 컴포넌트 ────────── */
+  /* 프로필 헤더 (다크 그라데이션) */
+  .hd-profile {
+    background: linear-gradient(135deg, #262E3C 0%, var(--charcoal) 100%);
+    border-radius: 18px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .hd-profile::after {
+    content: ""; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px;
+    border-radius: 50%; background: radial-gradient(circle, rgba(240,180,41,.10), transparent 70%);
+  }
+  .hd-pava {
+    width: 74px; height: 74px; border-radius: 50%; background: var(--gold); color: var(--charcoal);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(240,180,41,.3);
+  }
+  .hd-pava.sq { border-radius: 16px; font-size: 20px; }
+  .hd-pmain { flex: 1; min-width: 0; z-index: 1; }
+  .hd-pname { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+  .hd-pname h1 { font-size: 24px; font-weight: 800; letter-spacing: -.5px; margin: 0; }
+  .hd-pname .en { font-size: 15px; color: #AEB3BD; font-weight: 500; }
+  .hd-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .hd-chip.live { color: #8FE0BC; background: rgba(47,138,99,.22); }
+  .hd-chip.tier { color: #fff; background: var(--red); }
+  .hd-chip.edu  { color: var(--charcoal); background: var(--gold); }
+  .hd-sdot { width: 6px; height: 6px; border-radius: 50%; background: #8FE0BC; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  .hd-pmeta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-size: 12.5px; color: #B4B9C2; font-weight: 500; }
+  .hd-pmeta b { color: #E6E8EC; font-weight: 600; }
+
+  /* 탭 — 흰 컨테이너 + 차콜 활성 */
+  .hd-tabs {
+    display: flex; gap: 3px;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    padding: 5px; box-shadow: var(--shadow-sm);
+    margin: 18px 0 4px;
+    overflow-x: auto;
+  }
+  .hd-tab {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    padding: 9px 15px; border-radius: 8px;
+    white-space: nowrap; cursor: pointer;
+    transition: .14s;
+    background: transparent; border: none;
+  }
+  .hd-tab:hover { color: var(--ink); background: var(--light); }
+  .hd-tab.on { color: #fff; background: var(--charcoal); }
+
+  /* 섹션 eyebrow */
+  .hd-eyebrow { display: flex; align-items: center; gap: 9px; margin: 28px 2px 14px; }
+  .hd-eyebrow .bar { width: 3px; height: 15px; border-radius: 2px; background: var(--gold); }
+  .hd-eyebrow h2 { font-size: 15px; font-weight: 700; color: var(--charcoal); letter-spacing: -.2px; margin: 0; }
+  .hd-eyebrow .note { font-size: 11.5px; color: var(--faint); font-weight: 500; }
+
+  /* 카드 (Pillar) */
+  .hd-card {
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); padding: 20px;
+  }
+  .hd-pillars { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 14px; }
+  .hd-plabel { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 14px; }
+  .hd-val { font-size: 34px; font-weight: 800; color: var(--charcoal); letter-spacing: -1px; line-height: 1; }
+  .hd-den { font-size: 16px; font-weight: 600; color: var(--faint); margin-left: 3px; }
+  .hd-track { height: 8px; border-radius: 6px; background: #EDE8DF; margin-top: 14px; overflow: hidden; }
+  .hd-fill { height: 100%; border-radius: 6px; }
+  .hd-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 4px 9px; border-radius: 20px;
+    margin-top: 11px;
+  }
+  .hd-pill.good { color: var(--good); background: var(--good-bg); }
+  .hd-pill.warn { color: var(--warn); background: var(--warn-bg); }
+  .hd-meta { font-size: 12px; color: var(--muted); margin-top: 9px; font-weight: 500; }
+  .hd-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* Mini (보조 지표) */
+  .hd-minis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px; }
+  .hd-mini {
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); padding: 17px 19px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .hd-mini .lbl { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .hd-mini .num { font-size: 26px; font-weight: 800; color: var(--charcoal); letter-spacing: -.5px; }
+  .hd-mini .num.empty { font-size: 13.5px; font-weight: 600; color: var(--faint); }
+
+  /* 표 (커미션·인보이스) */
+  .hd-tablecard {
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .hd-tablecard table { width: 100%; border-collapse: collapse; }
+  .hd-tablecard thead th {
+    font-size: 11.5px; font-weight: 700; color: var(--faint); text-align: left;
+    padding: 13px 18px; background: #FBFAF7; border-bottom: 1px solid var(--line);
+  }
+  .hd-tablecard thead th.r, .hd-tablecard tbody td.r { text-align: right; }
+  .hd-tablecard tbody td {
+    font-size: 13px; color: var(--gray); padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft); font-weight: 500;
+  }
+  .hd-tablecard tbody tr:last-child td { border-bottom: none; }
+  .hd-tablecard tbody tr:hover { background: #FBFAF7; }
+  .hd-st {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .hd-st-paid  { color: var(--good); background: var(--good-bg); }
+  .hd-st-sched { color: var(--warn); background: var(--warn-bg); }
+  .hd-st-wait  { color: var(--muted); background: var(--light); }
+  .hd-st-alert { color: var(--alert); background: var(--alert-bg); }
 
   /* PDF 인쇄용 */
   @media print {
@@ -7135,49 +7276,76 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
         </Fragment>
       )}
 
-      {/* 🎓 졸업 요건 현황 — 누적 학점 / 봉사 시간 / OSSLT */}
-      <SectionTitle>졸업 요건 현황 <span className="text-xs font-normal text-gray-500 ml-1">OSSD 기준 · 자동 집계</span></SectionTitle>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">누적 학점</div>
-          <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.totalCredits}<span className="text-base font-medium text-gray-400 ml-1">/ 30</span></div>
-          <div className="mt-3">
-            <ProgressBar value={summary.totalCredits} max={30} color="#cb912f" showLabel={false}/>
-            <div className="text-xs text-gray-500 mt-1.5">
-              {summary.totalCredits >= 30
-                ? '✓ 졸업 학점 충족'
-                : `졸업까지 ${30 - summary.totalCredits}학점 남음 · 진행률 ${Math.round(summary.totalCredits/30*100)}%`}
-            </div>
+      {/* 🎓 졸업 요건 현황 — Design Handoff pillars (1.25fr 1fr 1fr) */}
+      <div className="hd-eyebrow"><span className="bar"></span><h2>졸업 요건 현황</h2><span className="note">OSSD 기준 · 자동 집계</span></div>
+      <div className="hd-pillars">
+        {/* 누적 학점 */}
+        <div className="hd-card">
+          <div className="hd-plabel">누적 학점</div>
+          <div><span className="hd-val">{summary.totalCredits}</span><span className="hd-den">/ 30</span></div>
+          <div className="hd-track">
+            <div className="hd-fill" style={{
+              width: `${Math.min(100, Math.round(summary.totalCredits/30*100))}%`,
+              background: 'linear-gradient(90deg, var(--gold), #f7c95b)'
+            }}/>
+          </div>
+          <div className="hd-meta">
+            {summary.totalCredits >= 30
+              ? '✓ 졸업 학점 충족'
+              : `졸업까지 ${30 - summary.totalCredits}학점 남음 · 진행률 ${Math.round(summary.totalCredits/30*100)}%`}
           </div>
         </div>
-        <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">봉사 시간</div>
-          <div className="text-3xl font-bold" style={{color:'#202731'}}>{summary.volunteerHours}<span className="text-base font-medium text-gray-400 ml-1">/ 40h</span></div>
-          <div className="mt-3">
-            <ProgressBar value={Math.min(summary.volunteerHours, 40)} max={40}
-              color={summary.volunteerHours >= 40 ? '#0f7b6c' : summary.volunteerHours >= 20 ? '#cb912f' : '#c20206'}
-              showLabel={false}/>
-            <div className="text-xs mt-1.5" style={{color: summary.volunteerHours >= 40 ? '#0f7b6c' : '#787774'}}>
-              {summary.volunteerHours >= 40 ? '● 졸업 조건 충족' : `${40 - summary.volunteerHours}h 부족`}
-            </div>
+        {/* 봉사 시간 */}
+        <div className="hd-card">
+          <div className="hd-plabel">봉사 시간</div>
+          <div><span className="hd-val">{summary.volunteerHours}</span><span className="hd-den">/ 40h</span></div>
+          <div className="hd-track">
+            <div className="hd-fill" style={{
+              width: `${Math.min(100, Math.round(summary.volunteerHours/40*100))}%`,
+              background: summary.volunteerHours >= 40
+                ? 'linear-gradient(90deg, var(--good), #3ba878)'
+                : 'linear-gradient(90deg, var(--gold), #f7c95b)'
+            }}/>
           </div>
+          {summary.volunteerHours >= 40 ? (
+            <span className="hd-pill good"><span className="hd-dot" style={{background:'var(--good)'}}></span>졸업 조건 충족</span>
+          ) : (
+            <span className="hd-pill warn"><span className="hd-dot" style={{background:'var(--warn)'}}></span>{40 - summary.volunteerHours}h 부족</span>
+          )}
         </div>
-        <div className="notion-card p-4" style={{background:'#fff'}}>
-          <div className="text-xs text-gray-500 mb-1">OSSLT</div>
-          <div className="text-xl font-bold" style={{color:ossltCfg.color}}>{ossltCfg.label}</div>
+        {/* OSSLT */}
+        <div className="hd-card">
+          <div className="hd-plabel">OSSLT</div>
+          <div style={{fontSize:24, fontWeight:800, color:ossltCfg.color, letterSpacing:'-.5px', lineHeight:1}}>{ossltCfg.label}</div>
           {summary.ossltExamLabel && (
-            <div className="mt-1 text-sm font-semibold" style={{color:'#202731'}}>
+            <div className="hd-meta" style={{marginTop:10, fontWeight:600, color:'var(--ink)'}}>
               {summary.ossltStatus === '합격' ? '합격 일자: ' : summary.ossltStatus === '응시' ? '응시 일자: ' : '예정 일자: '}
               {summary.ossltExamLabel}
             </div>
           )}
-          <div className="mt-2 px-2 py-1.5 rounded text-xs" style={{background:ossltCfg.bg, color:ossltCfg.color}}>
-            {summary.ossltStatus === '합격' && 'OSSD 졸업 영어 능력 시험 통과'}
-            {summary.ossltStatus === '예정' && '응시 후 학업 메타에서 결과 업데이트'}
-            {summary.ossltStatus === '응시' && '응시 완료 — 학교에서 결과 통보 대기'}
-            {summary.ossltStatus === '불합격' && '재응시 또는 OLC4O로 대체 가능'}
-            {summary.ossltStatus === '해당없음' && 'Grade 10 응시 대상 (또는 해당사항 없음)'}
-          </div>
+          <span className="hd-pill" style={{background:ossltCfg.bg, color:ossltCfg.color, marginTop:11}}>
+            <span className="hd-dot" style={{background:ossltCfg.color}}></span>
+            {summary.ossltStatus === '합격' ? 'OSSD 통과' :
+             summary.ossltStatus === '예정' ? '응시 예정' :
+             summary.ossltStatus === '응시' ? '결과 대기' :
+             summary.ossltStatus === '불합격' ? '재응시 필요' : '해당없음'}
+          </span>
+        </div>
+      </div>
+
+      {/* minis — Top 6 / 진행 중 과목 */}
+      <div className="hd-minis">
+        <div className="hd-mini">
+          <span className="lbl">Top 6 평균</span>
+          {summary.top6Avg != null ? (
+            <span className="num">{summary.top6Avg}</span>
+          ) : (
+            <span className="num empty">아직 미산정</span>
+          )}
+        </div>
+        <div className="hd-mini">
+          <span className="lbl">진행 중 과목</span>
+          <span className="num">{summary.inProgressCount}</span>
         </div>
       </div>
 
@@ -7630,37 +7798,35 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
         )}
       </div>
 
-      {/* 헤더 — 다크 네이비 + 골드 톤앤매너 */}
-      <div className="p-6 mb-4 rounded-lg" style={{ background:'#202731', color:'#e8e0d5' }}>
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl"
-            style={{ background:'#F0B429', color:'#202731', border:'2px solid rgba(240,180,41,0.3)', boxShadow:'0 2px 8px rgba(0,0,0,.25)' }}>
-            {initials}
+      {/* 헤더 — Design Handoff hd-profile */}
+      <div className="hd-profile mb-4">
+        <div className="hd-pava">{initials}</div>
+        <div className="hd-pmain">
+          <div className="hd-pname">
+            <h1>{student.koreanName || '이름 없음'}</h1>
+            {student.englishName && <span className="en">{student.englishName}</span>}
+            {student.admissionStatus === '재학중' ? (
+              <span className="hd-chip live"><span className="hd-sdot"></span>{student.admissionStatus}</span>
+            ) : student.admissionStatus && (
+              <span className="hd-chip" style={{color:'#fff', background:'rgba(255,255,255,.12)'}}>{student.admissionStatus}</span>
+            )}
+            {student.program && <span className="hd-chip tier">{student.program}</span>}
+            {student.cohort && <span className="hd-chip edu">{student.cohort}</span>}
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-2xl font-bold" style={{color:'#ffffff'}}>{student.koreanName || '이름 없음'}</h2>
-              <span style={{color:'#cabaab'}}>{student.englishName}</span>
-              <Badge value={student.admissionStatus}/>
-              <Badge value={student.category}/>
-              {student.program && <Badge value={student.program}/>}
-            </div>
-            <div className="mt-2 text-sm flex flex-wrap gap-x-4 gap-y-1" style={{color:'#cabaab'}}>
-              {student.currentSchool && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.currentSchool}</span>}
-              {student.actualGrade && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.actualGrade}</span>}
-              {student.cohort && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>기수 {student.cohort}</span>}
-              {student.accommodation?.type && <span><span style={{color:'#F0B429', marginRight:6}}>·</span>{student.accommodation.type}</span>}
-            </div>
+          <div className="hd-pmeta">
+            {student.currentSchool && <span>학교 <b>{student.currentSchool}</b></span>}
+            {student.actualGrade && <span>학년 <b>{student.actualGrade}</b></span>}
+            {student.accommodation?.type && <span>숙소 <b>{student.accommodation.type}</b></span>}
           </div>
         </div>
       </div>
 
-      {/* 탭 */}
-      <div className="notion-card mb-4 p-2 flex flex-wrap gap-1 sticky top-0 z-10 bg-white">
+      {/* 탭 — Design Handoff hd-tabs */}
+      <div className="hd-tabs sticky top-0 z-10">
         {tabs.map(t => (
           <button
             key={t.id}
-            className={`tab-btn ${tab === t.id ? 'active':''}`}
+            className={`hd-tab ${tab === t.id ? 'on':''}`}
             onClick={() => setTab(t.id)}
           >{t.label}</button>
         ))}

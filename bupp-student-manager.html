@@ -1424,8 +1424,47 @@ const emptyInvoice = () => ({
   paymentMemo: '',             // 납부 메모 (학부모 노출 가능 텍스트)
   createdAt: new Date().toISOString().slice(0, 10), createdBy: '',
   publicMemo: '',              // 인보이스 메모 (PDF에 노출 — 학부모/파트너 확인용)
-  notes: ''                    // 내부 메모 (PDF에 노출 안 됨)
+  notes: '',                   // 내부 메모 (PDF에 노출 안 됨)
+  // 🤝 커미션 정산 — 파트너 지급 추적
+  commissionPaidAt: '',        // 파트너에게 실제 지급한 날
+  commissionPaidBy: '',        // 정산 처리한 담당자
+  commissionPaymentMethod: '', // 'E-transfer' / 'Wire' / '한국계좌'
+  commissionNote: ''           // 정산 메모
 });
+
+// 다음 분기 정산일 (1·4·7·10월 15일) 자동 계산
+const QUARTER_PAYOUT_MONTHS = [1, 4, 7, 10];
+const getNextSettlementDate = (paidDateStr) => {
+  if (!paidDateStr) return '';
+  const d = new Date(paidDateStr);
+  if (isNaN(d)) return '';
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1; // 1-12
+  const day = d.getDate();
+  // 다음 분기 15일 찾기
+  for (const qm of QUARTER_PAYOUT_MONTHS) {
+    if (qm > m || (qm === m && day < 15)) {
+      return `${y}-${String(qm).padStart(2,'0')}-15`;
+    }
+  }
+  // 그 해 다 지나면 다음 해 1월 15일
+  return `${y + 1}-01-15`;
+};
+
+// 커미션 상태 자동 판정
+// wait      : 학생 미입금 (invoice.status !== 'paid')
+// paid      : 파트너 지급 완료 (commissionPaidAt 있음)
+// overdue   : 입금됐고 예정일 지났는데 미지급
+// scheduled : 입금됐고 정산 예정
+const getCommissionStatus = (invoice, today = new Date().toISOString().slice(0,10)) => {
+  const studentPaid = invoice.status === 'paid' || (invoice.paidAt && invoice.paidAt !== '');
+  const partnerPaid = !!invoice.commissionPaidAt;
+  if (partnerPaid) return 'paid';
+  if (!studentPaid) return 'wait';
+  const scheduled = getNextSettlementDate(invoice.paidAt || invoice.paymentConfirmedAt);
+  if (scheduled && scheduled < today) return 'overdue';
+  return 'scheduled';
+};
 
 const SAMPLE_INVOICES = [
   {
@@ -10183,7 +10222,417 @@ const AccountingPage = ({ invoices=[], applications=[], partners=[], students=[]
   );
 };
 
-const PartnersPage = ({ partners, onChange }) => {
+/* ============================================================
+   🤝 파트너 상세 페이지 — 커미션 정산 모듈
+   - 탭: 대시보드 / 회사 정보 / 인보이스
+   - 학생별 커미션 자동 집계 (invoices.partnerCompany 매칭)
+   - 상태 3종: wait / scheduled / paid / overdue
+   - 정산 주기: 1·4·7·10월 15일
+   ============================================================ */
+const PartnerDetailPage = ({ partner, partners, invoices, students, applications, onBack, onUpdatePartner, onUpdateInvoice, currentUserName }) => {
+  const [tab, setTab] = useState('dashboard'); // dashboard | company | invoices
+  const [edit, setEdit] = useState(null);       // 회사 정보 편집 draft
+  const [payModal, setPayModal] = useState(null); // 정산 처리 모달
+
+  // 이 파트너에게 귀속되는 인보이스 (commissionAmount > 0)
+  const partnerInvoices = invoices.filter(inv => {
+    return (inv.partnerCompany || '').trim() === partner.name && Number(inv.commissionAmount || 0) > 0;
+  }).sort((a, b) => (b.issueDate || '').localeCompare(a.issueDate || ''));
+
+  // 커미션 집계
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = partnerInvoices.map(inv => {
+    const status = getCommissionStatus(inv, today);
+    const scheduled = getNextSettlementDate(inv.paidAt || inv.paymentConfirmedAt);
+    const stu = students.find(s => s.id === inv.studentId);
+    return { inv, status, scheduled, student: stu };
+  });
+
+  const totals = rows.reduce((acc, r) => {
+    const amt = Number(r.inv.commissionAmount || 0);
+    acc.total += amt;
+    if (r.status === 'paid') acc.paid += amt;
+    else if (r.status === 'scheduled') acc.scheduled += amt;
+    else if (r.status === 'overdue') acc.overdue += amt;
+    else if (r.status === 'wait') acc.wait += amt;
+    return acc;
+  }, { total: 0, paid: 0, scheduled: 0, overdue: 0, wait: 0 });
+
+  const fmt = (n) => `$${Number(n || 0).toLocaleString('en-CA', { maximumFractionDigits: 2 })}`;
+  const initials = (partner.name || 'P').slice(0, 2).toUpperCase();
+
+  const handlePayConfirm = (inv, fields) => {
+    onUpdateInvoice({
+      ...inv,
+      commissionPaidAt: fields.paidAt,
+      commissionPaidBy: fields.paidBy || currentUserName || '',
+      commissionPaymentMethod: fields.method || '',
+      commissionNote: fields.note || ''
+    });
+    setPayModal(null);
+  };
+  const handlePayCancel = (inv) => {
+    if (!confirm('이 학생의 커미션 지급 기록을 취소하시겠습니까?')) return;
+    onUpdateInvoice({
+      ...inv,
+      commissionPaidAt: '',
+      commissionPaidBy: '',
+      commissionPaymentMethod: '',
+      commissionNote: ''
+    });
+  };
+
+  const saveCompanyInfo = () => {
+    if (!edit.name?.trim()) { alert('회사명을 입력해주세요.'); return; }
+    onUpdatePartner(edit);
+    setEdit(null);
+  };
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-8 py-8">
+      {/* 뒤로 가기 */}
+      <button onClick={onBack} className="text-sm mb-4 inline-flex items-center gap-1" style={{ color: 'var(--muted)' }}>
+        ← 파트너 목록
+      </button>
+
+      {/* 파트너 프로필 헤더 */}
+      <div className="hd-profile mb-4" style={{ borderRadius: 16 }}>
+        <div className="hd-pava" style={{ borderRadius: 16, fontSize: 22 }}>{initials}</div>
+        <div className="hd-pmain">
+          <div className="hd-pname">
+            <h1>{partner.name}</h1>
+            {partner.country && <span className="en">{partner.country}</span>}
+            {partner.active
+              ? <span className="hd-chip live"><span className="hd-sdot"></span>운영중</span>
+              : <span className="hd-chip" style={{ background:'rgba(255,255,255,0.08)', borderColor:'rgba(255,255,255,0.15)' }}>비활성</span>
+            }
+          </div>
+          <div className="hd-pmeta">
+            {partner.contactPerson && <span>담당자 <b>{partner.contactPerson}</b></span>}
+            {partner.email && <span>이메일 <b>{partner.email}</b></span>}
+            {partner.phone && <span>전화 <b>{partner.phone}</b></span>}
+          </div>
+        </div>
+      </div>
+
+      {/* 탭 */}
+      <div className="hd-tabs sticky top-0 z-10 mb-4">
+        <button className={`hd-tab ${tab==='dashboard' ? 'on':''}`} onClick={() => setTab('dashboard')}>대시보드</button>
+        <button className={`hd-tab ${tab==='company' ? 'on':''}`} onClick={() => setTab('company')}>회사 정보</button>
+        <button className={`hd-tab ${tab==='invoices' ? 'on':''}`} onClick={() => setTab('invoices')}>인보이스</button>
+      </div>
+
+      {/* === 대시보드 탭 === */}
+      {tab === 'dashboard' && (
+        <>
+          <div className="hd-eyebrow">
+            <span className="bar"></span><h2>커미션 정산 현황</h2>
+            <span className="note">정산 주기 · 1·4·7·10월 15일</span>
+          </div>
+
+          {/* 3 pillars */}
+          <div className="hd-pillars">
+            <div className="hd-card">
+              <div className="hd-plabel">누적 커미션</div>
+              <div><span className="hd-val">{fmt(totals.total)}</span><span className="hd-den">CAD</span></div>
+              <div className="text-xs mt-2" style={{ color:'var(--muted)' }}>
+                {rows.length}건 · 학생별 합산
+              </div>
+            </div>
+            <div className="hd-card">
+              <div className="hd-plabel">지급 완료</div>
+              <div><span className="hd-val" style={{ color:'var(--good)' }}>{fmt(totals.paid)}</span><span className="hd-den">CAD</span></div>
+              <div className="hd-track">
+                <div className="hd-fill" style={{
+                  width: `${totals.total > 0 ? Math.round(totals.paid/totals.total*100) : 0}%`,
+                  background: 'var(--good)'
+                }}/>
+              </div>
+            </div>
+            <div className="hd-card">
+              <div className="hd-plabel">지급 예정 / 대기</div>
+              <div>
+                <span className="hd-val" style={{ color: totals.overdue > 0 ? 'var(--alert)' : 'var(--warn)' }}>
+                  {fmt(totals.scheduled + totals.overdue + totals.wait)}
+                </span>
+                <span className="hd-den">CAD</span>
+              </div>
+              <div className="text-xs mt-2 flex gap-3" style={{ color:'var(--muted)' }}>
+                {totals.scheduled > 0 && <span>예정 {fmt(totals.scheduled)}</span>}
+                {totals.overdue > 0 && <span style={{ color:'var(--alert)' }}>연체 {fmt(totals.overdue)}</span>}
+                {totals.wait > 0 && <span>대기 {fmt(totals.wait)}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* 학생별 커미션 표 */}
+          <div className="hd-eyebrow mt-6">
+            <span className="bar"></span><h2>학생별 정산 내역</h2>
+            <span className="note">행을 클릭해 지급 처리</span>
+          </div>
+          <div className="hd-tablecard">
+            <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background:'var(--line-soft)' }}>
+                  <th className="table-th" style={{ textAlign:'left' }}>학생</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>인보이스</th>
+                  <th className="table-th" style={{ textAlign:'right' }}>커미션 (CAD)</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>학생 입금일</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>정산 예정일</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>상태</th>
+                  <th className="table-th" style={{ textAlign:'right' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 ? (
+                  <tr><td colSpan="7" className="text-center py-12 text-sm" style={{ color:'var(--faint)' }}>
+                    이 파트너에게 귀속된 커미션이 아직 없습니다.
+                  </td></tr>
+                ) : rows.map(r => (
+                  <tr key={r.inv.id} className="row-hover" style={{ borderTop:'1px solid var(--line-soft)' }}>
+                    <td className="table-td">
+                      <div className="font-medium" style={{ color:'var(--ink)' }}>{r.student?.koreanName || r.inv.studentName || '—'}</div>
+                      {r.student?.cohort && <div className="text-xs" style={{ color:'var(--muted)' }}>{r.student.cohort}</div>}
+                    </td>
+                    <td className="table-td text-sm" style={{ color:'var(--muted)' }}>
+                      <div>{r.inv.invoiceNumber || r.inv.id?.slice(0, 8)}</div>
+                      <div className="text-xs">{r.inv.issueDate || '—'}</div>
+                    </td>
+                    <td className="table-td text-right font-medium" style={{ fontVariantNumeric:'tabular-nums' }}>{fmt(r.inv.commissionAmount)}</td>
+                    <td className="table-td text-sm">{r.inv.paidAt || <span style={{ color:'var(--faint)' }}>미입금</span>}</td>
+                    <td className="table-td text-sm">{r.scheduled || <span style={{ color:'var(--faint)' }}>—</span>}</td>
+                    <td className="table-td">
+                      {r.status === 'paid' && (
+                        <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)' }}>
+                          <span className="dot" style={{ background:'var(--good)' }}></span>지급 완료
+                        </span>
+                      )}
+                      {r.status === 'scheduled' && (
+                        <span className="hd-pill" style={{ background:'var(--warn-bg)', color:'var(--warn)' }}>
+                          <span className="dot" style={{ background:'var(--warn)' }}></span>정산 예정
+                        </span>
+                      )}
+                      {r.status === 'overdue' && (
+                        <span className="hd-pill" style={{ background:'var(--alert-bg)', color:'var(--alert)' }}>
+                          <span className="dot" style={{ background:'var(--alert)' }}></span>연체
+                        </span>
+                      )}
+                      {r.status === 'wait' && (
+                        <span className="hd-pill" style={{ background:'var(--line-soft)', color:'var(--muted)' }}>
+                          <span className="dot" style={{ background:'var(--faint)' }}></span>학생 미입금
+                        </span>
+                      )}
+                    </td>
+                    <td className="table-td text-right whitespace-nowrap">
+                      {r.status === 'paid' ? (
+                        <>
+                          <span className="text-xs" style={{ color:'var(--muted)' }}>
+                            {r.inv.commissionPaidAt}
+                            {r.inv.commissionPaidBy && ` · ${r.inv.commissionPaidBy}`}
+                          </span>
+                          <button className="btn-ghost text-xs ml-2" onClick={() => handlePayCancel(r.inv)}>취소</button>
+                        </>
+                      ) : r.status === 'wait' ? (
+                        <span className="text-xs" style={{ color:'var(--faint)' }}>학생 입금 대기</span>
+                      ) : (
+                        <button className="btn-primary text-xs"
+                          onClick={() => setPayModal({
+                            inv: r.inv,
+                            paidAt: today,
+                            paidBy: currentUserName || '',
+                            method: 'E-transfer',
+                            note: ''
+                          })}>
+                          지급 처리
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 정산 안내 */}
+          <div className="notion-card p-4 mt-4 text-xs" style={{ background:'var(--gold-bg)', borderColor:'var(--gold)', color:'var(--ink)' }}>
+            <b>정산 안내</b> · 학생 입금이 확인된 후, 가장 가까운 분기 정산일(1·4·7·10월 15일)에 일괄 지급됩니다.
+            정산 예정일이 지났는데도 미지급 상태면 <span style={{ color:'var(--alert)' }}>연체</span>로 표시됩니다.
+          </div>
+        </>
+      )}
+
+      {/* === 회사 정보 탭 === */}
+      {tab === 'company' && (
+        <>
+          <div className="hd-eyebrow">
+            <span className="bar"></span><h2>회사 정보</h2>
+            {!edit && <button className="btn-ghost text-xs ml-auto" onClick={() => setEdit({ ...partner })}>수정</button>}
+          </div>
+
+          {!edit ? (
+            <div className="notion-card p-6">
+              <div className="grid grid-cols-3 gap-6">
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>회사명</div>
+                  <div className="font-medium">{partner.name || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>국가</div>
+                  <div className="font-medium">{partner.country || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>활성 상태</div>
+                  <div className="font-medium">{partner.active ? '활성' : '비활성'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>담당자</div>
+                  <div className="font-medium">{partner.contactPerson || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>전화</div>
+                  <div className="font-medium">{partner.phone || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>이메일</div>
+                  <div className="font-medium">{partner.email || '—'}</div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>주소</div>
+                  <div className="font-medium">{partner.address || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>웹사이트</div>
+                  {partner.website
+                    ? <a href={partner.website} target="_blank" rel="noopener" className="font-medium" style={{ color:'var(--red)' }}>{partner.website}</a>
+                    : <div className="font-medium">—</div>
+                  }
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>대표자</div>
+                  <div className="font-medium">{partner.representativeName || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>사업자번호</div>
+                  <div className="font-medium">{partner.businessNumber || '—'}</div>
+                </div>
+                <div className="col-span-3">
+                  <div className="text-xs mb-1" style={{ color:'var(--muted)' }}>메모</div>
+                  <div className="text-sm whitespace-pre-wrap" style={{ color:'var(--ink)' }}>{partner.memo || '—'}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="notion-card p-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Field label="회사명 *" span={2}><TextInput value={edit.name} onChange={(v) => setEdit({...edit, name:v})}/></Field>
+                <Field label="국가"><TextInput value={edit.country} onChange={(v) => setEdit({...edit, country:v})}/></Field>
+                <Field label="담당자"><TextInput value={edit.contactPerson} onChange={(v) => setEdit({...edit, contactPerson:v})}/></Field>
+                <Field label="전화"><TextInput value={edit.phone} onChange={(v) => setEdit({...edit, phone:v})}/></Field>
+                <Field label="이메일"><TextInput type="email" value={edit.email} onChange={(v) => setEdit({...edit, email:v})}/></Field>
+                <Field label="주소" span={2}><TextInput value={edit.address} onChange={(v) => setEdit({...edit, address:v})}/></Field>
+                <Field label="웹사이트"><TextInput value={edit.website} onChange={(v) => setEdit({...edit, website:v})}/></Field>
+                <Field label="대표자"><TextInput value={edit.representativeName} onChange={(v) => setEdit({...edit, representativeName:v})}/></Field>
+                <Field label="사업자번호"><TextInput value={edit.businessNumber} onChange={(v) => setEdit({...edit, businessNumber:v})}/></Field>
+                <Field label="활성 상태">
+                  <div className="pt-2"><Toggle value={edit.active} onChange={(v) => setEdit({...edit, active:v})} label="활성"/></div>
+                </Field>
+                <Field label="메모" span={3}><TextArea value={edit.memo} onChange={(v) => setEdit({...edit, memo:v})} rows={3}/></Field>
+                <div className="col-span-3 flex justify-end gap-2">
+                  <button className="btn-ghost" onClick={() => setEdit(null)}>취소</button>
+                  <button className="btn-primary" onClick={saveCompanyInfo}>저장</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* === 인보이스 탭 === */}
+      {tab === 'invoices' && (
+        <>
+          <div className="hd-eyebrow">
+            <span className="bar"></span><h2>발행된 인보이스</h2>
+            <span className="note">이 파트너로 표기된 모든 인보이스</span>
+          </div>
+          <div className="hd-tablecard">
+            <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background:'var(--line-soft)' }}>
+                  <th className="table-th" style={{ textAlign:'left' }}>인보이스 #</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>학생</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>발행일</th>
+                  <th className="table-th" style={{ textAlign:'right' }}>총액</th>
+                  <th className="table-th" style={{ textAlign:'right' }}>커미션</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>학생 결제</th>
+                  <th className="table-th" style={{ textAlign:'left' }}>커미션 정산</th>
+                </tr>
+              </thead>
+              <tbody>
+                {partnerInvoices.length === 0 ? (
+                  <tr><td colSpan="7" className="text-center py-12 text-sm" style={{ color:'var(--faint)' }}>
+                    인보이스가 없습니다.
+                  </td></tr>
+                ) : partnerInvoices.map(inv => {
+                  const stu = students.find(s => s.id === inv.studentId);
+                  const cstatus = getCommissionStatus(inv, today);
+                  return (
+                    <tr key={inv.id} className="row-hover" style={{ borderTop:'1px solid var(--line-soft)' }}>
+                      <td className="table-td text-sm">{inv.invoiceNumber || inv.id?.slice(0, 8)}</td>
+                      <td className="table-td text-sm">{stu?.koreanName || inv.studentName || '—'}</td>
+                      <td className="table-td text-sm">{inv.issueDate || '—'}</td>
+                      <td className="table-td text-right text-sm" style={{ fontVariantNumeric:'tabular-nums' }}>{fmt(inv.amount)}</td>
+                      <td className="table-td text-right text-sm font-medium" style={{ fontVariantNumeric:'tabular-nums' }}>{fmt(inv.commissionAmount)}</td>
+                      <td className="table-td text-sm">
+                        {inv.status === 'paid'
+                          ? <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)' }}>입금</span>
+                          : <span className="hd-pill" style={{ background:'var(--line-soft)', color:'var(--muted)' }}>미입금</span>
+                        }
+                      </td>
+                      <td className="table-td text-sm">
+                        {cstatus === 'paid' && <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)' }}>완료</span>}
+                        {cstatus === 'scheduled' && <span className="hd-pill" style={{ background:'var(--warn-bg)', color:'var(--warn)' }}>예정</span>}
+                        {cstatus === 'overdue' && <span className="hd-pill" style={{ background:'var(--alert-bg)', color:'var(--alert)' }}>연체</span>}
+                        {cstatus === 'wait' && <span className="hd-pill" style={{ background:'var(--line-soft)', color:'var(--muted)' }}>대기</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* === 지급 처리 모달 === */}
+      {payModal && (
+        <div className="modal-backdrop" onClick={() => setPayModal(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ width:'min(520px, 95vw)' }}>
+            <h3 className="font-semibold mb-1">커미션 지급 처리</h3>
+            <p className="text-xs mb-4" style={{ color:'var(--muted)' }}>
+              학생 <b>{students.find(s => s.id === payModal.inv.studentId)?.koreanName || payModal.inv.studentName}</b> ·
+              인보이스 <b>{payModal.inv.invoiceNumber || payModal.inv.id?.slice(0,8)}</b> ·
+              <b style={{ color:'var(--ink)' }}> {fmt(payModal.inv.commissionAmount)} CAD</b>
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="지급일 *"><TextInput type="date" value={payModal.paidAt} onChange={(v) => setPayModal({...payModal, paidAt:v})}/></Field>
+              <Field label="처리자"><TextInput value={payModal.paidBy} onChange={(v) => setPayModal({...payModal, paidBy:v})}/></Field>
+              <Field label="지급 방식" span={2}>
+                <Select value={payModal.method} onChange={(v) => setPayModal({...payModal, method:v})} options={['E-transfer','Wire','한국 계좌','현금','기타']}/>
+              </Field>
+              <Field label="메모" span={2}><TextArea value={payModal.note} onChange={(v) => setPayModal({...payModal, note:v})} rows={2} placeholder="이체 확인번호 등"/></Field>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button className="btn-ghost" onClick={() => setPayModal(null)}>취소</button>
+              <button className="btn-primary" onClick={() => handlePayConfirm(payModal.inv, payModal)} disabled={!payModal.paidAt}>지급 완료 처리</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PartnersPage = ({ partners, onChange, onOpen }) => {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ active: '', country: '' });
   const [editing, setEditing] = useState(null);
@@ -10271,11 +10720,12 @@ const PartnersPage = ({ partners, onChange }) => {
             {filtered.length === 0 ? (
               <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-sm">조건에 맞는 파트너가 없습니다.</td></tr>
             ) : filtered.map(p => (
-              <tr key={p.id} className="row-hover" style={{ opacity: p.active ? 1 : 0.55 }}>
+              <tr key={p.id} className="row-hover" style={{ opacity: p.active ? 1 : 0.55, cursor: 'pointer' }}
+                  onClick={() => onOpen && onOpen(p.id)}>
                 <td className="table-td">
-                  <div className="font-medium">{p.name}</div>
+                  <div className="font-medium" style={{ color:'var(--ink)' }}>{p.name}</div>
                   {p.representativeName && <div className="text-xs text-gray-500">대표 {p.representativeName}</div>}
-                  {p.website && <a href={p.website} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">{p.website}</a>}
+                  {p.website && <a href={p.website} target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="text-xs text-blue-600 hover:underline">{p.website}</a>}
                 </td>
                 <td className="table-td text-sm">{p.country || '—'}</td>
                 <td className="table-td text-sm">{p.contactPerson || '—'}</td>
@@ -10287,7 +10737,7 @@ const PartnersPage = ({ partners, onChange }) => {
                   {p.active ? <span className="badge b-green">활성</span> : <span className="badge b-gray">비활성</span>}
                 </td>
                 <td className="table-td text-xs text-gray-600" style={{maxWidth:220}}>{p.memo || '—'}</td>
-                <td className="table-td text-right whitespace-nowrap">
+                <td className="table-td text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                   <button className="btn-ghost" onClick={() => setEditing(p)}>수정</button>
                   <button className="btn-danger" onClick={() => remove(p.id)}>삭제</button>
                 </td>
@@ -10833,8 +11283,9 @@ function App({ authMember, firebaseUser, signOut }) {
   const [pdfAccom, setPdfAccom] = useState(null); // PDF 미리보기 대상
   const [pdfInvoice, setPdfInvoice] = useState(null); // 인보이스 PDF 미리보기
   const [invoiceEditing, setInvoiceEditing] = useState(null); // 인보이스 편집 대상 (app or invoice)
-  const [view, setView] = useState('students'); // students | schools | subjects | members | matrix | uniData | accomData | applications | invoices
+  const [view, setView] = useState('students'); // students | schools | subjects | members | matrix | uniData | accomData | applications | invoices | partners
   const [openId, setOpenId] = useState(null);
+  const [openPartnerId, setOpenPartnerId] = useState(null);
   const [showNew, setShowNew] = useState(false);
 
   // 🚀 첫 방문 시 GitHub의 bupp-data.json 자동 시드 (있으면 새로고침)
@@ -11088,7 +11539,7 @@ function App({ authMember, firebaseUser, signOut }) {
         )}
         {access.partners && (
           <div className={`sidebar-item ${view === 'partners' ? 'active':''}`}
-            onClick={() => { setView('partners'); setOpenId(null); }}><NavIcon name="handshake"/>파트너 관리</div>
+            onClick={() => { setView('partners'); setOpenId(null); setOpenPartnerId(null); }}><NavIcon name="handshake"/>파트너 관리</div>
         )}
 
         {(access.members || access.matrix) && (
@@ -11162,7 +11613,21 @@ function App({ authMember, firebaseUser, signOut }) {
             onOpenPDF={(a) => setPdfAccom(a)}
           />
         ) : view === 'partners' && access.partners ? (
-          <PartnersPage partners={partners} onChange={setPartners}/>
+          openPartnerId && partners.find(p => p.id === openPartnerId) ? (
+            <PartnerDetailPage
+              partner={partners.find(p => p.id === openPartnerId)}
+              partners={partners}
+              invoices={invoices}
+              students={students}
+              applications={applications}
+              currentUserName={currentUser?.name || ''}
+              onBack={() => setOpenPartnerId(null)}
+              onUpdatePartner={(updated) => setPartners(partners.map(p => p.id === updated.id ? updated : p))}
+              onUpdateInvoice={(updated) => setInvoices(invoices.map(i => i.id === updated.id ? updated : i))}
+            />
+          ) : (
+            <PartnersPage partners={partners} onChange={setPartners} onOpen={(id) => setOpenPartnerId(id)}/>
+          )
         ) : view === 'ecData' && access.ecData ? (
           <EcMasterPage ecMasters={ecMasters} onChange={setEcMasters} students={students}/>
         ) : view === 'applications' && access.applications ? (

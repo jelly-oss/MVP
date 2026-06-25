@@ -556,7 +556,7 @@ const emptyStudent = () => ({
   program: '', // BUPP 프로그램 유형
   contact: {
     studentPhone: '', studentEmail: '', parentEmail: '',
-    parentPhone: '', emergencyContact: '', kakaoId: '', memo: ''
+    parentPhone: '', emergencyContact: '', kakaoId: '', koreanAddress: '', memo: ''
   },
   academic: {
     // 공인영어점수 — 현재 상태 + 응시 이력
@@ -1793,7 +1793,7 @@ const STUDENT_SCOPE = {
 const VISIBLE_TABS = {
   admin:    ['basic','contact','academic','roadmap','ec','accom','uni','report'],
   bu_staff: ['basic','contact','academic','roadmap','ec','accom','uni','report'],
-  student:  ['basic','academic','roadmap','ec','uni'], // 학생은 EC 추가·수정 가능 (삭제는 요청만)
+  student:  ['basic','academic','roadmap','ec','accom','uni'], // 학생은 EC 추가·수정 가능 (삭제는 요청만), 숙소 read-only
   parent:   ['basic','contact','academic','roadmap','ec','accom','uni','report'],
   tutor:    ['basic','academic','roadmap','report'],
   partner:  ['basic','contact','academic','roadmap','ec','accom','uni','report']
@@ -3075,8 +3075,8 @@ const AccommodationDetail = ({ accom, students, schools, onChange, onClose, canV
 };
 
 // 입실 가능 날짜 대시보드 — 홈스테이 + 기숙사 방들의 availableFromDate 표시
-const AvailabilityDashboard = ({ accommodations, onJump }) => {
-  const [viewMode, setViewMode] = useState('calendar'); // calendar | list
+const AvailabilityDashboard = ({ accommodations, onJump, students = [] }) => {
+  const [viewMode, setViewMode] = useState('calendar'); // calendar | list | checkout
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -3100,6 +3100,33 @@ const AvailabilityDashboard = ({ accommodations, onJump }) => {
       });
     });
   });
+
+  // 🚪 퇴실 예정 — 현재 거주자 중 expectedMoveOutDate가 있는 사람들
+  const checkouts = [];
+  accommodations.forEach(a => {
+    if (a.category !== '홈스테이' && a.category !== '기숙사') return;
+    (a.rooms || []).forEach(r => {
+      (r.currentOccupants || []).forEach(occ => {
+        if (!occ.expectedMoveOutDate) return;
+        const stu = students.find(s => s.id === occ.studentId);
+        checkouts.push({
+          date: occ.expectedMoveOutDate,
+          moveInDate: occ.moveInDate || '',
+          accommodationId: a.id,
+          accommodationName: a.name,
+          accommodationCategory: a.category,
+          accommodationSubCategory: a.subCategory || '',
+          roomName: r.name || '(이름 없음)',
+          isBupp: !occ.unknownStudent && !!occ.studentId,
+          occupantName: occ.unknownStudent ? (occ.unknownStudentName || '외부 학생') : (stu?.koreanName || '—')
+        });
+      });
+    });
+  });
+  checkouts.sort((a, b) => a.date.localeCompare(b.date));
+  const todayStr2 = new Date().toISOString().slice(0, 10);
+  const upcomingCheckouts = checkouts.filter(c => c.date >= todayStr2);
+  const pastCheckouts = checkouts.filter(c => c.date < todayStr2);
 
   // 캘린더 뷰 계산
   const year = currentMonth.getFullYear();
@@ -3163,6 +3190,7 @@ const AvailabilityDashboard = ({ accommodations, onJump }) => {
         <div className="flex gap-1">
           <button className={`tab-btn ${viewMode === 'calendar' ? 'active':''}`} onClick={() => setViewMode('calendar')}>📆 캘린더</button>
           <button className={`tab-btn ${viewMode === 'list' ? 'active':''}`} onClick={() => setViewMode('list')}>📋 월별 목록</button>
+          <button className={`tab-btn ${viewMode === 'checkout' ? 'active':''}`} onClick={() => setViewMode('checkout')}>🚪 퇴실 예정 ({upcomingCheckouts.length})</button>
         </div>
       </div>
 
@@ -3226,6 +3254,93 @@ const AvailabilityDashboard = ({ accommodations, onJump }) => {
             <div className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded" style={{background:'#ddebf1'}}/>기숙사</div>
             <div className="flex items-center gap-1">🔒 현재 거주중</div>
           </div>
+        </div>
+      )}
+
+      {viewMode === 'checkout' && (
+        <div className="p-5">
+          {checkouts.length === 0 ? (
+            <div className="text-sm text-gray-400 text-center py-8">퇴실 예정일이 등록된 거주자가 없습니다.</div>
+          ) : (
+            <Fragment>
+              {/* 예정 (오늘 이후) */}
+              <div className="mb-5">
+                <h4 className="font-semibold mb-2" style={{color:'#c20206'}}>예정 ({upcomingCheckouts.length})</h4>
+                <div className="notion-card overflow-hidden">
+                  {upcomingCheckouts.length === 0 ? (
+                    <div className="text-sm text-gray-400 text-center py-6">예정된 퇴실이 없습니다.</div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th className="table-th" style={{ width:120 }}>퇴실예정일</th>
+                          <th className="table-th" style={{ width:90 }}>D-day</th>
+                          <th className="table-th">거주자</th>
+                          <th className="table-th">카테고리</th>
+                          <th className="table-th">숙소</th>
+                          <th className="table-th">방</th>
+                          <th className="table-th">입실일</th>
+                          <th className="table-th"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {upcomingCheckouts.map((c, i) => {
+                          const days = Math.ceil((new Date(c.date) - new Date(todayStr2)) / 86400000);
+                          const isUrgent = days <= 30;
+                          return (
+                            <tr key={i} className="row-hover cursor-pointer" onClick={() => onJump && onJump(c.accommodationId)}>
+                              <td className="table-td text-sm font-medium">{c.date}</td>
+                              <td className="table-td text-sm" style={{ color: isUrgent ? '#c20206' : '#4a4a4a', fontWeight: isUrgent ? 600 : 400 }}>D-{days}</td>
+                              <td className="table-td text-sm">
+                                {c.occupantName}
+                                {c.isBupp && <span className="ml-1"><Badge value="BUPP"/></span>}
+                              </td>
+                              <td className="table-td">
+                                <Badge value={c.accommodationCategory}/>
+                                {c.accommodationSubCategory && <span className="ml-1"><Badge value={c.accommodationSubCategory}/></span>}
+                              </td>
+                              <td className="table-td text-sm font-medium">{c.accommodationName}</td>
+                              <td className="table-td text-sm">{c.roomName}</td>
+                              <td className="table-td text-xs text-gray-500">{c.moveInDate || '—'}</td>
+                              <td className="table-td text-right text-xs text-blue-600">→ 상세보기</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+              {/* 지난 항목 (참고) */}
+              {pastCheckouts.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-gray-500">지난 퇴실예정 ({pastCheckouts.length})</h4>
+                  <div className="notion-card overflow-hidden" style={{ opacity: 0.65 }}>
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th className="table-th" style={{ width:120 }}>퇴실예정일</th>
+                          <th className="table-th">거주자</th>
+                          <th className="table-th">숙소</th>
+                          <th className="table-th">방</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pastCheckouts.slice(-10).reverse().map((c, i) => (
+                          <tr key={i} className="row-hover cursor-pointer" onClick={() => onJump && onJump(c.accommodationId)}>
+                            <td className="table-td text-sm">{c.date}</td>
+                            <td className="table-td text-sm">{c.occupantName}{c.isBupp && <span className="ml-1"><Badge value="BUPP"/></span>}</td>
+                            <td className="table-td text-sm">{c.accommodationName}</td>
+                            <td className="table-td text-sm">{c.roomName}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          )}
         </div>
       )}
 
@@ -3336,7 +3451,7 @@ const AccommodationDataPage = ({ accommodations, students, schools, onChange, ca
       </div>
 
       {/* 입실 가능 날짜 대시보드 */}
-      <AvailabilityDashboard accommodations={accommodations} onJump={(id) => setOpenId(id)}/>
+      <AvailabilityDashboard accommodations={accommodations} students={students} onJump={(id) => setOpenId(id)}/>
 
       {/* 카테고리 탭 */}
       <div className="flex gap-1 mb-4 border-b" style={{borderColor:'var(--border)'}}>
@@ -4373,10 +4488,17 @@ const SubjectList = ({ subjects, schools, onChange }) => {
    ============================================================ */
 
 // A. 기본 정보
-const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[], subjects=[], universities=[], programs=[] }) => {
+const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[], subjects=[], universities=[], programs=[], role='admin' }) => {
   const categoryOpts = customOptions?.category || [];
   const cohortOpts = customOptions?.cohort || [];
   const schoolOpts = customOptions?.currentSchool || [];
+  const isStudent = role === 'student';
+  // 학생용 read-only 표시 — 드롭다운/입력창 대신 텍스트
+  const Ro = ({ value, fallback = '—' }) => (
+    <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
+      {value ? value : <span className="text-gray-400">{fallback}</span>}
+    </div>
+  );
   return (
     <Fragment>
     {/* 📊 학생 데이터 자동 요약 — 기본 정보 위 (가장 직관적 대시보드) */}
@@ -4384,10 +4506,10 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
 
     <Section title="기본 정보">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <Field label="한글 이름"><TextInput value={s.koreanName} onChange={(v) => update({ koreanName: v })} /></Field>
-        <Field label="영어 이름"><TextInput value={s.englishName} onChange={(v) => update({ englishName: v })} /></Field>
-        <Field label="현재상태"><Select value={s.admissionStatus} onChange={(v) => update({ admissionStatus: v })} options={ADMISSION_STATUSES} /></Field>
-        <Field label="구분">
+        <Field label="한글 이름">{isStudent ? <Ro value={s.koreanName}/> : <TextInput value={s.koreanName} onChange={(v) => update({ koreanName: v })} />}</Field>
+        <Field label="영어 이름">{isStudent ? <Ro value={s.englishName}/> : <TextInput value={s.englishName} onChange={(v) => update({ englishName: v })} />}</Field>
+        <Field label="현재상태">{isStudent ? <Ro value={s.admissionStatus}/> : <Select value={s.admissionStatus} onChange={(v) => update({ admissionStatus: v })} options={ADMISSION_STATUSES} />}</Field>
+        <Field label="구분">{isStudent ? <Ro value={s.category}/> : (
           <ComboSelect
             value={s.category}
             onChange={(v) => update({ category: v })}
@@ -4396,9 +4518,9 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
             onRemoveCustom={(v) => removeOption('category', v)}
             placeholder="브듀 / 외부 / 단기 / 파트너사 등"
           />
-        </Field>
-        <Field label="가디언 담당자"><TextInput value={s.guardianManager} onChange={(v) => update({ guardianManager: v })} /></Field>
-        <Field label="기수">
+        )}</Field>
+        <Field label="가디언 담당자">{isStudent ? <Ro value={s.guardianManager}/> : <TextInput value={s.guardianManager} onChange={(v) => update({ guardianManager: v })} />}</Field>
+        <Field label="기수">{isStudent ? <Ro value={s.cohort}/> : (
           <ComboSelect
             value={s.cohort}
             onChange={(v) => update({ cohort: v })}
@@ -4407,8 +4529,8 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
             onRemoveCustom={(v) => removeOption('cohort', v)}
             placeholder="예) 2024-가을"
           />
-        </Field>
-        <Field label="재학중인 학교">
+        )}</Field>
+        <Field label="재학중인 학교">{isStudent ? <Ro value={s.currentSchool}/> : (
           <ComboSelect
             value={s.currentSchool}
             onChange={(v) => update({ currentSchool: v })}
@@ -4417,10 +4539,10 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
             onRemoveCustom={(v) => removeOption('currentSchool', v)}
             placeholder="학교 선택 또는 추가"
           />
-        </Field>
-        <Field label="생년월일">
+        )}</Field>
+        <Field label="생년월일">{isStudent ? <Ro value={s.birthDate}/> : (
           <TextInput type="date" value={s.birthDate} onChange={(v) => update({ birthDate: v, age: calcAge(v) })} />
-        </Field>
+        )}</Field>
         <Field label="만나이 (자동)">
           <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
             {calcAge(s.birthDate) ? `만 ${calcAge(s.birthDate)}세` : <span className="text-gray-400">생년월일 입력 시 자동 표시</span>}
@@ -4430,48 +4552,48 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
           <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
             {calcOfficialGrade(s.birthDate) || <span className="text-gray-400">생년월일 입력 시 자동 표시</span>}
           </div>
-          <div className="text-xs text-gray-500 mt-1">만 15→G10·16→G11·17→G12 (참고용, 학적과 다를 수 있음)</div>
+          {!isStudent && <div className="text-xs text-gray-500 mt-1">만 15→G10·16→G11·17→G12 (참고용, 학적과 다를 수 있음)</div>}
         </Field>
-        <Field label="실제학년 *">
+        <Field label="실제학년 *">{isStudent ? <Ro value={s.actualGrade}/> : (<Fragment>
           <TextInput value={s.actualGrade} onChange={(v) => update({ actualGrade: v })} placeholder="Grade 10" />
           <div className="text-xs text-gray-500 mt-1">크레딧 기준 — 학생 상단에 노출되는 학년</div>
-        </Field>
-        <Field label="캐나다 최초 입국일">
+        </Fragment>)}</Field>
+        <Field label="캐나다 최초 입국일">{isStudent ? <Ro value={s.firstEntryDateCanada}/> : (
           <TextInput type="date" value={s.firstEntryDateCanada} onChange={(v) => update({ firstEntryDateCanada: v })} />
-        </Field>
-        <Field label="총 예상 유학일정 시작">
+        )}</Field>
+        <Field label="총 예상 유학일정 시작">{isStudent ? <Ro value={s.expectedStudyPeriod?.startDate}/> : (
           <TextInput type="date" value={s.expectedStudyPeriod?.startDate}
             onChange={(v) => update({ expectedStudyPeriod: { ...s.expectedStudyPeriod, startDate: v }})} />
-        </Field>
-        <Field label="총 예상 유학일정 종료">
+        )}</Field>
+        <Field label="총 예상 유학일정 종료">{isStudent ? <Ro value={s.expectedStudyPeriod?.endDate}/> : (
           <TextInput type="date" value={s.expectedStudyPeriod?.endDate}
             onChange={(v) => update({ expectedStudyPeriod: { ...s.expectedStudyPeriod, endDate: v }})} />
-        </Field>
-        <Field label="BUPP 계약 시작">
+        )}</Field>
+        <Field label="BUPP 계약 시작">{isStudent ? <Ro value={s.buppContractPeriod?.startDate}/> : (
           <TextInput type="date" value={s.buppContractPeriod?.startDate}
             onChange={(v) => update({ buppContractPeriod: { ...s.buppContractPeriod, startDate: v }})} />
-        </Field>
-        <Field label="BUPP 계약 종료">
+        )}</Field>
+        <Field label="BUPP 계약 종료">{isStudent ? <Ro value={s.buppContractPeriod?.endDate}/> : (
           <TextInput type="date" value={s.buppContractPeriod?.endDate}
             onChange={(v) => update({ buppContractPeriod: { ...s.buppContractPeriod, endDate: v }})} />
-        </Field>
-        <Field label="보험기간 만료일">
+        )}</Field>
+        <Field label="보험기간 만료일">{isStudent ? <Ro value={s.insuranceEndDate}/> : (
           <TextInput type="date" value={s.insuranceEndDate} onChange={(v) => update({ insuranceEndDate: v })} />
-        </Field>
-        <Field label="여권 만료일">
+        )}</Field>
+        <Field label="여권 만료일">{isStudent ? <Ro value={s.passportExpiryDate}/> : (
           <TextInput type="date" value={s.passportExpiryDate} onChange={(v) => update({ passportExpiryDate: v })} />
-        </Field>
-        <Field label="비자 종료일">
+        )}</Field>
+        <Field label="비자 종료일">{isStudent ? <Ro value={s.visaExpiryDate}/> : (
           <TextInput type="date" value={s.visaExpiryDate} onChange={(v) => update({ visaExpiryDate: v })} />
-        </Field>
-        <Field label="성별"><Select value={s.gender} onChange={(v) => update({ gender: v })} options={GENDERS} /></Field>
-        <Field label="OEN"><TextInput value={s.oen} onChange={(v) => update({ oen: v })} /></Field>
-        <Field label="학생 ID"><TextInput value={s.studentId} onChange={(v) => update({ studentId: v })} /></Field>
-        <Field label="BPID"><TextInput value={s.bpid} onChange={(v) => update({ bpid: v })} /></Field>
-        <Field label="BPPW"><TextInput value={s.bppw} onChange={(v) => update({ bppw: v })} /></Field>
-        <Field label="BUPP 프로그램" span={2}>
+        )}</Field>
+        <Field label="성별">{isStudent ? <Ro value={s.gender}/> : <Select value={s.gender} onChange={(v) => update({ gender: v })} options={GENDERS} />}</Field>
+        <Field label="OEN">{isStudent ? <Ro value={s.oen}/> : <TextInput value={s.oen} onChange={(v) => update({ oen: v })} />}</Field>
+        <Field label="학생 ID">{isStudent ? <Ro value={s.studentId}/> : <TextInput value={s.studentId} onChange={(v) => update({ studentId: v })} />}</Field>
+        <Field label="BPID">{isStudent ? <Ro value={s.bpid}/> : <TextInput value={s.bpid} onChange={(v) => update({ bpid: v })} />}</Field>
+        <Field label="BPPW">{isStudent ? <Ro value={s.bppw}/> : <TextInput value={s.bppw} onChange={(v) => update({ bppw: v })} />}</Field>
+        <Field label="BUPP 프로그램" span={2}>{isStudent ? <Ro value={s.program}/> : (
           <Select value={s.program} onChange={(v) => update({ program: v })} options={BUPP_PROGRAMS} placeholder="프로그램 선택"/>
-        </Field>
+        )}</Field>
       </div>
     </Section>
     </Fragment>
@@ -4491,6 +4613,7 @@ const TabContact = ({ s, update }) => {
         <Field label="학부모 전화번호"><TextInput value={c.parentPhone} onChange={(v) => set('parentPhone', v)} /></Field>
         <Field label="비상연락처"><TextInput value={c.emergencyContact} onChange={(v) => set('emergencyContact', v)} /></Field>
         <Field label="카카오톡 ID"><TextInput value={c.kakaoId} onChange={(v) => set('kakaoId', v)} /></Field>
+        <Field label="한국 주소" span={2}><TextInput value={c.koreanAddress} onChange={(v) => set('koreanAddress', v)} placeholder="예) 서울시 강남구 역삼동 ..."/></Field>
         <Field label="메모" span={2}><TextArea value={c.memo} onChange={(v) => set('memo', v)} placeholder="연락처 관련 특이사항"/></Field>
       </div>
     </Section>
@@ -4620,7 +4743,7 @@ const EnglishTestTrendChart = ({ history }) => {
 };
 
 // 영어 점수 이력 표 + 추가/수정 폼
-const EnglishTestHistoryTable = ({ history, onChange }) => {
+const EnglishTestHistoryTable = ({ history, onChange, canEdit = true }) => {
   const [editing, setEditing] = useState(null);
   const upsert = (rec) => {
     if (!rec.type) { alert('시험 종류를 선택해주세요.'); return; }
@@ -4641,7 +4764,7 @@ const EnglishTestHistoryTable = ({ history, onChange }) => {
     <div>
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm font-semibold" style={{color:'#c20206'}}>📋 응시 이력 ({(history||[]).length}건)</div>
-        <button className="btn-ghost text-xs" onClick={() => setEditing({ ...blank })}>+ 새 응시 기록</button>
+        {canEdit && <button className="btn-ghost text-xs" onClick={() => setEditing({ ...blank })}>+ 새 응시 기록</button>}
       </div>
 
       {editing && (
@@ -4690,8 +4813,10 @@ const EnglishTestHistoryTable = ({ history, onChange }) => {
                 <td className="table-td">{h.speaking || '—'}</td>
                 <td className="table-td text-xs text-gray-600" style={{maxWidth:200}}>{h.memo || '—'}</td>
                 <td className="table-td text-right whitespace-nowrap">
-                  <button className="btn-ghost text-xs" onClick={() => setEditing(h)}>수정</button>
-                  <button className="btn-danger text-xs" onClick={() => remove(h.id)}>삭제</button>
+                  {canEdit && <Fragment>
+                    <button className="btn-ghost text-xs" onClick={() => setEditing(h)}>수정</button>
+                    <button className="btn-danger text-xs" onClick={() => remove(h.id)}>삭제</button>
+                  </Fragment>}
                 </td>
               </tr>
             ))}
@@ -4702,12 +4827,20 @@ const EnglishTestHistoryTable = ({ history, onChange }) => {
   );
 };
 
-const TabAcademic = ({ s, update }) => {
+const TabAcademic = ({ s, update, role = 'admin' }) => {
   const a = s.academic || {};
   const et = a.englishTest || {};
   const history = a.englishTestHistory || [];
+  const isStudent = role === 'student';
+  const canEdit = !isStudent; // 학생은 응시이력·OSSLT·메모 수정 불가 (브듀쌤 이상만)
   const setAcademic = (k, v) => update({ academic: { ...a, [k]: v } });
   const setTest = (k, v) => update({ academic: { ...a, englishTest: { ...et, [k]: v } } });
+  // 학생용 read-only 표시
+  const Ro = ({ value, fallback = '—' }) => (
+    <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
+      {value ? value : <span className="text-gray-400">{fallback}</span>}
+    </div>
+  );
   const setHistory = (next) => {
     // 이력 변경 시 최신 기록을 englishTest snapshot으로 자동 반영
     const sorted = [...next].sort((a, b) => (b.testDate||'').localeCompare(a.testDate||''));
@@ -4734,8 +4867,8 @@ const TabAcademic = ({ s, update }) => {
 
         {/* 현재 상태 (요약) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <Field label="준비 상태"><Select value={et.status} onChange={(v) => setTest('status', v)} options={IELTS_STATUSES}/></Field>
-          <Field label="다음 응시 예정일"><TextInput type="date" value={et.testDate} onChange={(v) => setTest('testDate', v)}/></Field>
+          <Field label="준비 상태">{canEdit ? <Select value={et.status} onChange={(v) => setTest('status', v)} options={IELTS_STATUSES}/> : <Ro value={et.status}/>}</Field>
+          <Field label="다음 응시 예정일">{canEdit ? <TextInput type="date" value={et.testDate} onChange={(v) => setTest('testDate', v)}/> : <Ro value={et.testDate}/>}</Field>
           <Field label="현재 시험 종류" span={2}>
             {latestHistory ? (
               <div className="pt-2 text-sm">
@@ -4747,7 +4880,7 @@ const TabAcademic = ({ s, update }) => {
               <div className="pt-2 text-xs text-gray-400">아직 응시 기록이 없습니다.</div>
             )}
           </Field>
-          <Field label="시험 메모" span={4}><TextArea value={et.memo} onChange={(v) => setTest('memo', v)} rows={2} placeholder="재시험 예정, 대학 제출 현황 등"/></Field>
+          <Field label="시험 메모" span={4}>{canEdit ? <TextArea value={et.memo} onChange={(v) => setTest('memo', v)} rows={2} placeholder="재시험 예정, 대학 제출 현황 등"/> : <Ro value={et.memo}/>}</Field>
         </div>
 
         {/* 트렌드 차트 */}
@@ -4757,13 +4890,13 @@ const TabAcademic = ({ s, update }) => {
         </div>
 
         {/* 이력 표 */}
-        <EnglishTestHistoryTable history={history} onChange={setHistory}/>
+        <EnglishTestHistoryTable history={history} onChange={setHistory} canEdit={canEdit}/>
       </div>
 
       {/* OSSLT — 응시 년월 + 상태 (4월·11월 시험) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Field label="OSSLT 상태"><Select value={a.ossltStatus} onChange={(v) => setAcademic('ossltStatus', v)} options={OSSLT_STATUSES}/></Field>
-        <Field label="OSSLT 응시 년도">
+        <Field label="OSSLT 상태">{canEdit ? <Select value={a.ossltStatus} onChange={(v) => setAcademic('ossltStatus', v)} options={OSSLT_STATUSES}/> : <Ro value={a.ossltStatus}/>}</Field>
+        <Field label="OSSLT 응시 년도">{canEdit ? (
           <Select
             value={a.ossltExamYear || ''}
             onChange={(v) => setAcademic('ossltExamYear', v)}
@@ -4773,11 +4906,9 @@ const TabAcademic = ({ s, update }) => {
             })()}
             placeholder="선택"
           />
-        </Field>
-        <Field label="OSSLT 응시 월">
-          <Select value={a.ossltExamMonth || ''} onChange={(v) => setAcademic('ossltExamMonth', v)} options={['4월', '11월']} placeholder="선택"/>
-        </Field>
-        <Field label="재학 학교 링크 / 메모" span={4}><TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/></Field>
+        ) : <Ro value={a.ossltExamYear}/>}</Field>
+        <Field label="OSSLT 응시 월">{canEdit ? <Select value={a.ossltExamMonth || ''} onChange={(v) => setAcademic('ossltExamMonth', v)} options={['4월', '11월']} placeholder="선택"/> : <Ro value={a.ossltExamMonth}/>}</Field>
+        <Field label="재학 학교 링크 / 메모" span={4}>{canEdit ? <TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/> : <Ro value={a.schoolMemo}/>}</Field>
       </div>
       <div className="text-xs text-gray-500 mt-2">💡 OSSLT는 매년 <strong>4월</strong>과 <strong>11월</strong>에 실시. 응시 예정/응시 완료 년월을 기록하면 기본 정보 대시보드에 자동 표시됩니다.</div>
 
@@ -5140,8 +5271,10 @@ const RoadmapEditor = ({ rec, schools, subjects, onSave, onCancel }) => {
   );
 };
 
-const TabRoadmap = ({ s, update, schools, subjects }) => {
+const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
   const list = s.academicRecords || [];
+  const isStudent = role === 'student';
+  const canEdit = !isStudent; // 학생은 과목 추가·수정·삭제 불가 (브듀쌤 이상만)
   const [editing, setEditing] = useState(null);   // 단일 수정
   const [bulkAdding, setBulkAdding] = useState(false); // 일괄 등록
   const [pleAdding, setPleAdding] = useState(false);   // PLE 추가
@@ -5197,12 +5330,12 @@ const TabRoadmap = ({ s, update, schools, subjects }) => {
     <Section
       title="대입로드맵 (학업/성적)"
       count={list.length}
-      right={
+      right={canEdit && (
         <div className="flex items-center gap-2">
           <button className="btn-ghost" onClick={() => setPleAdding(true)}>📜 PLE 인정 학점</button>
           <button className="btn-primary" onClick={() => setBulkAdding(true)}>+ 과목 일괄 추가</button>
         </div>
-      }
+      )}
     >
       {/* 요약 */}
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -5309,8 +5442,10 @@ const TabRoadmap = ({ s, update, schools, subjects }) => {
                         <td className="table-td"><Badge value={r.selection}/></td>
                         <td className="table-td text-xs" style={{color:'#202731'}}>{r.memo || '—'}</td>
                         <td className="table-td text-right whitespace-nowrap">
-                          <button className="btn-ghost" onClick={() => setPleEditing(r)}>수정</button>
-                          <button className="btn-danger" onClick={() => remove(r.id)}>삭제</button>
+                          {canEdit && <Fragment>
+                            <button className="btn-ghost" onClick={() => setPleEditing(r)}>수정</button>
+                            <button className="btn-danger" onClick={() => remove(r.id)}>삭제</button>
+                          </Fragment>}
                         </td>
                       </tr>
                     );
@@ -5339,8 +5474,10 @@ const TabRoadmap = ({ s, update, schools, subjects }) => {
                       <td className="table-td"><Badge value={r.selection}/></td>
                       <td className="table-td text-xs text-gray-600">{r.memo || '—'}</td>
                       <td className="table-td text-right whitespace-nowrap">
-                        <button className="btn-ghost" onClick={() => setEditing(r)}>수정</button>
-                        <button className="btn-danger" onClick={() => remove(r.id)}>삭제</button>
+                        {canEdit && <Fragment>
+                          <button className="btn-ghost" onClick={() => setEditing(r)}>수정</button>
+                          <button className="btn-danger" onClick={() => remove(r.id)}>삭제</button>
+                        </Fragment>}
                       </td>
                     </tr>
                   );
@@ -5930,10 +6067,11 @@ const AccommodationLinkPanel = ({ s, update, accommodations }) => {
 };
 
 // E. 숙소
-const TabAccommodation = ({ s, update, accommodations=[] }) => {
+const TabAccommodation = ({ s, update, accommodations=[], role = 'admin' }) => {
   const acc = s.accommodation || {};
   const [editing, setEditing] = useState(false);
   const [historyDraft, setHistoryDraft] = useState(null);
+  const canEdit = role !== 'student'; // 학생은 숙소 read-only
 
   const addHistory = () => setHistoryDraft({
     id:'', previousType:'', previousAddress:'', previousHostOrDormName:'',
@@ -5962,7 +6100,7 @@ const TabAccommodation = ({ s, update, accommodations=[] }) => {
         title="🔄 숙소 변경 이력"
         count={(s.accommodationHistory || []).length}
         defaultOpen={true}
-        right={<button className="btn-primary" onClick={addHistory}>+ 이력 추가</button>}
+        right={canEdit && <button className="btn-primary" onClick={addHistory}>+ 이력 추가</button>}
       >
         {historyDraft && (
           <div className="notion-card p-4 mb-4 bg-gray-50">
@@ -6005,8 +6143,10 @@ const TabAccommodation = ({ s, update, accommodations=[] }) => {
                   <td className="table-td text-xs text-gray-600">{h.startDate} ~ {h.endDate}</td>
                   <td className="table-td text-gray-600">{h.changeReason}</td>
                   <td className="table-td text-right">
-                    <button className="btn-ghost" onClick={() => setHistoryDraft(h)}>수정</button>
-                    <button className="btn-danger" onClick={() => delHistory(h.id)}>삭제</button>
+                    {canEdit && <Fragment>
+                      <button className="btn-ghost" onClick={() => setHistoryDraft(h)}>수정</button>
+                      <button className="btn-danger" onClick={() => delHistory(h.id)}>삭제</button>
+                    </Fragment>}
                   </td>
                 </tr>
               ))}
@@ -6019,7 +6159,7 @@ const TabAccommodation = ({ s, update, accommodations=[] }) => {
       <Section
         title="🏠 현재 배치"
         defaultOpen={true}
-        right={!editing && (
+        right={canEdit && !editing && (
           <button className="btn-ghost" onClick={() => setEditing(true)}>{hasPlacement ? '변경' : '+ 숙소 배치'}</button>
         )}
       >
@@ -6032,8 +6172,8 @@ const TabAccommodation = ({ s, update, accommodations=[] }) => {
           </Fragment>
         ) : !hasPlacement ? (
           <div className="text-sm text-gray-400 p-6 text-center">
-            현재 배치된 숙소가 없습니다.<br/>
-            <button className="btn-primary mt-3" onClick={() => setEditing(true)}>+ 숙소 배치</button>
+            현재 배치된 숙소가 없습니다.
+            {canEdit && <Fragment><br/><button className="btn-primary mt-3" onClick={() => setEditing(true)}>+ 숙소 배치</button></Fragment>}
           </div>
         ) : isFamily ? (
           <div className="notion-card p-5" style={{ background:'#faf7f3' }}>
@@ -7372,22 +7512,6 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
         </div>
       </div>
 
-      {/* minis — Top 6 / 진행 중 과목 */}
-      <div className="hd-minis">
-        <div className="hd-mini">
-          <span className="lbl">Top 6 평균</span>
-          {summary.top6Avg != null ? (
-            <span className="num">{summary.top6Avg}</span>
-          ) : (
-            <span className="num empty">아직 미산정</span>
-          )}
-        </div>
-        <div className="hd-mini">
-          <span className="lbl">진행 중 과목</span>
-          <span className="num">{summary.inProgressCount}</span>
-        </div>
-      </div>
-
       {/* 📅 출결 추이 */}
       {summary.attendanceGroups.length > 0 && (
         <Fragment>
@@ -7871,12 +7995,12 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
         ))}
       </div>
 
-      {tab === 'basic' && <TabBasic s={student} update={update} customOptions={customOptions} addOption={addOption} removeOption={removeOption} schools={schools} subjects={subjects} universities={universities} programs={programs}/>}
+      {tab === 'basic' && <TabBasic s={student} update={update} customOptions={customOptions} addOption={addOption} removeOption={removeOption} schools={schools} subjects={subjects} universities={universities} programs={programs} role={role}/>}
       {tab === 'contact' && <TabContact s={student} update={update}/>}
-      {tab === 'academic' && <TabAcademic s={student} update={update}/>}
-      {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects}/>}
+      {tab === 'academic' && <TabAcademic s={student} update={update} role={role}/>}
+      {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects} role={role}/>}
       {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters} role={role}/>}
-      {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations}/>}
+      {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations} role={role}/>}
       {tab === 'uni' && <TabUni s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} trackGroups={trackGroups}/>}
       {tab === 'report' && <TabReport s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} invoices={invoices} canEdit={canEdit}/>}
 
@@ -8065,12 +8189,10 @@ const ApplicationEditor = ({ app, accommodations, members, onSave, onCancel, cur
               <Field label="관계"><TextInput value={fm.relationship} onChange={(v) => updateFamily(i, 'relationship', v)} placeholder="부, 모, 가디언, 친척 등"/></Field>
               <Field label="Name"><TextInput value={fm.name} onChange={(v) => updateFamily(i, 'name', v)}/></Field>
               <Field label="Date of Birth"><TextInput type="date" value={fm.dateOfBirth} onChange={(v) => updateFamily(i, 'dateOfBirth', v)}/></Field>
-              <Field label="Home Address" span={3}><TextInput value={fm.homeAddress} onChange={(v) => updateFamily(i, 'homeAddress', v)}/></Field>
-              <Field label="City"><TextInput value={fm.city} onChange={(v) => updateFamily(i, 'city', v)}/></Field>
-              <Field label="Country"><TextInput value={fm.country} onChange={(v) => updateFamily(i, 'country', v)}/></Field>
               <Field label="Contact Number"><TextInput value={fm.contactNumber} onChange={(v) => updateFamily(i, 'contactNumber', v)}/></Field>
               <Field label="Email" span={2}><TextInput value={fm.email} onChange={(v) => updateFamily(i, 'email', v)} type="email"/></Field>
             </div>
+            <div className="text-xs text-gray-400 mt-2">💡 가족 주소는 학생 정보(Section 1)의 주소와 동일합니다 — 별도 입력 불필요.</div>
           </div>
         ))}
       </div>
@@ -11342,27 +11464,27 @@ function App({ authMember, firebaseUser, signOut }) {
     }
   }, [openId, currentUserId]);
 
-  // 초기 진입 시 기존 학생 데이터에서 사용된 값들을 옵션 목록에 자동 시드
+  // 콜드스타트 시드 — customOptions가 완전히 비어있을 때만 학생 데이터에서 자동 시드.
+  // (한 번이라도 옵션이 있으면, 사용자가 [×]로 삭제한 항목이 부활하지 않도록 자동 시드 건너뜀)
   useEffect(() => {
-    setCustomOptions(prev => {
-      const next = {
-        category: new Set(prev.category || []),
-        cohort: new Set(prev.cohort || []),
-        currentSchool: new Set(prev.currentSchool || [])
-      };
-      students.forEach(s => {
-        if (s.category) next.category.add(s.category);
-        if (s.cohort) next.cohort.add(s.cohort);
-        if (s.currentSchool) next.currentSchool.add(s.currentSchool);
-      });
-      return {
-        category: Array.from(next.category),
-        cohort: Array.from(next.cohort),
-        currentSchool: Array.from(next.currentSchool)
-      };
+    const isEmpty = !customOptions?.category?.length
+                 && !customOptions?.cohort?.length
+                 && !customOptions?.currentSchool?.length;
+    if (!isEmpty) return; // 이미 사용자가 정리한 상태 — 건드리지 않음
+    if (students.length === 0) return; // 학생도 없으면 시드할 것도 없음
+    const next = { category: new Set(), cohort: new Set(), currentSchool: new Set() };
+    students.forEach(s => {
+      if (s.category) next.category.add(s.category);
+      if (s.cohort) next.cohort.add(s.cohort);
+      if (s.currentSchool) next.currentSchool.add(s.currentSchool);
+    });
+    setCustomOptions({
+      category: Array.from(next.category),
+      cohort: Array.from(next.cohort),
+      currentSchool: Array.from(next.currentSchool)
     });
     // eslint-disable-next-line
-  }, []);
+  }, [students.length]);
 
   const addOption = (field, value) => {
     if (!value || !field) return;
@@ -11421,9 +11543,13 @@ function App({ authMember, firebaseUser, signOut }) {
         ...(existing?.contact || {}),
         studentPhone: app.contactNumber || existing?.contact?.studentPhone || '',
         studentEmail: app.email || existing?.contact?.studentEmail || '',
-        // 부모 정보는 신청서의 familyMembers[0]에서 가져오기
-        parentEmail: app.familyMembers?.[0]?.email || existing?.contact?.parentEmail || '',
-        parentPhone: app.familyMembers?.[0]?.contactNumber || existing?.contact?.parentPhone || ''
+        // 한국 주소는 신청서 학생 정보의 address + city + country 조합
+        koreanAddress: existing?.contact?.koreanAddress
+          || [app.address, app.city, app.country].filter(Boolean).join(', ')
+          || '',
+        // 부모 정보는 신청서의 familyMembers[0]에서 가져오기 (이메일/연락처 모두)
+        parentEmail: existing?.contact?.parentEmail || app.familyMembers?.[0]?.email || '',
+        parentPhone: existing?.contact?.parentPhone || app.familyMembers?.[0]?.contactNumber || ''
       },
       // 신청서가 취소되면 학생도 취소 상태
       admissionStatus: app.status === 'rejected' ? '취소' : (existing?.admissionStatus || '신규'),
@@ -11539,7 +11665,7 @@ function App({ authMember, firebaseUser, signOut }) {
         )}
         {access.partners && (
           <div className={`sidebar-item ${view === 'partners' ? 'active':''}`}
-            onClick={() => { setView('partners'); setOpenId(null); setOpenPartnerId(null); }}><NavIcon name="handshake"/>파트너 관리</div>
+            onClick={() => { setView('partners'); setOpenId(null); setOpenPartnerId(null); }}><NavIcon name="handshake"/>파트너</div>
         )}
 
         {(access.members || access.matrix) && (

@@ -1791,12 +1791,12 @@ const STUDENT_SCOPE = {
 };
 // 학생 상세 탭 가시성
 const VISIBLE_TABS = {
-  admin:    ['basic','contact','academic','roadmap','ec','accom','uni','report'],
-  bu_staff: ['basic','contact','academic','roadmap','ec','accom','uni','report'],
-  student:  ['basic','academic','roadmap','ec','accom','uni'], // 학생은 EC 추가·수정 가능 (삭제는 요청만), 숙소 read-only
-  parent:   ['basic','contact','academic','roadmap','ec','accom','uni','report'],
-  tutor:    ['basic','academic','roadmap','report'],
-  partner:  ['basic','contact','academic','roadmap','ec','accom','uni','report']
+  admin:    ['dashboard','basic','academic','roadmap','ec','accom','uni','report'],
+  bu_staff: ['dashboard','basic','academic','roadmap','ec','accom','uni','report'],
+  student:  ['dashboard','basic','academic','roadmap','ec','accom','uni'], // 학생은 EC 추가·수정 가능 (삭제는 요청만), 숙소 read-only
+  parent:   ['dashboard','basic','academic','roadmap','ec','accom','uni','report'],
+  tutor:    ['dashboard','basic','academic','roadmap','report'],
+  partner:  ['dashboard','basic','academic','roadmap','ec','accom','uni','report']
 };
 
 // BADGE_COLOR에 역할 추가
@@ -4603,11 +4603,15 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
       {value ? value : <span className="text-gray-400">{fallback}</span>}
     </div>
   );
+  // 연락처 set 헬퍼
+  const c = s.contact || {};
+  const setContact = (k, v) => update({ contact: { ...c, [k]: v } });
+  // 학업메타 set 헬퍼 (학교 메모용)
+  const a = s.academic || {};
+  const setAcademic = (k, v) => update({ academic: { ...a, [k]: v } });
+
   return (
     <Fragment>
-    {/* 📊 학생 데이터 자동 요약 — 기본 정보 위 (가장 직관적 대시보드) */}
-    <StudentDataSummary student={s} schools={schools} subjects={subjects} universities={universities} programs={programs}/>
-
     <Section title="기본 정보">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Field label="한글 이름">{isStudent ? <Ro value={s.koreanName}/> : <TextInput value={s.koreanName} onChange={(v) => update({ koreanName: v })} />}</Field>
@@ -4698,6 +4702,27 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
         <Field label="BUPP 프로그램" span={2}>{isStudent ? <Ro value={s.program}/> : (
           <Select value={s.program} onChange={(v) => update({ program: v })} options={BUPP_PROGRAMS} placeholder="프로그램 선택"/>
         )}</Field>
+      </div>
+    </Section>
+
+    {/* 📞 연락처 정보 — 통합 */}
+    <Section title="📞 연락처">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="학생 전화번호">{isStudent ? <Ro value={c.studentPhone}/> : <TextInput value={c.studentPhone} onChange={(v) => setContact('studentPhone', v)} />}</Field>
+        <Field label="학생 이메일">{isStudent ? <Ro value={c.studentEmail}/> : <TextInput value={c.studentEmail} onChange={(v) => setContact('studentEmail', v)} type="email"/>}</Field>
+        <Field label="학부모 이메일">{isStudent ? <Ro value={c.parentEmail}/> : <TextInput value={c.parentEmail} onChange={(v) => setContact('parentEmail', v)} type="email"/>}</Field>
+        <Field label="학부모 전화번호">{isStudent ? <Ro value={c.parentPhone}/> : <TextInput value={c.parentPhone} onChange={(v) => setContact('parentPhone', v)} />}</Field>
+        <Field label="비상연락처">{isStudent ? <Ro value={c.emergencyContact}/> : <TextInput value={c.emergencyContact} onChange={(v) => setContact('emergencyContact', v)} />}</Field>
+        <Field label="카카오톡 ID">{isStudent ? <Ro value={c.kakaoId}/> : <TextInput value={c.kakaoId} onChange={(v) => setContact('kakaoId', v)} />}</Field>
+        <Field label="한국 주소" span={2}>{isStudent ? <Ro value={c.koreanAddress}/> : <TextInput value={c.koreanAddress} onChange={(v) => setContact('koreanAddress', v)} placeholder="예) 서울시 강남구 역삼동 ..."/>}</Field>
+        <Field label="메모" span={2}>{isStudent ? <Ro value={c.memo}/> : <TextArea value={c.memo} onChange={(v) => setContact('memo', v)} placeholder="연락처 관련 특이사항"/>}</Field>
+      </div>
+    </Section>
+
+    {/* 📝 학교 메모 — 학적 관련 자유 메모 */}
+    <Section title="📝 학교 메모">
+      <div className="grid grid-cols-1 gap-4">
+        <Field label="재학 학교 링크 / 메모">{isStudent ? <Ro value={a.schoolMemo}/> : <TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/>}</Field>
       </div>
     </Section>
     </Fragment>
@@ -4964,7 +4989,7 @@ const TabAcademic = ({ s, update, role = 'admin' }) => {
   const latestHistory = [...history].sort((a, b) => (b.testDate||'').localeCompare(a.testDate||''))[0];
 
   return (
-    <Section title="학업 메타">
+    <Section title="공인 영어 점수">
       {/* 공인영어점수 */}
       <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3' }}>
         <h4 className="font-semibold mb-3" style={{color:'#c20206'}}>🌐 공인 영어 점수</h4>
@@ -4996,27 +5021,6 @@ const TabAcademic = ({ s, update, role = 'admin' }) => {
         {/* 이력 표 */}
         <EnglishTestHistoryTable history={history} onChange={setHistory} canEdit={canEdit}/>
       </div>
-
-      {/* OSSLT — 응시 년월 + 상태 (4월·11월 시험) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Field label="OSSLT 상태">{canEdit ? <Select value={a.ossltStatus} onChange={(v) => setAcademic('ossltStatus', v)} options={OSSLT_STATUSES}/> : <Ro value={a.ossltStatus}/>}</Field>
-        <Field label="OSSLT 응시 년도">{canEdit ? (
-          <Select
-            value={a.ossltExamYear || ''}
-            onChange={(v) => setAcademic('ossltExamYear', v)}
-            options={(() => {
-              const y = new Date().getFullYear();
-              return [String(y-2), String(y-1), String(y), String(y+1), String(y+2)];
-            })()}
-            placeholder="선택"
-          />
-        ) : <Ro value={a.ossltExamYear}/>}</Field>
-        <Field label="OSSLT 응시 월">{canEdit ? <Select value={a.ossltExamMonth || ''} onChange={(v) => setAcademic('ossltExamMonth', v)} options={['4월', '11월']} placeholder="선택"/> : <Ro value={a.ossltExamMonth}/>}</Field>
-        <Field label="재학 학교 링크 / 메모" span={4}>{canEdit ? <TextArea value={a.schoolMemo} onChange={(v) => setAcademic('schoolMemo', v)} placeholder="학교 관련 메모 또는 URL"/> : <Ro value={a.schoolMemo}/>}</Field>
-      </div>
-      <div className="text-xs text-gray-500 mt-2">💡 OSSLT는 매년 <strong>4월</strong>과 <strong>11월</strong>에 실시. 응시 예정/응시 완료 년월을 기록하면 기본 정보 대시보드에 자동 표시됩니다.</div>
-
-      <div className="text-xs text-gray-400 mt-3">방과후 수업(AS Group/1:1)은 별도 플랫폼에서 관리됩니다.</div>
     </Section>
   );
 };
@@ -5418,6 +5422,14 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
   const [pleEditing, setPleEditing] = useState(null);  // PLE 수정
   const [filters, setFilters] = useState({ schoolId:'', grade:'', selection:'' });
 
+  // OSSLT 정보 (학업메타에서 이동) — 대입 로드맵 상단에 표시
+  const academic = s.academic || {};
+  const setAcademic = (k, v) => update({ academic: { ...academic, [k]: v } });
+  const ossltYears = (() => {
+    const y = new Date().getFullYear();
+    return [String(y-2), String(y-1), String(y), String(y+1), String(y+2)];
+  })();
+
   const filtered = list.filter(r => {
     if (filters.schoolId && r.schoolId !== filters.schoolId) return false;
     if (filters.grade && r.grade !== filters.grade) return false;
@@ -5474,6 +5486,31 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
         </div>
       )}
     >
+      {/* 📋 OSSLT 응시 정보 — 학적 진행 상태 (학업메타에서 이동) */}
+      <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold" style={{color:'#c20206'}}>📋 OSSLT (Ontario 영어 평가)</h4>
+          <span className="text-xs text-gray-500">매년 4월·11월 실시</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Field label="OSSLT 상태">
+            {canEdit
+              ? <Select value={academic.ossltStatus} onChange={(v) => setAcademic('ossltStatus', v)} options={OSSLT_STATUSES} placeholder="선택"/>
+              : <div className="notion-input flex items-center" style={{background:'#fff', color:'#202731', height:34, padding:'4px 10px'}}>{academic.ossltStatus || <span className="text-gray-400">—</span>}</div>}
+          </Field>
+          <Field label="응시 년도">
+            {canEdit
+              ? <Select value={academic.ossltExamYear || ''} onChange={(v) => setAcademic('ossltExamYear', v)} options={ossltYears} placeholder="선택"/>
+              : <div className="notion-input flex items-center" style={{background:'#fff', color:'#202731', height:34, padding:'4px 10px'}}>{academic.ossltExamYear || <span className="text-gray-400">—</span>}</div>}
+          </Field>
+          <Field label="응시 월">
+            {canEdit
+              ? <Select value={academic.ossltExamMonth || ''} onChange={(v) => setAcademic('ossltExamMonth', v)} options={['4월', '11월']} placeholder="선택"/>
+              : <div className="notion-input flex items-center" style={{background:'#fff', color:'#202731', height:34, padding:'4px 10px'}}>{academic.ossltExamMonth || <span className="text-gray-400">—</span>}</div>}
+          </Field>
+        </div>
+      </div>
+
       {/* 요약 */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="notion-card p-3 text-center">
@@ -8069,9 +8106,9 @@ const TabNotes = ({ s, update }) => {
    ============================================================ */
 const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, addOption, removeOption, schools, subjects, universities=[], programs=[], trackGroups=[], accommodations=[], invoices=[], ecMasters=[], role='admin' }) => {
   const allTabs = [
+    { id:'dashboard', label:'대시보드' },
     { id:'basic', label:'기본 정보' },
-    { id:'contact', label:'연락처' },
-    { id:'academic', label:'학업 메타' },
+    { id:'academic', label:'공인 점수' },
     { id:'roadmap', label:'대입 로드맵' },
     { id:'ec', label:'EC 관리' },
     { id:'accom', label:'숙소' },
@@ -8132,8 +8169,12 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
         ))}
       </div>
 
+      {tab === 'dashboard' && (
+        <div className="px-1 pt-4">
+          <StudentDataSummary student={student} schools={schools} subjects={subjects} universities={universities} programs={programs}/>
+        </div>
+      )}
       {tab === 'basic' && <TabBasic s={student} update={update} customOptions={customOptions} addOption={addOption} removeOption={removeOption} schools={schools} subjects={subjects} universities={universities} programs={programs} role={role}/>}
-      {tab === 'contact' && <TabContact s={student} update={update}/>}
       {tab === 'academic' && <TabAcademic s={student} update={update} role={role}/>}
       {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects} role={role}/>}
       {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters} role={role}/>}

@@ -4448,15 +4448,38 @@ const SubjectList = ({ subjects, schools, onChange }) => {
     onChange(subjects.filter(s => s.id !== id));
   };
 
+  // 📦 신규 시드 가져오기 — SAMPLE_SUBJECTS에서 누락된 과목만 안전하게 추가
+  // 기존 과목은 절대 건드리지 않음 (delete/update 없음, append only)
+  const importMissingSeeds = () => {
+    const existingCodes = new Set((subjects || []).map(s => (s.code || '').toUpperCase().trim()));
+    const missing = SAMPLE_SUBJECTS.filter(seed => {
+      const code = (seed.code || '').toUpperCase().trim();
+      return code && !existingCodes.has(code);
+    });
+    if (missing.length === 0) {
+      alert('이미 모든 시드 과목이 등록되어 있습니다.');
+      return;
+    }
+    // 누락된 코드 목록 미리보기 (최대 20개)
+    const preview = missing.slice(0, 20).map(s => `· ${s.code} ${s.name}`).join('\n');
+    const more = missing.length > 20 ? `\n... 외 ${missing.length - 20}개` : '';
+    if (!confirm(`신규 시드에서 누락된 과목 ${missing.length}개를 추가합니다.\n기존 과목은 그대로 유지됩니다.\n\n${preview}${more}`)) return;
+    // 새 id 부여 (기존 id 충돌 방지)
+    const additions = missing.map(s => ({ ...s, id: uid() }));
+    onChange([...(subjects || []), ...additions]);
+    alert(`${additions.length}개 과목이 추가되었습니다.`);
+  };
+
   return (
     <div className="max-w-[1400px] mx-auto px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">과목 관리</h1>
-          <p className="text-sm text-gray-500 mt-1">전체 {subjects.length}개 · 필터 결과 {filtered.length}개</p>
+          <p className="text-sm text-gray-500 mt-1">전체 {subjects.length}개 · 필터 결과 {filtered.length}개 · 시드 정의 {SAMPLE_SUBJECTS.length}개</p>
         </div>
         <div className="flex items-center gap-2">
           <input className="notion-input w-72" placeholder="코드·과목명 검색..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <button className="btn-ghost" onClick={importMissingSeeds} title="시드 정의에서 누락된 과목만 추가 (기존 과목 유지)">📦 신규 시드 가져오기</button>
           <button className="btn-primary" onClick={() => setEditing({ id:'', code:'', name:'', grade:'', credits:1, province:'ON', schoolIds:[], prerequisiteIds:[], materialsLink:'', memo:'' })}>+ 새 과목 추가</button>
         </div>
       </div>
@@ -5135,7 +5158,7 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
       <div className="mb-3 flex items-center justify-between">
         <h4 className="font-semibold text-sm">과목 ({validCount}/{rows.length} · 최대 10)</h4>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">{subjectOpts.length}개 과목 풀</span>
+          <span className="text-xs text-gray-500">전체 {subjects.filter(s => !shared.province || s.province === shared.province).length}개 과목</span>
           <button className="btn-ghost" onClick={addRow} disabled={rows.length >= 10}>+ 행 추가</button>
         </div>
       </div>

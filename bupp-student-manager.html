@@ -3740,7 +3740,7 @@ const HomestayPDFPreview = ({ accom, onClose }) => {
    학생의 숙소 탭에서 "배정서 인쇄" 버튼으로 호출
    ============================================================ */
 const BREAKEDU_COMPANY = {
-  name: 'BreakEDU Canada Inc.',
+  name: 'BreakEdu Inc.',
   address: 'Suite 412 - 45 Sheppard Avenue East, North York ON M2N 5W9',
   tel1: '647-328-4831',
   tel2: '647-309-4728',
@@ -3758,12 +3758,13 @@ const StudentArrivalPDF = ({ student, linkedAccom, onClose, currentUserName = ''
   const [selectedArrivalId, setSelectedArrivalId] = useState(defaultId);
   const arrival = arrivals.find(a => a.id === selectedArrivalId) || {};
 
-  // 한국 표시용 날짜
-  const formatDate = (d) => {
+  // 영문 날짜 포맷 (e.g. July 15, 2026) — 입국심사관 가독성
+  const formatDateEN = (d) => {
     if (!d) return '—';
     try {
       const dt = new Date(d);
-      return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')}`;
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return `${months[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
     } catch { return d; }
   };
 
@@ -3771,15 +3772,18 @@ const StudentArrivalPDF = ({ student, linkedAccom, onClose, currentUserName = ''
     <div className="modal-backdrop" onClick={onClose} style={{ alignItems:'flex-start' }}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ width:'min(820px, 95vw)', maxHeight:'95vh' }}>
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-          <h3 className="text-base font-semibold">📄 신입생 배정서 PDF 미리보기</h3>
+          <h3 className="text-base font-semibold">📄 Letter of Accommodation Confirmation</h3>
           <div className="flex items-center gap-2">
             {arrivals.length > 1 && (
-              <Select value={selectedArrivalId} onChange={setSelectedArrivalId}
-                options={sortedArrivals.map(a => a.id)}
-                placeholder="도착 선택"/>
+              <RefSelect value={selectedArrivalId} onChange={setSelectedArrivalId}
+                options={sortedArrivals.map(a => ({
+                  id: a.id,
+                  label: `${formatDateEN(a.date)}${a.flightNumber ? ` · ${a.flightNumber}` : ''}`
+                }))}
+                placeholder="Select arrival"/>
             )}
-            <button className="btn-primary" onClick={print}>🖨 PDF로 인쇄</button>
-            <button className="btn-ghost" onClick={onClose}>닫기</button>
+            <button className="btn-primary" onClick={print}>🖨 Print PDF</button>
+            <button className="btn-ghost" onClick={onClose}>Close</button>
           </div>
         </div>
 
@@ -3788,77 +3792,79 @@ const StudentArrivalPDF = ({ student, linkedAccom, onClose, currentUserName = ''
           {/* 헤더 — 회사 정보 */}
           <div style={{ borderBottom:'3px solid #c20206', paddingBottom:14, marginBottom:24, display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
             <div>
-              <div style={{ color:'#c20206', fontWeight:700, fontSize:18, letterSpacing:'-0.02em' }}>BreakEDU · BUPP</div>
-              <div style={{ fontSize:13, color:'#4a4a4a', marginTop:2 }}>{BREAKEDU_COMPANY.name}</div>
+              <div style={{ color:'#c20206', fontWeight:700, fontSize:18, letterSpacing:'-0.02em' }}>{BREAKEDU_COMPANY.name}</div>
+              <div style={{ fontSize:12, color:'#4a4a4a', marginTop:2 }}>International Student Program · Canada</div>
             </div>
             <div style={{ textAlign:'right', fontSize:11, color:'#4a4a4a', lineHeight:1.6 }}>
               <div>{BREAKEDU_COMPANY.address}</div>
-              <div>TEL {BREAKEDU_COMPANY.tel1} / {BREAKEDU_COMPANY.tel2}</div>
-              <div>{BREAKEDU_COMPANY.email}</div>
+              <div>Tel: {BREAKEDU_COMPANY.tel1} / {BREAKEDU_COMPANY.tel2}</div>
+              <div>Email: {BREAKEDU_COMPANY.email}</div>
             </div>
           </div>
 
           {/* 제목 */}
           <div style={{ textAlign:'center', marginBottom:28 }}>
-            <div style={{ fontSize:24, fontWeight:700, letterSpacing:'-0.02em' }}>신입생 배정서</div>
-            <div style={{ fontSize:13, color:'#787774', marginTop:4 }}>Student Arrival & Homestay Placement Notice</div>
+            <div style={{ fontSize:22, fontWeight:700, letterSpacing:'-0.01em' }}>Letter of Accommodation Confirmation</div>
+            <div style={{ fontSize:12, color:'#787774', marginTop:6 }}>This letter confirms the student's arrival details and pre-arranged homestay accommodation in Canada.</div>
           </div>
 
           {/* 학생 정보 */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>1. 학생 정보 / Student</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>1. Student Information</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 24px', marginTop:10, fontSize:13 }}>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>한글 이름</strong><div style={{ fontWeight:600, fontSize:15 }}>{student.koreanName || '—'}</div></div>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>영문 이름</strong><div>{student.englishName || '—'}</div></div>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>기수</strong><div>{student.cohort || '—'}</div></div>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>프로그램</strong><div>{student.program || '—'}</div></div>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>재학 학교</strong><div>{student.currentSchool || '—'}</div></div>
-              <div><strong style={{ color:'#787774', fontSize:11 }}>학년</strong><div>{student.actualGrade || '—'}</div></div>
+              <div style={{ gridColumn:'1 / -1' }}><strong style={{ color:'#787774', fontSize:11 }}>Full Name</strong><div style={{ fontWeight:600, fontSize:15 }}>{student.englishName || '—'}</div></div>
+              <div><strong style={{ color:'#787774', fontSize:11 }}>School in Canada</strong><div>{student.currentSchool || '—'}</div></div>
+              <div><strong style={{ color:'#787774', fontSize:11 }}>Grade Level</strong><div>{student.actualGrade || '—'}</div></div>
             </div>
           </div>
 
           {/* 도착 정보 */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>2. 도착 정보 / Arrival</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>2. Arrival Information</div>
             {!arrival.date ? (
               <div style={{ marginTop:10, padding:14, background:'#faf7f3', borderRadius:8, fontSize:13, color:'#787774' }}>
-                등록된 도착 정보가 없습니다. 학생 숙소 탭에서 "+ 도착 추가"로 입력 후 다시 인쇄하세요.
+                No arrival information recorded. Please add it in the student's Accommodation tab.
               </div>
             ) : (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 24px', marginTop:10, fontSize:13 }}>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>도착일</strong><div style={{ fontWeight:600, fontSize:15 }}>{formatDate(arrival.date)}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>도착 시간</strong><div>{arrival.arrivalTime || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>항공편</strong><div style={{ fontFamily:'monospace', fontSize:14 }}>{arrival.flightNumber || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>터미널</strong><div>{arrival.terminal || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>픽업 담당자</strong><div style={{ fontWeight:600 }}>{arrival.pickupPerson || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>담당자 연락처</strong><div>{arrival.pickupContact || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Arrival Date</strong><div style={{ fontWeight:600, fontSize:15 }}>{formatDateEN(arrival.date)}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Arrival Time</strong><div>{arrival.arrivalTime || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Flight Number</strong><div style={{ fontFamily:'monospace', fontSize:14 }}>{arrival.flightNumber || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Terminal</strong><div>{arrival.terminal || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Pickup Person</strong><div style={{ fontWeight:600 }}>{arrival.pickupPerson || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Pickup Contact</strong><div>{arrival.pickupContact || '—'}</div></div>
               </div>
             )}
           </div>
 
           {/* 홈스테이 배정 정보 */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>3. 배정 홈스테이 / Homestay Placement</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'#c20206', marginBottom:8, paddingBottom:4, borderBottom:'2px solid #c20206', display:'inline-block' }}>3. Homestay Placement</div>
             {!linkedAccom ? (
               <div style={{ marginTop:10, padding:14, background:'#faf7f3', borderRadius:8, fontSize:13, color:'#787774' }}>
-                배정된 홈스테이가 없습니다. 학생 숙소 탭에서 숙소를 먼저 배정해주세요.
+                No homestay assigned yet. Please assign accommodation first.
               </div>
             ) : (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 24px', marginTop:10, fontSize:13 }}>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>호스트명</strong><div style={{ fontWeight:600, fontSize:15 }}>{linkedAccom.hostName || linkedAccom.name || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>호스트 국적</strong><div>{linkedAccom.hostNationality || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>전화</strong><div>{linkedAccom.hostPhone || '—'}</div></div>
-                <div><strong style={{ color:'#787774', fontSize:11 }}>이메일</strong><div>{linkedAccom.hostEmail || '—'}</div></div>
-                <div style={{ gridColumn:'1 / -1' }}><strong style={{ color:'#787774', fontSize:11 }}>주소</strong><div>{linkedAccom.address || '—'}</div></div>
-                <div style={{ gridColumn:'1 / -1' }}><strong style={{ color:'#787774', fontSize:11 }}>가족 구성</strong><div>{linkedAccom.familyMembers || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Host Name</strong><div style={{ fontWeight:600, fontSize:15 }}>{linkedAccom.hostName || linkedAccom.name || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Host Nationality</strong><div>{linkedAccom.hostNationality || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Phone</strong><div>{linkedAccom.hostPhone || '—'}</div></div>
+                <div><strong style={{ color:'#787774', fontSize:11 }}>Email</strong><div>{linkedAccom.hostEmail || '—'}</div></div>
+                <div style={{ gridColumn:'1 / -1' }}><strong style={{ color:'#787774', fontSize:11 }}>Address</strong><div>{linkedAccom.address || '—'}</div></div>
+                <div style={{ gridColumn:'1 / -1' }}><strong style={{ color:'#787774', fontSize:11 }}>Family Composition</strong><div>{linkedAccom.familyMembers || '—'}</div></div>
               </div>
             )}
           </div>
 
+          {/* 인증 문구 */}
+          <div style={{ marginTop:30, padding:14, background:'#faf7f3', borderRadius:8, fontSize:12, lineHeight:1.6, color:'#4a4a4a' }}>
+            This letter is issued by <strong>{BREAKEDU_COMPANY.name}</strong> to confirm that the above-named student has a pre-arranged homestay accommodation in Canada and will be received by our designated pickup representative upon arrival. For any verification, please contact us at the phone number or email above.
+          </div>
+
           {/* 푸터 */}
-          <div style={{ marginTop:36, paddingTop:14, borderTop:'1px solid #e7e1d7', display:'flex', justifyContent:'space-between', fontSize:11, color:'#787774' }}>
-            <div>발행일 {formatDate(new Date().toISOString().slice(0,10))}{currentUserName && ` · 담당 ${currentUserName}`}</div>
-            <div>BreakEDU · BUPP — Student Arrival Notice</div>
+          <div style={{ marginTop:24, paddingTop:14, borderTop:'1px solid #e7e1d7', display:'flex', justifyContent:'space-between', fontSize:11, color:'#787774' }}>
+            <div>Issued on {formatDateEN(new Date().toISOString().slice(0,10))}{currentUserName && ` · By ${currentUserName}`}</div>
+            <div>{BREAKEDU_COMPANY.name} — Letter of Accommodation Confirmation</div>
           </div>
         </div>
       </div>

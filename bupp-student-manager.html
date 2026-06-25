@@ -1879,7 +1879,88 @@ const SAMPLE_SUBJECTS = [
   { id: 'sub_ami4m', code: 'AMI4M', name: 'Instrumental Music - Band 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_ami3m'], materialsLink: '', memo: '' },
   { id: 'sub_psk4u1', code: 'PSK4U1', name: 'Introductory Kinesiology 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
   { id: 'sub_hre4m', code: 'HRE4M', name: 'Religious Education 12', grade: '12', credits: 1, province: 'ON', schoolIds: ['sch_002','sch_003','sch_004','sch_005'], prerequisiteIds: [], materialsLink: '', memo: 'Catholic 학교' },
-  { id: 'sub_hre4o', code: 'HRE4O', name: 'Religious Education 12 (Open)', grade: '12', credits: 1, province: 'ON', schoolIds: ['sch_002','sch_003','sch_004','sch_005'], prerequisiteIds: [], materialsLink: '', memo: '' }
+  { id: 'sub_hre4o', code: 'HRE4O', name: 'Religious Education 12 (Open)', grade: '12', credits: 1, province: 'ON', schoolIds: ['sch_002','sch_003','sch_004','sch_005'], prerequisiteIds: [], materialsLink: '', memo: '' },
+
+  // ============================================================
+  // 노션 과목리스트 동기화 (2026-06-24) — Ontario 정규 과목 일괄 추가
+  // ============================================================
+
+  // ESL
+  { id: 'sub_esleo', code: 'ESLEO', name: 'ESL E', grade: 'ESL', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_esld'], materialsLink: '', memo: '' },
+
+  // 9학년 추가
+  { id: 'sub_cgc1d', code: 'CGC1D', name: 'Issues in Canadian Geography 9 (Academic)', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_btt1o', code: 'BTT1O', name: 'Information & Communication Technology in Business 9', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_tgj1o', code: 'TGJ1O', name: 'Communications Technology 9', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_tij1o1', code: 'TIJ1O1', name: 'Exploring Technologies 9', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_amr1o', code: 'AMR1O', name: 'Strings Music 9', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_ppl1o', code: 'PPL1O', name: 'Healthy Active Living Education 9', grade: '9', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+
+  // 10학년 추가
+  { id: 'sub_eng2d', code: 'ENG2D', name: 'English 10 (Academic)', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_enl1w'], materialsLink: '', memo: '' },
+  { id: 'sub_eng2p', code: 'ENG2P', name: 'English 10 (Applied)', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_enl1w'], materialsLink: '', memo: '' },
+  { id: 'sub_chc2d', code: 'CHC2D', name: 'Canadian History Since WWI 10 (Academic)', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_chc2p', code: 'CHC2P', name: 'Canadian History Since WWI 10 (Applied)', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_chc2o', code: 'CHC2O', name: 'Canadian History 10 (Open)', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hre2o', code: 'HRE2O', name: 'Religious Education 10 (Open)', grade: '10', credits: 1, province: 'ON', schoolIds: ['sch_002','sch_003','sch_004','sch_005'], prerequisiteIds: [], materialsLink: '', memo: 'Catholic 학교' },
+  { id: 'sub_bbi2o', code: 'BBI2O', name: 'Introduction to Business 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_tfj2o', code: 'TFJ2O', name: 'Hospitality and Tourism 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_tgj2o', code: 'TGJ2O', name: 'Communications Technology 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_tas2o', code: 'TAS2O', name: 'Construction Technology 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_amr2o', code: 'AMR2O', name: 'Strings Music 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_amr1o'], materialsLink: '', memo: '' },
+  { id: 'sub_asm2o', code: 'ASM2O', name: 'Media Arts 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_amv2o', code: 'AMV2O', name: 'Vocal Music 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_ppl2o', code: 'PPL2O', name: 'Healthy Active Living Education 10', grade: '10', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+
+  // 11학년 추가
+  { id: 'sub_eng3u', code: 'ENG3U', name: 'English 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_eng2d'], materialsLink: '', memo: '' },
+  { id: 'sub_nbe3u', code: 'NBE3U', name: 'Contemporary Indigenous Voices 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_eng2d'], materialsLink: '', memo: 'ENG3U 대체 가능' },
+  { id: 'sub_mcr3u', code: 'MCR3U', name: 'Functions 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_mpm2d'], materialsLink: '', memo: '' },
+  { id: 'sub_sbi3u', code: 'SBI3U', name: 'Biology 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: '' },
+  { id: 'sub_sbi3ue', code: 'SBI3UE', name: 'Biology 11 (University, ESL-Enhanced)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: 'ESL 학생용 강화반' },
+  { id: 'sub_sch3u', code: 'SCH3U', name: 'Chemistry 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: '' },
+  { id: 'sub_sch3ue', code: 'SCH3UE', name: 'Chemistry 11 (University, ESL-Enhanced)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: 'ESL 학생용 강화반' },
+  { id: 'sub_sph3u', code: 'SPH3U', name: 'Physics 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: '' },
+  { id: 'sub_bio3c', code: 'BIO3C', name: 'Biology 11 (College)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: '' },
+  { id: 'sub_cgg3o', code: 'CGG3O', name: 'Travel and Tourism 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hsp3u', code: 'HSP3U', name: 'Introduction to Anthropology, Psychology and Sociology 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hrf3o', code: 'HRF3O', name: 'Religious Education 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: ['sch_002','sch_003','sch_004','sch_005'], prerequisiteIds: [], materialsLink: '', memo: 'Catholic 학교' },
+  { id: 'sub_baf3m', code: 'BAF3M', name: 'Financial Accounting Fundamentals 11', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_bmi3c', code: 'BMI3C', name: 'Marketing: Goods, Services, Events 11 (College)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_ics3u', code: 'ICS3U', name: 'Introduction to Computer Science 11 (University)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_amk3m', code: 'AMK3M', name: 'Keyboard Music 11', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_avi3o', code: 'AVI3O', name: 'Visual Arts 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_avi3m', code: 'AVI3M', name: 'Visual Arts 11 (University/College)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_avi2o'], materialsLink: '', memo: '' },
+  { id: 'sub_asm3o', code: 'ASM3O', name: 'Media Arts 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_aea3o', code: 'AEA3O', name: 'Drama 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_pal3o', code: 'PAL3O', name: 'Healthy Living & Personal Activities 11', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_paf3o', code: 'PAF3O', name: 'Healthy Living & Fitness Activities 11', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_gwl3o', code: 'GWL3O', name: 'Designing Your Future 11 (Open)', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_ppl3o', code: 'PPL3O', name: 'Healthy Active Living Education 11', grade: '11', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+
+  // 12학년 추가
+  { id: 'sub_eng4u', code: 'ENG4U', name: 'English 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_eng3u'], materialsLink: '', memo: '대학 진학 필수' },
+  { id: 'sub_ewc4u', code: 'EWC4U', name: 'The Writer’s Craft 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_eng3u'], materialsLink: '', memo: '' },
+  { id: 'sub_olc4o', code: 'OLC4O', name: 'Ontario Secondary School Literacy Course 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: 'OSSLT 미통과 학생용' },
+  { id: 'sub_mcv4u', code: 'MCV4U', name: 'Calculus and Vectors 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_mcr3u'], materialsLink: '', memo: '공학·이학 진학 필수' },
+  { id: 'sub_mhf4u', code: 'MHF4U', name: 'Advanced Functions 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_mcr3u'], materialsLink: '', memo: '이공계 필수' },
+  { id: 'sub_mdm4u', code: 'MDM4U', name: 'Mathematics of Data Management 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_mcr3u'], materialsLink: '', memo: '비즈니스·사회과학 진학 추천' },
+  { id: 'sub_snc4m', code: 'SNC4M', name: 'Science 12 (College Preparation)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_snc2d'], materialsLink: '', memo: '' },
+  { id: 'sub_sbi4u', code: 'SBI4U', name: 'Biology 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_sbi3u'], materialsLink: '', memo: '의학·생명과학 진학 필수' },
+  { id: 'sub_sch4u', code: 'SCH4U', name: 'Chemistry 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_sch3u'], materialsLink: '', memo: '' },
+  { id: 'sub_sph4u', code: 'SPH4U', name: 'Physics 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_sph3u'], materialsLink: '', memo: '' },
+  { id: 'sub_hhs4u', code: 'HHS4U', name: 'Families in Canada 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_his4u', code: 'HIS4U', name: 'World History to the 16th Century 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hsb4u', code: 'HSB4U', name: 'Challenge and Change in Society 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hsc4m', code: 'HSC4M', name: 'Health for Life 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hsp4u', code: 'HSP4U', name: 'Challenge & Change: Society 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_cia4u', code: 'CIA4U', name: 'Analysing Current Economic Issues 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_chi4u', code: 'CHI4U', name: 'Canada: History, Identity and Culture 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_hnb4m', code: 'HNB4M', name: 'Personal Life Management 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_bbb4m', code: 'BBB4M', name: 'International Business Fundamentals 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_boh4m', code: 'BOH4M', name: 'Business Leadership 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: [], materialsLink: '', memo: '' },
+  { id: 'sub_ics4u', code: 'ICS4U', name: 'Computer Science 12 (University)', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_ics3u'], materialsLink: '', memo: '' },
+  { id: 'sub_awq4m', code: 'AWQ4M', name: 'Photography 12', grade: '12', credits: 1, province: 'ON', schoolIds: [], prerequisiteIds: ['sub_awq3o'], materialsLink: '', memo: '' }
 ];
 const loadSubjects = () => {
   try {
@@ -4928,7 +5009,8 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     startDate: '', endDate: '',
     selection: '정규수업', province: 'ON'
   });
-  const blankRow = () => ({
+  const blankRow = (defaultGrade = '') => ({
+    grade: defaultGrade,  // 행별 학년 — 헤더의 기본 학년이 초기값
     subjectId: '', credits: '', required: false,
     targetScore: '', midterm1: '', midterm2: '', final: '',
     late: '', absent: '', top6: false, memo: ''
@@ -4941,17 +5023,29 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
   const sys = shared.semesterSystem || school?.semesterSystem || '';
   const isYear = sys.startsWith('Year');
 
-  // 주(province) 기반 과목 필터 + 이미 사용된 과목은 비활성화
-  const subjectOpts = subjects.filter(s => !shared.province || s.province === shared.province);
+  // 주(province) 기반 + 행별 학년 기반 과목 필터
+  const filterSubjectsForRow = (rowGrade) => {
+    return subjects.filter(s => {
+      if (shared.province && s.province !== shared.province) return false;
+      if (rowGrade && s.grade !== rowGrade) return false;
+      return true;
+    });
+  };
 
   const updateRow = (idx, patch) => setRows(rows.map((r, i) => i === idx ? { ...r, ...patch } : r));
   const addRow = () => {
     if (rows.length >= 10) { alert('한 번에 최대 10개까지 추가 가능합니다.'); return; }
-    setRows([...rows, blankRow()]);
+    setRows([...rows, blankRow(shared.grade)]);
   };
   const removeRow = (idx) => {
     if (rows.length === 1) return;
     setRows(rows.filter((_, i) => i !== idx));
+  };
+
+  // 헤더의 기본 학년이 바뀌면 빈 행들의 학년도 자동 갱신 (이미 학년 선택된 행은 유지)
+  const updateSharedGrade = (v) => {
+    setShared({ ...shared, grade: v });
+    setRows(rows.map(r => (!r.grade || !r.subjectId) ? { ...r, grade: v } : r));
   };
 
   // 학교 선택 시 자동으로 학기시스템 기준 권장 행 수 채움
@@ -4961,7 +5055,7 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     setShared({ ...shared, schoolId: v, semesterSystem: '' });
     if (rows.length === 1 && !rows[0].subjectId) {
       const n = defaultRowCount(newSys);
-      setRows(Array.from({ length: n }, () => blankRow()));
+      setRows(Array.from({ length: n }, () => blankRow(shared.grade)));
     }
   };
 
@@ -4973,6 +5067,17 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     });
   };
 
+  // 행별 학년 변경 시 — 다른 학년 과목이 선택되어 있었다면 클리어
+  const pickRowGrade = (idx, newGrade) => {
+    const row = rows[idx];
+    const currentSub = subjects.find(s => s.id === row.subjectId);
+    const shouldClearSubject = currentSub && newGrade && currentSub.grade !== newGrade;
+    updateRow(idx, {
+      grade: newGrade,
+      ...(shouldClearSubject ? { subjectId: '', credits: '' } : {})
+    });
+  };
+
   const validCount = rows.filter(r => r.subjectId).length;
 
   const handleSave = () => {
@@ -4981,7 +5086,7 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     if (valid.length === 0) { alert('과목을 1개 이상 선택해주세요.'); return; }
     const records = valid.map(r => ({
       id: uid(),
-      grade: shared.grade,
+      grade: r.grade || shared.grade,  // 행별 학년 우선, 없으면 헤더 기본값
       schoolId: shared.schoolId,
       semesterSystem: shared.semesterSystem,
       startDate: shared.startDate,
@@ -4996,7 +5101,10 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     <div>
       {/* 공통 헤더 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5 pb-5 border-b border-gray-200">
-        <Field label="학년"><Select value={shared.grade} onChange={(v) => setShared({...shared, grade:v})} options={GRADE_LEVELS}/></Field>
+        <Field label="기본 학년">
+          <Select value={shared.grade} onChange={updateSharedGrade} options={GRADE_LEVELS} placeholder="새 행 자동 채움"/>
+          <div className="text-xs text-gray-400 mt-1">행마다 다르게 지정 가능</div>
+        </Field>
         <Field label="학교" span={2}>
           <RefSelect
             value={shared.schoolId}
@@ -5035,10 +5143,12 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
       <div className="space-y-2">
         {rows.map((row, idx) => {
           const sub = subjects.find(s => s.id === row.subjectId);
+          const rowSubjectOpts = filterSubjectsForRow(row.grade);
           return (
             <div key={idx} className="notion-card p-3" style={{ background:'#fafaf9' }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-semibold text-sm text-gray-500">#{idx+1}</span>
+                {row.grade && <span className="badge b-blue">{gradeLabel(row.grade)}</span>}
                 {sub && <span className="badge b-gray font-mono">{sub.code}</span>}
                 {sub && <span className="text-sm text-gray-600">{sub.name}</span>}
                 {rows.length > 1 && (
@@ -5046,13 +5156,17 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
                 )}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                <div className="col-span-2 lg:col-span-3">
+                <div>
+                  <div className="field-label">학년</div>
+                  <Select value={row.grade} onChange={(v) => pickRowGrade(idx, v)} options={GRADE_LEVELS} placeholder="전체"/>
+                </div>
+                <div className="col-span-2">
                   <div className="field-label">과목</div>
                   <RefSelect
                     value={row.subjectId}
                     onChange={(v) => pickSubject(idx, v)}
-                    options={subjectOpts.map(s => ({ id: s.id, label: `${s.code} — ${s.name}${s.grade ? ` (${gradeLabel(s.grade)})` : ''}` }))}
-                    placeholder={`${subjectOpts.length}개 과목 중 선택`}
+                    options={rowSubjectOpts.map(s => ({ id: s.id, label: `${s.code} — ${s.name}${s.grade ? ` (${gradeLabel(s.grade)})` : ''}` }))}
+                    placeholder={row.grade ? `${gradeLabel(row.grade)} ${rowSubjectOpts.length}개 중 선택` : `전체 ${rowSubjectOpts.length}개 중 선택`}
                   />
                 </div>
                 <div>

@@ -12549,9 +12549,12 @@ const LoginScreen = ({ onError }) => {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'#202731'}}>
       <div className="text-center px-8 py-12 rounded-xl" style={{background:'#ffffff', maxWidth:420, boxShadow:'0 20px 50px rgba(0,0,0,.3)'}}>
-        <div className="text-3xl font-bold mb-2" style={{color:'#c20206'}}>BreakEDU</div>
-        <div className="text-lg mb-1" style={{color:'#202731'}}>BUPP 학생 관리 시스템</div>
-        <div className="text-sm mb-8" style={{color:'#787774'}}>로그인하여 시작하세요</div>
+        <div className="text-5xl font-bold mb-3" style={{color:'#c20206', letterSpacing:'-0.02em'}}>BUPP</div>
+        <div className="text-sm mb-2 leading-relaxed px-4" style={{color:'#4a4a4a'}}>
+          학생의 성장을 <strong style={{color:'#202731'}}>기록하고 연결하여</strong>,<br/>
+          스스로 미래를 설계하는 플랫폼
+        </div>
+        <div className="text-xs mb-8 mt-4" style={{color:'#a89f92'}}>로그인하여 시작하세요</div>
         <button
           onClick={signIn}
           disabled={loading}
@@ -12578,7 +12581,7 @@ const LoginScreen = ({ onError }) => {
         </button>
         <div className="text-xs mt-6" style={{color:'#787774'}}>
           베타 참여자 계정만 접근 가능합니다.<br/>
-          접근 권한이 필요하시면 BreakEDU 관리자에게 문의하세요.
+          접근 권한이 필요하시면 BUPP 관리자에게 문의하세요.
         </div>
       </div>
     </div>
@@ -12594,7 +12597,7 @@ const AccessDeniedScreen = ({ email, onSignOut }) => (
       </div>
       <div className="text-xs mb-6 p-3 rounded text-left" style={{background:'#faf3e3', color:'#760305', border:'1px solid #e8c97a'}}>
         💡 다른 Google 계정으로 로그인하려면 아래 버튼을 눌러 로그아웃 후 다시 시도하세요.<br/>
-        새 베타 참여자 등록은 BreakEDU 관리자(jelly@breakedu.ca)에게 요청해주세요.
+        새 베타 참여자 등록은 BUPP 관리자(jelly@breakedu.ca)에게 요청해주세요.
       </div>
       <button
         onClick={onSignOut}
@@ -12623,7 +12626,7 @@ const AuthGate = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background:'#202731', color:'#cabaab'}}>
         <div className="text-center">
-          <div className="text-2xl font-bold mb-2" style={{color:'#F0B429'}}>BreakEDU</div>
+          <div className="text-2xl font-bold mb-2" style={{color:'#F0B429'}}>BUPP</div>
           <div className="text-sm">인증 확인 중...</div>
         </div>
       </div>

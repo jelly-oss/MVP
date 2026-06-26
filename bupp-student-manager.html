@@ -1438,8 +1438,20 @@ const emptyInvoice = () => ({
   commissionPaidAt: '',        // 파트너에게 실제 지급한 날
   commissionPaidBy: '',        // 정산 처리한 담당자
   commissionPaymentMethod: '', // 'E-transfer' / 'Wire' / '한국계좌'
-  commissionNote: ''           // 정산 메모
+  commissionNote: '',          // 정산 메모
+  // 🎓 학사 커버리지 (선택) — 풀가디언·방과후 등 기간성 결제일 때 사용
+  // 학생 academicRecords와 슬롯 단위로 매칭
+  coverage: {
+    schoolId: '',              // 어느 학교의 학비인지
+    slotCount: 0,              // 이 결제로 약속한 과목 수 (슬롯)
+    startDate: '',             // 기간 시작 (옵션 — 교육청 학년제 등)
+    endDate: '',               // 기간 종료 (옵션)
+    note: ''                   // 커버리지 메모
+  }
 });
+
+// 학사 커버리지 트리거 카테고리 — 인보이스 항목에 이 중 하나라도 있으면 슬롯 매칭 사용
+const COVERAGE_TRIGGER_CATEGORIES = ['풀가디언', '영어집중 방과후', '아카데믹 방과후'];
 
 // 다음 분기 정산일 (1·4·7·10월 15일) 자동 계산
 const QUARTER_PAYOUT_MONTHS = [1, 4, 7, 10];
@@ -5984,10 +5996,34 @@ const RoadmapEditor = ({ rec, schools, subjects, onSave, onCancel }) => {
   );
 };
 
-const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
+const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin' }) => {
   const list = s.academicRecords || [];
   const isStudent = role === 'student';
   const canEdit = !isStudent; // 학생은 과목 추가·수정·삭제 불가 (브듀쌤 이상만)
+
+  // 💰 학비 매칭 — 이 학생의 인보이스 중 학사 커버리지 있는 것만
+  const studentInvoices = invoices.filter(inv => inv.linkedStudentId === s.id && (inv.coverage?.slotCount || 0) > 0);
+  const slotUsageByInvoice = {}; // invoiceId → 사용된 슬롯 수
+  list.forEach(r => {
+    if (r.coveredByInvoiceId) {
+      slotUsageByInvoice[r.coveredByInvoiceId] = (slotUsageByInvoice[r.coveredByInvoiceId] || 0) + 1;
+    }
+  });
+  const getInvoiceById = (id) => studentInvoices.find(i => i.id === id);
+  const setRecordInvoice = (recordId, invoiceId) => {
+    update({ academicRecords: list.map(r => r.id === recordId ? { ...r, coveredByInvoiceId: invoiceId || '' } : r) });
+  };
+  // 행에서 선택 가능한 인보이스 — 같은 학교 + (이 행이 이미 매칭됐거나 슬롯 남음)
+  const getEligibleInvoicesForRow = (record) => {
+    return studentInvoices.filter(inv => {
+      if (inv.coverage?.schoolId && record.schoolId && inv.coverage.schoolId !== record.schoolId) return false;
+      const used = slotUsageByInvoice[inv.id] || 0;
+      const slotCount = inv.coverage?.slotCount || 0;
+      // 이 행이 이미 이 인보이스로 매칭됐으면 OK, 아니면 슬롯 남아야 함
+      if (record.coveredByInvoiceId === inv.id) return true;
+      return used < slotCount;
+    });
+  };
   const [editing, setEditing] = useState(null);   // 단일 수정
   const [bulkAdding, setBulkAdding] = useState(false); // 일괄 등록
   const [pleAdding, setPleAdding] = useState(false);   // PLE 추가
@@ -6124,6 +6160,56 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
         </div>
       )}
 
+      {/* 💰 학사·학비 커버리지 카드 — 인보이스 슬롯 매칭 상태 */}
+      {studentInvoices.length > 0 && (
+        <div className="notion-card p-4 mb-4" style={{ background:'#eef3f7', borderColor:'#9ec3d6' }}>
+          <h4 className="font-semibold mb-3" style={{ color:'#0b6e99' }}>💰 학사·학비 커버리지</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {studentInvoices.map(inv => {
+              const used = slotUsageByInvoice[inv.id] || 0;
+              const total = inv.coverage?.slotCount || 0;
+              const sch = schools.find(x => x.id === inv.coverage?.schoolId);
+              const paid = inv.status === 'paid';
+              const fullyMatched = used >= total;
+              const periodLabel = inv.coverage?.startDate && inv.coverage?.endDate
+                ? `${inv.coverage.startDate} ~ ${inv.coverage.endDate}` : (inv.coverage?.type || '예상기간');
+              return (
+                <div key={inv.id} className="notion-card p-3" style={{ background:'#fff' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold text-sm">{inv.invoiceNumber || `INV-${inv.id.slice(0,6)}`}</div>
+                    <span className="hd-pill" style={{
+                      background: paid ? 'var(--good-bg)' : 'var(--warn-bg)',
+                      color: paid ? 'var(--good)' : 'var(--warn)'
+                    }}>{paid ? '✅ 납부 완료' : '⏳ 발행됨 / 미입금'}</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    {sch?.name || '학교 미지정'} · {periodLabel}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span style={{ fontWeight:600, color: fullyMatched ? 'var(--good)' : 'var(--warn)' }}>
+                      슬롯 {used} / {total}
+                    </span>
+                    <div className="flex-1 h-2 rounded overflow-hidden" style={{ background:'#e7e1d7' }}>
+                      <div style={{
+                        width: `${Math.min(100, (used/Math.max(1,total))*100)}%`,
+                        height:'100%',
+                        background: fullyMatched ? 'var(--good)' : 'var(--gold)'
+                      }}/>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {fullyMatched ? '모두 매칭됨' : `${total - used}개 남음`}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-xs text-gray-500 mt-2">
+            💡 표의 각 과목 행에서 "학비" 컬럼에 인보이스를 골라 매칭하세요. 미매칭 과목은 🔴 미납 표시됩니다.
+          </div>
+        </div>
+      )}
+
       <div className="notion-card overflow-hidden">
         <div className="overflow-auto">
           <table className="w-full">
@@ -6142,12 +6228,13 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
               <th className="table-th">필수</th>
               <th className="table-th">학점</th>
               <th className="table-th">수업형태</th>
+              <th className="table-th">학비</th>
               <th className="table-th">기타</th>
               <th className="table-th"></th>
             </tr></thead>
             <tbody>
               {sorted.length === 0 ? (
-                <tr><td colSpan="16" className="text-center py-8 text-gray-400 text-sm">등록된 수강 기록이 없습니다.</td></tr>
+                <tr><td colSpan="17" className="text-center py-8 text-gray-400 text-sm">등록된 수강 기록이 없습니다.</td></tr>
               ) : (() => {
                 // 그룹핑: PLE는 행 단위 독립, 일반 행은 학교+학기+학년+기간으로 묶어 rowSpan
                 const groupKey = (x) => x.isPLE
@@ -6186,6 +6273,7 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
                         </td>
                         <td className="table-td text-base font-bold" style={{color:'#c20206'}}>{r.credits || '—'}</td>
                         <td className="table-td"><Badge value={r.selection}/></td>
+                        <td className="table-td text-xs italic" style={{ color:'#8a7a55' }}>—</td>
                         <td className="table-td text-xs" style={{color:'#202731'}}>{r.memo || '—'}</td>
                         <td className="table-td text-right whitespace-nowrap">
                           {canEdit && <Fragment>
@@ -6218,6 +6306,41 @@ const TabRoadmap = ({ s, update, schools, subjects, role = 'admin' }) => {
                       </td>
                       <td className="table-td text-sm">{r.credits || '—'}</td>
                       <td className="table-td"><Badge value={r.selection}/></td>
+                      <td className="table-td">
+                        {(() => {
+                          const eligible = getEligibleInvoicesForRow(r);
+                          const matched = r.coveredByInvoiceId ? getInvoiceById(r.coveredByInvoiceId) : null;
+                          if (studentInvoices.length === 0) {
+                            // 학사 커버리지 인보이스 자체가 없으면 단순 표시
+                            return <span className="text-xs text-gray-300">—</span>;
+                          }
+                          if (!canEdit) {
+                            // read-only 모드: 매칭된 인보이스 또는 미납
+                            return matched
+                              ? <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)' }}>✅ {matched.invoiceNumber || matched.id.slice(0,6)}</span>
+                              : <span className="hd-pill" style={{ background:'var(--alert-bg)', color:'var(--alert)' }}>🔴 미납</span>;
+                          }
+                          return (
+                            <select
+                              className="notion-input"
+                              style={{ padding:'2px 6px', fontSize:11, maxWidth:140 }}
+                              value={r.coveredByInvoiceId || ''}
+                              onChange={(e) => setRecordInvoice(r.id, e.target.value)}
+                            >
+                              <option value="">🔴 미납</option>
+                              {eligible.map(inv => {
+                                const used = slotUsageByInvoice[inv.id] || 0;
+                                const total = inv.coverage?.slotCount || 0;
+                                return (
+                                  <option key={inv.id} value={inv.id}>
+                                    {inv.invoiceNumber || inv.id.slice(0,6)} ({used}/{total})
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          );
+                        })()}
+                      </td>
                       <td className="table-td text-xs text-gray-600">{r.memo || '—'}</td>
                       <td className="table-td text-right whitespace-nowrap">
                         {canEdit && <Fragment>
@@ -9082,7 +9205,7 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
       )}
       {tab === 'basic' && <TabBasic s={student} update={update} customOptions={customOptions} addOption={addOption} removeOption={removeOption} schools={schools} subjects={subjects} universities={universities} programs={programs} role={role}/>}
       {tab === 'academic' && <TabAcademic s={student} update={update} role={role}/>}
-      {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects} role={role}/>}
+      {tab === 'roadmap' && <TabRoadmap s={student} update={update} schools={schools} subjects={subjects} invoices={invoices} role={role}/>}
       {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters} role={role}/>}
       {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations} role={role}/>}
       {tab === 'uni' && <TabUni s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} trackGroups={trackGroups}/>}
@@ -9867,6 +9990,89 @@ const InvoiceEditor = ({ invoice, application, members, applications, students=[
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* 🎓 학사 커버리지 — 풀가디언·방과후 등 기간성 결제일 때만 사용 (선택) */}
+      <div className="notion-card p-4" style={{ background:'#eef3f7', borderColor:'#9ec3d6' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold" style={{ color:'#0b6e99' }}>🎓 학사 커버리지 (선택)</h4>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox"
+              checked={(draft.coverage?.slotCount || 0) > 0 || !!draft.coverage?.schoolId}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  set('coverage', { schoolId: draft.coverage?.schoolId || '', slotCount: draft.coverage?.slotCount || 1, startDate:'', endDate:'', note:'' });
+                } else {
+                  set('coverage', { schoolId:'', slotCount:0, startDate:'', endDate:'', note:'' });
+                }
+              }}/>
+            <span style={{ color:'#4a4a4a' }}>이 인보이스에 학사 슬롯 포함</span>
+          </label>
+        </div>
+        {((draft.coverage?.slotCount || 0) > 0 || draft.coverage?.schoolId) ? (
+          <Fragment>
+            <div className="text-xs mb-3" style={{ color:'#4a4a4a' }}>
+              💡 풀가디언·영어집중 방과후·아카데믹 방과후처럼 "<b>N과목분 결제</b>"인 경우에 사용.
+              학생 대입로드맵에서 이 인보이스를 골라 과목별로 매칭합니다.
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Field label="학교 *" span={2}>
+                <RefSelect
+                  value={draft.coverage?.schoolId || ''}
+                  onChange={(v) => set('coverage', { ...draft.coverage, schoolId: v })}
+                  options={(schools || []).map(s => ({ id: s.id, label: s.name }))}
+                  placeholder="학교 선택"/>
+              </Field>
+              <Field label="결제 슬롯 수 *">
+                <TextInput type="number" value={draft.coverage?.slotCount || 0}
+                  onChange={(v) => set('coverage', { ...draft.coverage, slotCount: parseInt(v, 10) || 0 })}
+                  placeholder="과목 수"/>
+              </Field>
+              <Field label="유형 (옵션)">
+                <Select value={draft.coverage?.type || ''}
+                  onChange={(v) => set('coverage', { ...draft.coverage, type: v })}
+                  options={['학년제','학기제','예상기간','과목패키지']}
+                  placeholder="—"/>
+              </Field>
+              <Field label="시작일 (옵션)">
+                <TextInput type="date" value={draft.coverage?.startDate || ''}
+                  onChange={(v) => set('coverage', { ...draft.coverage, startDate: v })}/>
+              </Field>
+              <Field label="종료일 (옵션)">
+                <TextInput type="date" value={draft.coverage?.endDate || ''}
+                  onChange={(v) => set('coverage', { ...draft.coverage, endDate: v })}/>
+              </Field>
+              <Field label="유형 프리셋 (자동 채움)" span={2}>
+                <div className="flex gap-2 pt-1">
+                  <button type="button" className="btn-ghost text-xs"
+                    onClick={() => {
+                      const y = new Date().getFullYear();
+                      set('coverage', { ...draft.coverage, type:'학년제', startDate:`${y}-09-01`, endDate:`${y+1}-06-30` });
+                    }}>학년제 (9월~6월)</button>
+                  <button type="button" className="btn-ghost text-xs"
+                    onClick={() => {
+                      const y = new Date().getFullYear();
+                      set('coverage', { ...draft.coverage, type:'학기제', startDate:`${y}-09-01`, endDate:`${y+1}-01-31` });
+                    }}>1학기 (9월~1월)</button>
+                  <button type="button" className="btn-ghost text-xs"
+                    onClick={() => {
+                      const y = new Date().getFullYear();
+                      set('coverage', { ...draft.coverage, type:'학기제', startDate:`${y}-02-01`, endDate:`${y}-06-30` });
+                    }}>2학기 (2월~6월)</button>
+                </div>
+              </Field>
+              <Field label="메모 (옵션)" span={4}>
+                <TextInput value={draft.coverage?.note || ''}
+                  onChange={(v) => set('coverage', { ...draft.coverage, note: v })}
+                  placeholder="예) 사립학교 임의 기간, 학생별 다름"/>
+              </Field>
+            </div>
+          </Fragment>
+        ) : (
+          <div className="text-xs text-gray-500">
+            체크박스를 켜면 학교·슬롯 수를 입력할 수 있어요. 학생 대입로드맵에서 이 인보이스를 골라 과목과 매칭됩니다.
+          </div>
+        )}
       </div>
 
       {/* 파트너 커미션 — 비율(%) 또는 직접 금액 선택 */}
@@ -12946,6 +13152,7 @@ function App({ authMember, firebaseUser, signOut }) {
               applications={applications}
               students={students}
               partners={partners}
+              schools={schools}
               invoiceItems={invoiceItems}
               onAddInvoiceItem={(newItem) => setInvoiceItems([...invoiceItems, newItem])}
               currentUserName={currentUser?.name || ''}

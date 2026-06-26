@@ -3933,7 +3933,7 @@ const RideSchedulePage = ({ students, onUpdateStudent, onJumpToStudent }) => {
                       <td className="table-td">
                         <button onClick={() => onJumpToStudent && onJumpToStudent(e.studentId, 'accom')}
                           className="font-medium hover:underline"
-                          style={{ background:'transparent', border:'none', cursor:'pointer', padding:0, color:'var(--red)' }}
+                          style={{ background:'transparent', border:'none', cursor:'pointer', padding:0, color:'var(--ink)' }}
                           title="학생 숙소 페이지로 이동">
                           {e.studentName}
                         </button>
@@ -10394,7 +10394,7 @@ const InvoicePDFPreview = ({ invoice, application, invoiceItems=[], onClose }) =
 /* ============================================================
    🧾 인보이스 목록 페이지 — 필터 + 인라인 상태 편집
    ============================================================ */
-const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChangeInvoices, onChangeApplications, onOpenEditor, onOpenPDF, onNew }) => {
+const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChangeInvoices, onChangeApplications, onOpenEditor, onOpenPDF, onNew, onJumpToStudent }) => {
   const isPartner = currentUser?.role === 'partner';
   const partnerCompanyName = isPartner ? (currentUser?.name || '') : '';
 
@@ -10550,7 +10550,18 @@ const InvoicesPage = ({ invoices, applications, students=[], currentUser, onChan
               return (
                 <tr key={inv.id} className="row-hover">
                   <td className="table-td font-mono text-xs">{inv.invoiceNumber}</td>
-                  <td className="table-td font-medium">{inv.studentName}</td>
+                  <td className="table-td">
+                    {inv.linkedStudentId && onJumpToStudent ? (
+                      <button onClick={() => onJumpToStudent(inv.linkedStudentId, 'dashboard')}
+                        className="font-medium hover:underline"
+                        style={{ background:'transparent', border:'none', cursor:'pointer', padding:0, color:'var(--ink)' }}
+                        title="학생 대시보드로 이동">
+                        {inv.studentName}
+                      </button>
+                    ) : (
+                      <span className="font-medium">{inv.studentName}</span>
+                    )}
+                  </td>
                   <td className="table-td text-xs">
                     {inv.partnerCompany
                       ? <span>{inv.partnerCompany}</span>
@@ -13088,6 +13099,7 @@ function App({ authMember, firebaseUser, signOut }) {
             onOpenEditor={(inv) => setInvoiceEditing({ application: applications.find(a => a.id === inv.applicationId), invoice: inv })}
             onOpenPDF={(inv) => setPdfInvoice(inv)}
             onNew={() => setInvoiceEditing({ application: null, invoice: emptyInvoice() })}
+            onJumpToStudent={jumpToStudent}
           />
         ) : view === 'cohortDash' && access.cohortDash ? (
           <CohortDashboard

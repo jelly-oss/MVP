@@ -995,10 +995,19 @@ const saveStudents = (data) => {
 };
 
 const OPTIONS_KEY = 'bupp_options_v1';
+// BUPP 숙소 운영 정책 안내 — admin 페이지에서 편집 가능
+const DEFAULT_ACCOM_POLICIES = [
+  '퇴실 2달 전 노티스 시 같은 컨디션의 새 숙소로 이동하면 차감 없이 납부 비용 적용',
+  '늦은 노티스 시 약 $2,500 패널티 부과',
+  '홈스테이 어레인지 — 1회 무료, 2회부터 $200 유료',
+  '숙소 이사 시 거리 + 짐의 양에 따라 차등 부과'
+];
+
 const DEFAULT_OPTIONS = {
   category: [...CATEGORIES],   // 브듀 / 외부 / 단기 + (파트너사 등 추가)
   cohort: [...BUPP_COHORTS],   // BUPP 12~18기 기본 시드
-  currentSchool: []            // 사용자 지정 학교
+  currentSchool: [],           // 사용자 지정 학교
+  accommodationPolicies: [...DEFAULT_ACCOM_POLICIES] // 숙소 운영 정책 안내 (admin 편집)
 };
 const loadOptions = () => {
   try {
@@ -1217,6 +1226,7 @@ const emptyEcMaster = () => ({
   organizationType: '외부 단체',
   frequencyType: '비정기',
   frequency: '',                   // 예) "매주 화요일 18:00"
+  typicalMonths: [],               // [9, 12, 4] 같이 매년 진행되는 월 (1-12, 봉사활동 캘린더에 표시)
   participationType: '그룹',
   recommendedGrades: [],           // ['Grade 9','Grade 10',...]
   interestAreas: [],
@@ -3009,7 +3019,7 @@ const RoomEditor = ({ room, students, onChange, onRemove, canViewHistory=true })
 };
 
 // 숙소 상세 편집 (모달처럼 전체 영역 차지)
-const AccommodationDetail = ({ accom, students, schools, onChange, onClose, canViewHistory=true, onOpenPDF }) => {
+const AccommodationDetail = ({ accom, students, schools, onChange, onClose, canViewHistory=true, onOpenPDF, policies=[] }) => {
   const [rateIncreaseOpen, setRateIncreaseOpen] = useState(false);
   const upd = (k, v) => onChange({ ...accom, [k]: v });
   const subOpts = ACCOM_SUBCATEGORIES[accom.category] || [];
@@ -3079,16 +3089,17 @@ const AccommodationDetail = ({ accom, students, schools, onChange, onClose, canV
             <Field label="홈메이트 정보" span={3}><TextArea value={accom.housematesInfo} onChange={(v) => upd('housematesInfo', v)} rows={2}/></Field>
           </div>
 
-          {/* 퇴실 / 이사 운영 정책 — 학생·학부모에게도 노출되는 안내 */}
-          <div className="mt-4 p-3 rounded text-xs" style={{ background:'#faf3e3', border:'1px solid #e8c97a', color:'#760305' }}>
-            <div className="font-semibold mb-2" style={{color:'#a67800'}}>📋 BUPP 숙소 운영 정책 안내</div>
-            <div className="space-y-1">
-              <div>· <strong>퇴실 2달 전 노티스</strong> 시 같은 컨디션의 새 숙소로 이동하면 차감 없이 납부 비용 적용</div>
-              <div>· <strong>늦은 노티스</strong> 시 약 <strong>$2,500 패널티</strong> 부과</div>
-              <div>· <strong>홈스테이 어레인지</strong> — 1회 무료, 2회부터 <strong>$200 유료</strong></div>
-              <div>· <strong>숙소 이사 시</strong> 거리 + 짐의 양에 따라 차등 부과</div>
+          {/* 퇴실 / 이사 운영 정책 — 학생·학부모에게도 노출되는 안내 (admin이 편집) */}
+          {policies.length > 0 && (
+            <div className="mt-4 p-3 rounded text-xs" style={{ background:'#faf3e3', border:'1px solid #e8c97a', color:'#760305' }}>
+              <div className="font-semibold mb-2" style={{color:'#a67800'}}>📋 BUPP 숙소 운영 정책 안내</div>
+              <div className="space-y-1">
+                {policies.map((p, i) => (
+                  <div key={i}>· {p}</div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -3499,7 +3510,14 @@ const AvailabilityDashboard = ({ accommodations, onJump, students = [] }) => {
 };
 
 // 숙소 데이터 페이지 (사이드바 진입점)
-const AccommodationDataPage = ({ accommodations, students, schools, onChange, canViewHistory=true, onOpenPDF }) => {
+const AccommodationDataPage = ({ accommodations, students, schools, onChange, canViewHistory=true, onOpenPDF, policies=[], onUpdatePolicies, canEditPolicies=false }) => {
+  const [policyEditing, setPolicyEditing] = useState(false);
+  const [policyDraft, setPolicyDraft] = useState([]);
+  const openPolicyEditor = () => { setPolicyDraft([...policies]); setPolicyEditing(true); };
+  const savePolicies = () => { onUpdatePolicies && onUpdatePolicies(policyDraft.filter(p => p.trim())); setPolicyEditing(false); };
+  const updatePolicyLine = (idx, v) => setPolicyDraft(policyDraft.map((p, i) => i === idx ? v : p));
+  const addPolicyLine = () => setPolicyDraft([...policyDraft, '']);
+  const removePolicyLine = (idx) => setPolicyDraft(policyDraft.filter((_, i) => i !== idx));
   const [category, setCategory] = useState('홈스테이');
   const [search, setSearch] = useState('');
   const [openId, setOpenId] = useState(null);
@@ -3535,7 +3553,8 @@ const AccommodationDataPage = ({ accommodations, students, schools, onChange, ca
       <div className="max-w-[1400px] mx-auto px-8 py-6">
         <AccommodationDetail accom={opened} students={students} schools={schools}
           onChange={updateAccom} onClose={() => setOpenId(null)}
-          canViewHistory={canViewHistory} onOpenPDF={onOpenPDF}/>
+          canViewHistory={canViewHistory} onOpenPDF={onOpenPDF}
+          policies={policies}/>
       </div>
     );
   }
@@ -3549,6 +3568,9 @@ const AccommodationDataPage = ({ accommodations, students, schools, onChange, ca
         </div>
         <div className="flex items-center gap-2">
           <input className="notion-input w-72" placeholder="이름·주소 검색..." value={search} onChange={(e) => setSearch(e.target.value)}/>
+          {canEditPolicies && (
+            <button className="btn-ghost" onClick={openPolicyEditor} title="홈스테이 안내 정책 편집">📋 운영 정책</button>
+          )}
           <button className="btn-primary" onClick={add}>+ 새 {category} 추가</button>
         </div>
       </div>
@@ -3618,6 +3640,35 @@ const AccommodationDataPage = ({ accommodations, students, schools, onChange, ca
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* 📋 운영 정책 편집 모달 */}
+      {policyEditing && (
+        <div className="modal-backdrop" onClick={() => setPolicyEditing(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ width:'min(640px, 95vw)' }}>
+            <h3 className="font-semibold mb-1">📋 BUPP 숙소 운영 정책</h3>
+            <p className="text-xs mb-4" style={{ color:'var(--muted)' }}>
+              홈스테이 상세 페이지에서 학부모·학생에게 노출되는 정책 안내문. 라인별로 추가·수정·삭제.
+            </p>
+            <div className="space-y-2 mb-3">
+              {policyDraft.map((line, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <span className="text-xs text-gray-500 pt-2" style={{ minWidth:20 }}>·</span>
+                  <TextArea value={line} onChange={(v) => updatePolicyLine(i, v)} rows={2}/>
+                  <button className="btn-danger text-xs" onClick={() => removePolicyLine(i)}>×</button>
+                </div>
+              ))}
+              {policyDraft.length === 0 && (
+                <div className="text-sm text-gray-400 text-center py-4">정책 라인이 없습니다.</div>
+              )}
+            </div>
+            <button className="btn-ghost text-xs mb-4" onClick={addPolicyLine}>+ 라인 추가</button>
+            <div className="flex justify-end gap-2">
+              <button className="btn-ghost" onClick={() => setPolicyEditing(false)}>취소</button>
+              <button className="btn-primary" onClick={savePolicies}>저장</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -5180,8 +5231,9 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
   const categoryOpts = customOptions?.category || [];
   const cohortOpts = customOptions?.cohort || [];
   const schoolOpts = customOptions?.currentSchool || [];
-  const isStudent = role === 'student';
-  // 학생용 read-only 표시 — 드롭다운/입력창 대신 텍스트
+  // 학생·학부모 read-only (편집 불가, 드롭다운 숨김) — EC만 학부모가 편집 가능
+  const isStudent = role === 'student' || role === 'parent';
+  // 학생/학부모용 read-only 표시 — 드롭다운/입력창 대신 텍스트
   const Ro = ({ value, fallback = '—' }) => (
     <div className="notion-input flex items-center" style={{background:'#faf7f3', color:'#202731', height:34, padding:'4px 10px'}}>
       {value ? value : <span className="text-gray-400">{fallback}</span>}
@@ -5544,8 +5596,8 @@ const TabAcademic = ({ s, update, role = 'admin' }) => {
   const a = s.academic || {};
   const et = a.englishTest || {};
   const history = a.englishTestHistory || [];
-  const isStudent = role === 'student';
-  const canEdit = !isStudent; // 학생은 응시이력·OSSLT·메모 수정 불가 (브듀쌤 이상만)
+  const isStudent = role === 'student' || role === 'parent';
+  const canEdit = !isStudent; // 학생·학부모는 응시이력·OSSLT·메모 수정 불가 (브듀쌤 이상만)
   const setAcademic = (k, v) => update({ academic: { ...a, [k]: v } });
   const setTest = (k, v) => update({ academic: { ...a, englishTest: { ...et, [k]: v } } });
   // 학생용 read-only 표시
@@ -6006,8 +6058,8 @@ const RoadmapEditor = ({ rec, schools, subjects, onSave, onCancel }) => {
 
 const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin' }) => {
   const list = s.academicRecords || [];
-  const isStudent = role === 'student';
-  const canEdit = !isStudent; // 학생은 과목 추가·수정·삭제 불가 (브듀쌤 이상만)
+  const isStudent = role === 'student' || role === 'parent';
+  const canEdit = !isStudent; // 학생·학부모는 과목 추가·수정·삭제 불가 (브듀쌤 이상만)
 
   // 💰 학비 매칭 — 이 학생의 인보이스 중 학사 커버리지 있는 것만
   const studentInvoices = invoices.filter(inv => inv.linkedStudentId === s.id && (inv.coverage?.slotCount || 0) > 0);
@@ -6986,7 +7038,7 @@ const TabAccommodation = ({ s, update, accommodations=[], role = 'admin' }) => {
   const [historyDraft, setHistoryDraft] = useState(null);
   const [travelDraft, setTravelDraft] = useState(null); // { type:'arrival'|'departure', record }
   const [showArrivalPDF, setShowArrivalPDF] = useState(false);
-  const canEdit = role !== 'student'; // 학생은 숙소 read-only
+  const canEdit = role !== 'student' && role !== 'parent'; // 학생·학부모는 숙소 read-only
   const canPrintPDF = role === 'admin' || role === 'bu_staff';
 
   const addHistory = () => setHistoryDraft({
@@ -10722,6 +10774,68 @@ const EcMasterPage = ({ ecMasters, onChange, students=[] }) => {
         ))}
       </div>
 
+      {/* 🗓 봉사활동 월별 캘린더 — 매년 비슷한 달 진행되는 봉사 가시화 */}
+      {(() => {
+        const volunteers = ecMasters.filter(m => m.category === '봉사활동');
+        const byMonth = {};
+        for (let i = 1; i <= 12; i++) byMonth[i] = [];
+        volunteers.forEach(v => {
+          (v.typicalMonths || []).forEach(m => {
+            if (m >= 1 && m <= 12) byMonth[m].push(v);
+          });
+        });
+        const totalWithMonth = volunteers.filter(v => (v.typicalMonths || []).length > 0).length;
+        const totalWithoutMonth = volunteers.length - totalWithMonth;
+        const currentMonth = new Date().getMonth() + 1;
+        return (
+          <div className="notion-card p-4 mb-4" style={{ background:'#f0f9f4' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold" style={{ color:'var(--good)' }}>🗓 봉사활동 월별 캘린더</h4>
+              <span className="text-xs text-gray-500">
+                {totalWithMonth}개 활동 매핑됨
+                {totalWithoutMonth > 0 && ` · 월 정보 없음 ${totalWithoutMonth}개`}
+              </span>
+            </div>
+            <div className="grid grid-cols-6 md:grid-cols-12 gap-1">
+              {Array.from({length: 12}, (_, i) => i + 1).map(m => {
+                const items = byMonth[m];
+                const isCurrent = m === currentMonth;
+                return (
+                  <div key={m}
+                    className="rounded p-2 text-xs"
+                    style={{
+                      minHeight: 90,
+                      background: isCurrent ? '#fbe0e0' : '#fff',
+                      border: '1px solid var(--border)'
+                    }}>
+                    <div className="text-center font-bold mb-1" style={{ color: isCurrent ? 'var(--red)' : '#4a4a4a' }}>
+                      {m}월
+                      {items.length > 0 && <span className="ml-1 text-xs" style={{ color:'var(--good)' }}>· {items.length}</span>}
+                    </div>
+                    {items.length === 0 ? (
+                      <div className="text-center text-gray-300 text-xs mt-2">—</div>
+                    ) : items.map((v, idx) => (
+                      <div key={idx}
+                        onClick={() => setOpenId(v.id)}
+                        className="cursor-pointer p-1 mb-1 rounded text-xs leading-tight truncate"
+                        style={{ background:'#dcf2e6', color:'#0f6b4a' }}
+                        title={`${v.name} · ${v.organizationName || ''}`}>
+                        {v.name}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+            {totalWithoutMonth > 0 && (
+              <div className="text-xs text-gray-500 mt-3">
+                💡 봉사활동 편집 시 "매년 진행 월"을 체크하면 캘린더에 표시됩니다.
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* 필터 */}
       <div className="notion-card p-4 mb-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -10816,6 +10930,24 @@ const EcMasterEditor = ({ draft: initialDraft, onSave, onCancel }) => {
           <Field label="참여 형태"><Select value={draft.participationType} onChange={(v) => set('participationType', v)} options={EC_PARTICIPATION_TYPES}/></Field>
           <Field label="회당 시간"><TextInput value={draft.hoursPerSession} onChange={(v) => set('hoursPerSession', v)} placeholder="예) 3"/></Field>
           <Field label="일정/빈도" span={3}><TextInput value={draft.frequency} onChange={(v) => set('frequency', v)} placeholder="예) 매주 토요일 10:00-13:00 또는 2026년 7월 (2주)"/></Field>
+          <Field label="🗓 매년 진행 월 (캘린더 표시용)" span={3}>
+            <div className="flex flex-wrap gap-2">
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => {
+                const on = (draft.typicalMonths || []).includes(m);
+                return (
+                  <button key={m} type="button"
+                    className={on ? 'btn-primary text-xs' : 'btn-ghost text-xs'}
+                    onClick={() => {
+                      const cur = draft.typicalMonths || [];
+                      set('typicalMonths', on ? cur.filter(x => x !== m) : [...cur, m].sort((a,b) => a-b));
+                    }}>
+                    {m}월
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">매년 비슷한 달에 진행되는 봉사활동 — EC 데이터 페이지 상단 월별 캘린더에 자동 표시됩니다.</div>
+          </Field>
           <Field label="신청 마감일"><TextInput type="date" value={draft.deadline} onChange={(v) => set('deadline', v)}/></Field>
           <Field label="정원"><TextInput value={draft.capacity} onChange={(v) => set('capacity', v)} placeholder="예) 10명"/></Field>
           <Field label="비용"><TextInput value={draft.cost} onChange={(v) => set('cost', v)} placeholder="예) 무료 또는 CAD 500"/></Field>
@@ -13097,6 +13229,9 @@ function App({ authMember, firebaseUser, signOut }) {
             onChange={setAccommodations}
             canViewHistory={role === 'admin' || role === 'bu_staff'}
             onOpenPDF={(a) => setPdfAccom(a)}
+            policies={customOptions?.accommodationPolicies || DEFAULT_ACCOM_POLICIES}
+            onUpdatePolicies={(arr) => setCustomOptions({ ...customOptions, accommodationPolicies: arr })}
+            canEditPolicies={role === 'admin' || role === 'bu_staff'}
           />
         ) : view === 'rideSchedule' && access.rideSchedule ? (
           <RideSchedulePage students={students} onUpdateStudent={updateStudent} onJumpToStudent={jumpToStudent}/>

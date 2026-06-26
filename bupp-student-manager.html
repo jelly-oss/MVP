@@ -5614,11 +5614,16 @@ const TabAcademic = ({ s, update, role = 'admin' }) => {
 const gradeLabel = (g) => !g ? '' : (g === 'ESL' ? 'ESL' : `G${g}`);
 
 // 일괄 등록기 — 학교/학기/기간 공통, 과목은 여러 개 일괄 추가
-const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
+// prefill: 기존 그룹에 과목 추가 시 헤더 자동 채움 (학교·학기·기간·학년·수업형태)
+const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null }) => {
   const [shared, setShared] = useState({
-    grade: '', schoolId: '', semesterSystem: '',
-    startDate: '', endDate: '',
-    selection: '정규수업', province: 'ON'
+    grade: prefill?.grade || '',
+    schoolId: prefill?.schoolId || '',
+    semesterSystem: prefill?.semesterSystem || '',
+    startDate: prefill?.startDate || '',
+    endDate: prefill?.endDate || '',
+    selection: prefill?.selection || '정규수업',
+    province: 'ON'
   });
   const blankRow = (defaultGrade = '') => ({
     grade: defaultGrade,  // 행별 학년 — 헤더의 기본 학년이 초기값
@@ -5660,10 +5665,11 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
   };
 
   // 학교 선택 시 자동으로 학기시스템 기준 권장 행 수 채움
+  // 학교의 semesterSystem이 있으면 shared에도 자동 채움 (사용자가 일부러 override 안 하면 그대로 저장됨)
   const onPickSchool = (v) => {
     const sc = schools.find(s => s.id === v);
     const newSys = sc?.semesterSystem || '';
-    setShared({ ...shared, schoolId: v, semesterSystem: '' });
+    setShared({ ...shared, schoolId: v, semesterSystem: newSys });
     if (rows.length === 1 && !rows[0].subjectId) {
       const n = defaultRowCount(newSys);
       setRows(Array.from({ length: n }, () => blankRow(shared.grade)));
@@ -5695,11 +5701,13 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel }) => {
     if (!shared.schoolId) { alert('학교를 선택해주세요.'); return; }
     const valid = rows.filter(r => r.subjectId);
     if (valid.length === 0) { alert('과목을 1개 이상 선택해주세요.'); return; }
+    // 학기 시스템: shared 빈 값이면 학교 마스터 fallback (학교에 정의된 게 정확함)
+    const effectiveSemesterSystem = shared.semesterSystem || schools.find(s => s.id === shared.schoolId)?.semesterSystem || '';
     const records = valid.map(r => ({
       id: uid(),
       grade: r.grade || shared.grade,  // 행별 학년 우선, 없으면 헤더 기본값
       schoolId: shared.schoolId,
-      semesterSystem: shared.semesterSystem,
+      semesterSystem: effectiveSemesterSystem,
       startDate: shared.startDate,
       endDate: shared.endDate,
       selection: shared.selection,
@@ -6026,6 +6034,7 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
   };
   const [editing, setEditing] = useState(null);   // 단일 수정
   const [bulkAdding, setBulkAdding] = useState(false); // 일괄 등록
+  const [bulkPrefill, setBulkPrefill] = useState(null); // 일괄 등록 모달 헤더 자동 채움값
   const [pleAdding, setPleAdding] = useState(false);   // PLE 추가
   const [pleEditing, setPleEditing] = useState(null);  // PLE 수정
   const [filters, setFilters] = useState({ schoolId:'', grade:'', selection:'' });
@@ -6053,6 +6062,19 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
   const bulkSave = (records) => {
     update({ academicRecords: [...list, ...records] });
     setBulkAdding(false);
+    setBulkPrefill(null);
+  };
+  // 기존 그룹에 과목 추가 — 표 행의 학교/학기/기간/학년/수업형태를 가져와서 헤더 자동 채움
+  const startAddToGroup = (r) => {
+    setBulkPrefill({
+      grade: r.grade || '',
+      schoolId: r.schoolId || '',
+      semesterSystem: r.semesterSystem || '',
+      startDate: r.startDate || '',
+      endDate: r.endDate || '',
+      selection: r.selection || '정규수업'
+    });
+    setBulkAdding(true);
   };
   const pleSave = (d) => {
     if (d.id) {
@@ -6067,7 +6089,7 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
     update({ academicRecords: list.filter(r => r.id !== id) });
   };
 
-  // 정렬: PLE → 시작일 오름차순(과거→미래). 동일 기간이면 종료일·학교 순.
+  // 정렬: PLE → 시작일 오름차순(과거→미래). 동일 기간이면 종료일·학교·과목코드 순.
   // PLE 행들은 시간보다 앞이라 startDate 비어있어도 맨 위에.
   const FAR_FUTURE = '9999-12-31';
   const FAR_PAST = '0000-01-01';
@@ -6078,7 +6100,11 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
     const ea = a.endDate || FAR_FUTURE;
     const eb = b.endDate || FAR_FUTURE;
     if (ea !== eb) return ea.localeCompare(eb);
-    return (a.schoolId || '').localeCompare(b.schoolId || '');
+    if ((a.schoolId || '') !== (b.schoolId || '')) return (a.schoolId || '').localeCompare(b.schoolId || '');
+    // 같은 그룹 안에서는 과목 코드(예: ENG3U) 알파벳 순
+    const codeA = (subjects.find(s => s.id === a.subjectId)?.code || '');
+    const codeB = (subjects.find(s => s.id === b.subjectId)?.code || '');
+    return codeA.localeCompare(codeB);
   });
 
   const totalCredits = list.reduce((sum, r) => sum + (parseFloat(r.credits) || 0), 0);
@@ -6141,7 +6167,7 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
       {bulkAdding && (
         <div className="notion-card p-5 mb-4 bg-gray-50">
           <h3 className="font-semibold text-base mb-4">과목 일괄 등록 — 학교/학기/기간을 한번만 입력</h3>
-          <BulkRoadmapEditor schools={schools} subjects={subjects} onSave={bulkSave} onCancel={() => setBulkAdding(false)}/>
+          <BulkRoadmapEditor schools={schools} subjects={subjects} onSave={bulkSave} prefill={bulkPrefill} onCancel={() => { setBulkAdding(false); setBulkPrefill(null); }}/>
         </div>
       )}
 
@@ -6344,6 +6370,9 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
                       <td className="table-td text-xs text-gray-600">{r.memo || '—'}</td>
                       <td className="table-td text-right whitespace-nowrap">
                         {canEdit && <Fragment>
+                          {isFirst && (
+                            <button className="btn-ghost" title="같은 학교·학기·기간에 과목 추가" onClick={() => startAddToGroup(r)}>+ 그룹</button>
+                          )}
                           <button className="btn-ghost" onClick={() => setEditing(r)}>수정</button>
                           <button className="btn-danger" onClick={() => remove(r.id)}>삭제</button>
                         </Fragment>}
@@ -12773,6 +12802,19 @@ function App({ authMember, firebaseUser, signOut }) {
     }
   }, [openId, currentUserId]);
 
+  // 🎯 학생/학부모 자동 진입 — 첫 로딩 시 본인/자녀 1명이면 바로 상세 페이지로
+  useEffect(() => {
+    if (openId) return; // 이미 학생 상세 보고 있으면 패스
+    if (scope === 'all') return; // 관리자·브듀쌤은 학생 목록부터
+    if (view !== 'students') return; // 다른 페이지 보고 있으면 패스
+    if (visibleStudents.length === 1) {
+      // 학생 본인 또는 자녀 1명 → 바로 진입
+      setOpenId(visibleStudents[0].id);
+    }
+    // 자녀 2명+면 학생 목록에서 선택 (별도 자녀 선택 화면은 추후 초대토큰 Phase D)
+    // eslint-disable-next-line
+  }, [currentUserId, authMember?.email, students.length]);
+
   // 콜드스타트 시드 — customOptions가 완전히 비어있을 때만 학생 데이터에서 자동 시드.
   // (한 번이라도 옵션이 있으면, 사용자가 [×]로 삭제한 항목이 부활하지 않도록 자동 시드 건너뜀)
   useEffect(() => {
@@ -12897,7 +12939,7 @@ function App({ authMember, firebaseUser, signOut }) {
       {/* 상단 헤더 — 시뮬레이션 모드 + 사용자 전환 */}
       <header className="app-header flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-3">
-          <div className="brand-title">BreakEDU · BUPP</div>
+          <div className="brand-title">BUPP</div>
           <span className="badge b-orange text-xs">시뮬레이션 모드</span>
         </div>
         <div className="flex items-center gap-2">
@@ -12924,7 +12966,7 @@ function App({ authMember, firebaseUser, signOut }) {
       {/* 사이드바 — 다크 네이비 + 골드 강조 */}
       <aside className="app-sidebar w-60 px-3 py-4 flex flex-col gap-1">
         <div className="px-3 py-2 mb-2" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-          <div className="text-lg font-bold" style={{color:'#F0B429', letterSpacing:'-0.01em'}}>BreakEDU</div>
+          <div className="text-lg font-bold" style={{color:'#F0B429', letterSpacing:'-0.01em'}}>BUPP</div>
           <div className="text-xs flex items-center gap-1 mt-1" style={{ color:'#cabaab' }}>
             <Badge value={ROLE_LABEL[role]}/>
             <span className="truncate">{currentUser?.name}</span>

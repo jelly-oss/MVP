@@ -8297,9 +8297,17 @@ const blankReport = () => ({
 // 학생 데이터에서 자동 요약 추출
 const buildReportAutoSummary = (student, schools, subjects, universities, programs) => {
   const recs = student.academicRecords || [];
-  // 진행 중인 과목 (status 없음 시 final 비어있고 endDate 미래 또는 비어있음 → 진행중으로 간주)
+  // 진행 중인 과목 — 종료일 기준으로 판단 (final 점수 유무로 판단하지 않음)
+  // · PLE 제외
+  // · 종료일이 있으면 → 종료일 >= 오늘 일 때만 진행 중
+  // · 종료일 없으면 → 시작일이 오늘 이하 이거나 시작일도 없으면 진행 중 (미정 케이스)
   const today = new Date().toISOString().slice(0,10);
-  const inProgress = recs.filter(r => !r.isPLE && (!r.final || (r.endDate && r.endDate >= today)));
+  const inProgress = recs.filter(r => {
+    if (r.isPLE) return false;
+    if (r.endDate) return r.endDate >= today;
+    if (r.startDate) return r.startDate <= today;
+    return !r.final; // 날짜 정보 전무 + final도 없으면 진행 중으로 간주
+  });
   const inProgressNames = inProgress.map(r => {
     const sub = subjects.find(x => x.id === r.subjectId);
     return sub ? `${sub.code} (${sub.name})` : '';
@@ -13134,6 +13142,20 @@ function App({ authMember, firebaseUser, signOut }) {
             <span className="truncate">{currentUser?.name}</span>
           </div>
         </div>
+
+        {/* 학부모 자녀 셀렉터 — 자녀 2명+일 때만 표시 */}
+        {role === 'parent' && visibleStudents.length >= 2 && (
+          <Fragment>
+            <div className="sidebar-section-label">자녀</div>
+            {visibleStudents.map(child => (
+              <div key={child.id}
+                className={`sidebar-item ${openId === child.id ? 'active':''}`}
+                onClick={() => { setView('students'); setOpenId(child.id); setStudentInitialTab(null); }}>
+                <NavIcon name="user"/>{child.koreanName || child.englishName || '이름없음'}
+              </div>
+            ))}
+          </Fragment>
+        )}
 
         <div className="sidebar-section-label">학생</div>
         {access.students && (

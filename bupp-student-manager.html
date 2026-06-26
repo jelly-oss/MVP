@@ -9753,7 +9753,7 @@ const ApplicationsPage = ({ applications, invoices, accommodations, members, stu
 };
 
 // 인보이스 작성 페이지 — 브듀쌤+ 전용 (세금 포함 단가 / Gross-Net 구조)
-const InvoiceEditor = ({ invoice, application, members, applications, students=[], partners=[], invoiceItems=[], onAddInvoiceItem, onSave, onCancel, currentUserName='' }) => {
+const InvoiceEditor = ({ invoice, application, members, applications, students=[], partners=[], schools=[], invoiceItems=[], onAddInvoiceItem, onSave, onCancel, currentUserName='' }) => {
   // Student# 자동 생성: 학생 데이터에서 우선, 없으면 BUPP-{기수}-{stu_short} 패턴
   const buildStudentNumber = (stu) => {
     if (!stu) return '';

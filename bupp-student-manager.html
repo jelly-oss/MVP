@@ -3948,9 +3948,26 @@ const RideSchedulePage = ({ students, onUpdateStudent }) => {
               {editing.type === 'arrival' ? '🛬 도착 ' : '🛫 출국 '}
               {editing.record.id ? '수정' : '추가'}
             </h3>
-            <p className="text-xs mb-4" style={{ color:'var(--muted)' }}>
+            <p className="text-xs mb-3" style={{ color:'var(--muted)' }}>
               학생 숙소 탭의 출입국 정보와 양방향 동기화됩니다.
             </p>
+            {/* ⚡ 자주 쓰는 항공편 프리셋 */}
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-1">⚡ 자주 쓰는 항공편 (클릭 시 자동 채움)</div>
+              <div className="flex flex-wrap gap-2">
+                {(editing.type === 'arrival' ? FLIGHT_PRESETS_ARRIVAL : FLIGHT_PRESETS_DEPARTURE).map(p => (
+                  <button key={p.label} type="button" className="btn-ghost text-xs"
+                    onClick={() => setEditing({...editing, record:{
+                      ...editing.record,
+                      flightNumber: p.flightNumber,
+                      terminal: p.terminal,
+                      [editing.type === 'arrival' ? 'arrivalTime' : 'departureTime']: p.time
+                    }})}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Field label="학생 *" span={2}>
                 <RefSelect value={editing.studentId} onChange={(v) => setEditing({...editing, studentId:v})}
@@ -3958,7 +3975,7 @@ const RideSchedulePage = ({ students, onUpdateStudent }) => {
                   placeholder="학생 선택"/>
               </Field>
               <Field label="날짜 *"><TextInput type="date" value={editing.record.date} onChange={(v) => setEditing({...editing, record:{...editing.record, date:v}})}/></Field>
-              <Field label="항공편"><TextInput value={editing.record.flightNumber} onChange={(v) => setEditing({...editing, record:{...editing.record, flightNumber:v}})} placeholder="OZ763"/></Field>
+              <Field label="항공편"><TextInput value={editing.record.flightNumber} onChange={(v) => setEditing({...editing, record:{...editing.record, flightNumber:v}})} placeholder="직접 입력 가능"/></Field>
               <Field label={editing.type === 'arrival' ? '도착 시간' : '출국 시간'}>
                 <TextInput type="time" value={editing.type === 'arrival' ? editing.record.arrivalTime : editing.record.departureTime}
                   onChange={(v) => setEditing({...editing, record:{...editing.record, [editing.type==='arrival'?'arrivalTime':'departureTime']:v}})}/>
@@ -6782,6 +6799,16 @@ const RIDE_TYPES = ['무료서비스', '유료', '셀프 (학생/가족)'];
 const FEE_STATUSES = ['청구함', '입금됨', '면제'];
 const DEPARTURE_PURPOSES = ['여름 귀국', '크리스마스 귀국', '봄방학', '개인 일정', '학교 견학', '기타'];
 
+// 자주 쓰는 항공편 프리셋 — 클릭 시 항공편/시간/터미널 자동 채움
+const FLIGHT_PRESETS_ARRIVAL = [
+  { label: 'KE 077 · 09:55 · T3 (대한항공)',  flightNumber: 'KE 077', time: '09:55', terminal: 'T3' },
+  { label: 'AC 62 · 19:30 · T1 (에어캐나다)', flightNumber: 'AC 62',  time: '19:30', terminal: 'T1' }
+];
+const FLIGHT_PRESETS_DEPARTURE = [
+  { label: 'KE 78 · T3 (대한항공)',    flightNumber: 'KE 78', time: '', terminal: 'T3' },
+  { label: 'AC 61 · T1 (에어캐나다)',  flightNumber: 'AC 61', time: '', terminal: 'T1' }
+];
+
 const TabAccommodation = ({ s, update, accommodations=[], role = 'admin' }) => {
   const acc = s.accommodation || {};
   const [editing, setEditing] = useState(false);
@@ -7183,12 +7210,29 @@ const TabAccommodation = ({ s, update, accommodations=[], role = 'admin' }) => {
               {travelDraft.type === 'arrival' ? '🛬 도착 (Arrival) ' : '🛫 출국 (Departure) '}
               {travelDraft.record.id ? '수정' : '추가'}
             </h3>
-            <p className="text-xs mb-4" style={{ color:'var(--muted)' }}>
+            <p className="text-xs mb-3" style={{ color:'var(--muted)' }}>
               공항 라이드 서비스 트래킹 — 무료/유료 구분 기록
             </p>
+            {/* ⚡ 자주 쓰는 항공편 프리셋 — 클릭 시 항공편/시간/터미널 자동 채움 */}
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-1">⚡ 자주 쓰는 항공편 (클릭 시 자동 채움)</div>
+              <div className="flex flex-wrap gap-2">
+                {(travelDraft.type === 'arrival' ? FLIGHT_PRESETS_ARRIVAL : FLIGHT_PRESETS_DEPARTURE).map(p => (
+                  <button key={p.label} type="button" className="btn-ghost text-xs"
+                    onClick={() => setTravelDraft({...travelDraft, record:{
+                      ...travelDraft.record,
+                      flightNumber: p.flightNumber,
+                      terminal: p.terminal,
+                      [travelDraft.type === 'arrival' ? 'arrivalTime' : 'departureTime']: p.time
+                    }})}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Field label="날짜 *"><TextInput type="date" value={travelDraft.record.date} onChange={(v) => setTravelDraft({...travelDraft, record:{...travelDraft.record, date:v}})}/></Field>
-              <Field label="항공편"><TextInput value={travelDraft.record.flightNumber} onChange={(v) => setTravelDraft({...travelDraft, record:{...travelDraft.record, flightNumber:v}})} placeholder="예) OZ763"/></Field>
+              <Field label="항공편"><TextInput value={travelDraft.record.flightNumber} onChange={(v) => setTravelDraft({...travelDraft, record:{...travelDraft.record, flightNumber:v}})} placeholder="직접 입력 가능"/></Field>
               <Field label={travelDraft.type === 'arrival' ? '도착 시간' : '출국 시간'}>
                 <TextInput type="time" value={travelDraft.type === 'arrival' ? travelDraft.record.arrivalTime : travelDraft.record.departureTime}
                   onChange={(v) => setTravelDraft({...travelDraft, record:{...travelDraft.record, [travelDraft.type==='arrival'?'arrivalTime':'departureTime']:v}})}/>

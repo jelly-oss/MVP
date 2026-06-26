@@ -10774,27 +10774,51 @@ const EcMasterPage = ({ ecMasters, onChange, students=[] }) => {
         ))}
       </div>
 
-      {/* 🗓 봉사활동 월별 캘린더 — 매년 비슷한 달 진행되는 봉사 가시화 */}
+      {/* 🗓 EC 월별 캘린더 — 매년 비슷한 달에 진행되는 모든 카테고리 활동 가시화 */}
       {(() => {
-        const volunteers = ecMasters.filter(m => m.category === '봉사활동');
+        // 카테고리별 색상 매핑
+        const catColor = {
+          '봉사활동':      { bg: '#dcf2e6', text: '#0f6b4a', dot: 'var(--good)' },
+          '학교클럽':      { bg: '#e4f1f7', text: '#0b6e99', dot: '#0b6e99' },
+          '대회 및 수상':  { bg: '#fbf1d8', text: '#a47007', dot: '#a47007' },
+          '특별 프로그램': { bg: '#ece4f5', text: '#6940a5', dot: '#6940a5' },
+          '개별 특성화 활동': { bg: '#fbeaea', text: '#c20206', dot: '#c20206' }
+        };
+        const defaultColor = { bg: '#ebebea', text: '#4a4a4a', dot: '#787774' };
+        const getColor = (cat) => catColor[cat] || defaultColor;
+
+        // category 필터 적용 (위의 카테고리 카드 클릭 반영)
+        const pool = filters.category ? ecMasters.filter(m => m.category === filters.category) : ecMasters;
         const byMonth = {};
         for (let i = 1; i <= 12; i++) byMonth[i] = [];
-        volunteers.forEach(v => {
+        pool.forEach(v => {
           (v.typicalMonths || []).forEach(m => {
             if (m >= 1 && m <= 12) byMonth[m].push(v);
           });
         });
-        const totalWithMonth = volunteers.filter(v => (v.typicalMonths || []).length > 0).length;
-        const totalWithoutMonth = volunteers.length - totalWithMonth;
+        const totalWithMonth = pool.filter(v => (v.typicalMonths || []).length > 0).length;
+        const totalWithoutMonth = pool.length - totalWithMonth;
         const currentMonth = new Date().getMonth() + 1;
         return (
-          <div className="notion-card p-4 mb-4" style={{ background:'#f0f9f4' }}>
+          <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3' }}>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold" style={{ color:'var(--good)' }}>🗓 봉사활동 월별 캘린더</h4>
+              <h4 className="font-semibold" style={{ color:'var(--ink)' }}>
+                🗓 EC 월별 캘린더
+                {filters.category && <span className="ml-2 text-xs" style={{ color: getColor(filters.category).dot }}>· {filters.category}</span>}
+              </h4>
               <span className="text-xs text-gray-500">
                 {totalWithMonth}개 활동 매핑됨
                 {totalWithoutMonth > 0 && ` · 월 정보 없음 ${totalWithoutMonth}개`}
               </span>
+            </div>
+            {/* 카테고리 범례 */}
+            <div className="flex flex-wrap gap-3 mb-3 text-xs">
+              {EC_CATEGORIES.map(c => (
+                <div key={c} className="flex items-center gap-1" style={{ color:'#4a4a4a' }}>
+                  <span className="inline-block w-3 h-3 rounded" style={{ background: getColor(c).bg, border:`1px solid ${getColor(c).dot}` }}/>
+                  {c}
+                </div>
+              ))}
             </div>
             <div className="grid grid-cols-6 md:grid-cols-12 gap-1">
               {Array.from({length: 12}, (_, i) => i + 1).map(m => {
@@ -10804,32 +10828,35 @@ const EcMasterPage = ({ ecMasters, onChange, students=[] }) => {
                   <div key={m}
                     className="rounded p-2 text-xs"
                     style={{
-                      minHeight: 90,
+                      minHeight: 100,
                       background: isCurrent ? '#fbe0e0' : '#fff',
                       border: '1px solid var(--border)'
                     }}>
                     <div className="text-center font-bold mb-1" style={{ color: isCurrent ? 'var(--red)' : '#4a4a4a' }}>
                       {m}월
-                      {items.length > 0 && <span className="ml-1 text-xs" style={{ color:'var(--good)' }}>· {items.length}</span>}
+                      {items.length > 0 && <span className="ml-1 text-xs text-gray-500">· {items.length}</span>}
                     </div>
                     {items.length === 0 ? (
                       <div className="text-center text-gray-300 text-xs mt-2">—</div>
-                    ) : items.map((v, idx) => (
-                      <div key={idx}
-                        onClick={() => setOpenId(v.id)}
-                        className="cursor-pointer p-1 mb-1 rounded text-xs leading-tight truncate"
-                        style={{ background:'#dcf2e6', color:'#0f6b4a' }}
-                        title={`${v.name} · ${v.organizationName || ''}`}>
-                        {v.name}
-                      </div>
-                    ))}
+                    ) : items.map((v, idx) => {
+                      const c = getColor(v.category);
+                      return (
+                        <div key={idx}
+                          onClick={() => setOpenId(v.id)}
+                          className="cursor-pointer p-1 mb-1 rounded text-xs leading-tight truncate"
+                          style={{ background: c.bg, color: c.text }}
+                          title={`[${v.category}] ${v.name} · ${v.organizationName || ''}`}>
+                          {v.name}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
             </div>
             {totalWithoutMonth > 0 && (
               <div className="text-xs text-gray-500 mt-3">
-                💡 봉사활동 편집 시 "매년 진행 월"을 체크하면 캘린더에 표시됩니다.
+                💡 활동 편집 시 "매년 진행 월"을 체크하면 캘린더에 표시됩니다. (위 카테고리 카드로 필터 가능)
               </div>
             )}
           </div>

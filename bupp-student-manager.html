@@ -561,9 +561,6 @@ const emptyStudent = () => ({
   // 👨‍👩‍👧 가족 구성 — 신청접수의 familyMembers에서 동기화 + 학생 페이지에서 직접 편집 가능
   // [{ id, relationship, name, dateOfBirth, contactNumber, email }]
   familyMembers: [],
-  // 📅 학사 일정 카테고리 — 학생의 등록/재학 분류 (등록·연장 예상 일정 자동 매칭)
-  // 값: 'pub_sep_new' | 'pub_feb_new' | 'prv_new' | 'pub_sep_ext' | 'pub_feb_ext' | 'prv_ext' | ''
-  enrollmentCategory: '',
   academic: {
     // 공인영어점수 — 현재 상태 + 응시 이력
     englishTest: {
@@ -1009,71 +1006,11 @@ const DEFAULT_ACCOM_POLICIES = [
   '숙소 이사 시 거리 + 짐의 양에 따라 차등 부과'
 ];
 
-// 📅 학사 일정 카테고리 — 학생 등록/재학 상태별 분류
-const ENROLLMENT_CATEGORIES = [
-  { id:'pub_sep_new', label:'공립학교 9월학기 신입생' },
-  { id:'pub_feb_new', label:'공립학교 2월학기 신입생' },
-  { id:'prv_new',     label:'국제사립 신입생' },
-  { id:'pub_sep_ext', label:'공립학교 9월학기 재학생' },
-  { id:'pub_feb_ext', label:'공립학교 2월학기 재학생' },
-  { id:'prv_ext',     label:'국제사립 재학생' }
-];
-
-// 카테고리별 디폴트 일정 — admin 페이지에서 편집 가능
-const DEFAULT_ACADEMIC_SCHEDULES = {
-  pub_sep_new: [
-    { label:'프로그램비 납부', timing:'12월 1일 ~ 5월 16일', detail:'인보이스 발급 후 2주이내에 입금 (September Intake: December 1 – May 16)' },
-    { label:'비자신청',         timing:'프로그램비 납부 후 바로', detail:'' },
-    { label:'홈스테이 배정',    timing:'5월 중순 ~ 7월 초',     detail:'배정 시작' },
-    { label:'항공편 확정',      timing:'6월 30일까지',          detail:'' },
-    { label:'토론토 도착 예정', timing:'8월 20 ~ 26일 사이',    detail:'' },
-    { label:'출국 오리엔테이션', timing:'7월 중순',              detail:'' }
-  ],
-  pub_feb_new: [
-    { label:'프로그램비 납부', timing:'7월 1일 ~ 10월 31일', detail:'인보이스 발급 후 2주이내에 입금 (February Intake)' },
-    { label:'비자신청',         timing:'프로그램비 납부 후 바로', detail:'' },
-    { label:'홈스테이 배정',    timing:'11월 중순 ~ 12월 초',  detail:'배정 시작' },
-    { label:'항공편 확정',      timing:'12월 15일까지',         detail:'' },
-    { label:'토론토 도착 예정', timing:'1월 20 ~ 26일 사이',    detail:'' },
-    { label:'출국 오리엔테이션', timing:'1월 초',                detail:'' }
-  ],
-  prv_new: [
-    { label:'프로그램비 납부', timing:'출국일 이전 최소 1~2개월 이전', detail:'신입생 등록시기가 다 다름 · 비자를 고려' },
-    { label:'비자신청',         timing:'프로그램비 납부 후 바로', detail:'' },
-    { label:'홈스테이 배정',    timing:'학업 시작 1~2개월 전', detail:'' },
-    { label:'항공편 확정',      timing:'학업 시작 1~2개월 전', detail:'' },
-    { label:'토론토 도착 예정', timing:'학업 시작 전 주말',   detail:'혹은 약 1주일 이전' },
-    { label:'출국 오리엔테이션', timing:'개별 출국날짜에 맞춰 진행', detail:'' }
-  ],
-  pub_sep_ext: [
-    { label:'프로그램비 1차 납부 (70%)', timing:'3월 15일까지',     detail:'' },
-    { label:'비자연장',                   timing:'3월 15일 이후 바로', detail:'학비 입금 후 바로 진행' },
-    { label:'여름방학 항공권 일정 체크', timing:'5월까지',           detail:'' },
-    { label:'홈스테이 연장/변경 안내',    timing:'5월까지',           detail:'학생이 선택 가능하게' },
-    { label:'프로그램비 2차 납부 (30%)', timing:'1월',               detail:'' }
-  ],
-  pub_feb_ext: [
-    { label:'프로그램비 1차 납부 (70%)', timing:'10월 15일까지',     detail:'' },
-    { label:'비자연장',                   timing:'10월 15일 이후 바로', detail:'학비 입금 후 바로 진행' },
-    { label:'여름방학 항공권 일정 체크', timing:'5월까지',            detail:'' },
-    { label:'홈스테이 연장/변경 안내',    timing:'5월까지',            detail:'학생이 선택 가능하게' },
-    { label:'프로그램비 2차 납부 (30%)', timing:'5월',                detail:'' }
-  ],
-  prv_ext: [
-    { label:'프로그램비 1차 납부 (70%)', timing:'학생별 직접 입력', detail:'학생별 과목 수강 현황에 따라 다른 만큼 예정일 직접입력' },
-    { label:'비자연장',                   timing:'학비 입금 후 바로', detail:'' },
-    { label:'여름방학 항공권 일정 체크', timing:'5월까지',           detail:'' },
-    { label:'홈스테이 연장/변경 안내',    timing:'5월까지',           detail:'' },
-    { label:'프로그램비 2차 납부 (30%)', timing:'필요시 직접 입력',  detail:'국제사립은 고학년이 많아 연장 안 하는 경우도 많음' }
-  ]
-};
-
 const DEFAULT_OPTIONS = {
   category: [...CATEGORIES],   // 브듀 / 외부 / 단기 + (파트너사 등 추가)
   cohort: [...BUPP_COHORTS],   // BUPP 12~18기 기본 시드
   currentSchool: [],           // 사용자 지정 학교
-  accommodationPolicies: [...DEFAULT_ACCOM_POLICIES], // 숙소 운영 정책 안내 (admin 편집)
-  academicSchedules: JSON.parse(JSON.stringify(DEFAULT_ACADEMIC_SCHEDULES)) // 학사 일정 마스터 (admin 편집)
+  accommodationPolicies: [...DEFAULT_ACCOM_POLICIES] // 숙소 운영 정책 안내 (admin 편집)
 };
 const loadOptions = () => {
   try {
@@ -1874,12 +1811,12 @@ const ROLE_COLOR_KEY = {
 };
 // 메뉴/페이지 접근 권한 (true = 메뉴 노출 + 페이지 접근 가능)
 const PAGE_ACCESS = {
-  admin:    { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:true, matrix:true, accounting:true, tutor:true, parent:true, applications:true, invoices:true, partners:true, rideSchedule:true, academicSchedule:true},
-  bu_staff: { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:false, matrix:true, accounting:false, tutor:true, parent:true, applications:true, invoices:true, partners:true, rideSchedule:true, academicSchedule:true},
-  student:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:false, invoices:false, partners:false, rideSchedule:false, academicSchedule:false},
-  parent:   { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:true, applications:false, invoices:false, partners:false, rideSchedule:false, academicSchedule:false},
-  tutor:    { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:true, parent:false, applications:false, invoices:false, partners:false, rideSchedule:false, academicSchedule:false},
-  partner:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:true, invoices:false, partners:false, rideSchedule:false, academicSchedule:false}
+  admin:    { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:true, matrix:true, accounting:true, tutor:true, parent:true, applications:true, invoices:true, partners:true, rideSchedule:true},
+  bu_staff: { students:true, schools:true, subjects:true, uniData:true, accomData:true, ecData:true,  cohortDash:true, members:false, matrix:true, accounting:false, tutor:true, parent:true, applications:true, invoices:true, partners:true, rideSchedule:true},
+  student:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:false, invoices:false, partners:false, rideSchedule:false},
+  parent:   { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:true, applications:false, invoices:false, partners:false, rideSchedule:false},
+  tutor:    { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:true, parent:false, applications:false, invoices:false, partners:false, rideSchedule:false},
+  partner:  { students:true, schools:false, subjects:false, uniData:false, accomData:false, ecData:false, cohortDash:false, members:false, matrix:false, accounting:false, tutor:false, parent:false, applications:true, invoices:false, partners:false, rideSchedule:false}
 };
 // 학생 데이터 접근 범위
 const STUDENT_SCOPE = {
@@ -4166,110 +4103,6 @@ const RideSchedulePage = ({ students, onUpdateStudent, onJumpToStudent }) => {
   );
 };
 
-/* ============================================================
-   📅 학사 일정 마스터 페이지 — 등록·연장 예상 일정 관리 (admin/bu_staff)
-   학생 카테고리별 일정 라인 편집 → 학생 상세 리포트 탭에 자동 표시
-   ============================================================ */
-const AcademicSchedulePage = ({ schedules, onUpdateSchedules }) => {
-  const [activeCategory, setActiveCategory] = useState(ENROLLMENT_CATEGORIES[0].id);
-  const list = schedules?.[activeCategory] || [];
-
-  const updateItem = (idx, key, value) => {
-    const next = { ...schedules };
-    next[activeCategory] = (next[activeCategory] || []).map((item, i) => i === idx ? { ...item, [key]: value } : item);
-    onUpdateSchedules(next);
-  };
-  const addItem = () => {
-    const next = { ...schedules };
-    next[activeCategory] = [...(next[activeCategory] || []), { label: '', timing: '', detail: '' }];
-    onUpdateSchedules(next);
-  };
-  const removeItem = (idx) => {
-    if (!confirm('이 일정 항목을 삭제할까요?')) return;
-    const next = { ...schedules };
-    next[activeCategory] = (next[activeCategory] || []).filter((_, i) => i !== idx);
-    onUpdateSchedules(next);
-  };
-  const resetCategory = () => {
-    if (!confirm('이 카테고리의 일정을 디폴트로 초기화할까요?')) return;
-    const next = { ...schedules };
-    next[activeCategory] = JSON.parse(JSON.stringify(DEFAULT_ACADEMIC_SCHEDULES[activeCategory] || []));
-    onUpdateSchedules(next);
-  };
-
-  return (
-    <div className="max-w-[1400px] mx-auto px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">📅 학사 일정</h1>
-          <p className="text-sm text-gray-500 mt-1">학생 등록/연장 예상 일정 · 학생 리포트 탭에 자동 표시 · 브듀쌤 이상만 편집</p>
-        </div>
-      </div>
-
-      {/* 카테고리 탭 */}
-      <div className="flex flex-wrap gap-1 mb-4 border-b" style={{ borderColor:'var(--border)' }}>
-        {ENROLLMENT_CATEGORIES.map(c => (
-          <button key={c.id}
-            className="px-4 py-2 text-sm border-b-2 transition-colors"
-            style={{
-              borderColor: activeCategory === c.id ? '#c20206' : 'transparent',
-              fontWeight: activeCategory === c.id ? 600 : 400,
-              color: activeCategory === c.id ? '#c20206' : '#4a4a4a'
-            }}
-            onClick={() => setActiveCategory(c.id)}>
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 일정 항목 편집 */}
-      <div className="notion-card overflow-hidden">
-        <div className="px-5 py-4 flex items-center justify-between" style={{ background:'#faf7f3', borderBottom:'1px solid var(--border)' }}>
-          <div>
-            <h3 className="font-semibold">{ENROLLMENT_CATEGORIES.find(c => c.id === activeCategory)?.label}</h3>
-            <p className="text-xs text-gray-500 mt-1">총 {list.length}개 일정 · 라벨·시기·상세 메모 편집 가능</p>
-          </div>
-          <div className="flex gap-2">
-            <button className="btn-ghost text-xs" onClick={resetCategory}>↻ 디폴트로 초기화</button>
-            <button className="btn-primary" onClick={addItem}>+ 일정 추가</button>
-          </div>
-        </div>
-
-        <table className="w-full">
-          <thead>
-            <tr style={{ background:'#fafaf9' }}>
-              <th className="table-th" style={{ width:60 }}>#</th>
-              <th className="table-th" style={{ width:'25%' }}>일정 라벨</th>
-              <th className="table-th" style={{ width:'25%' }}>시기</th>
-              <th className="table-th">상세 메모</th>
-              <th className="table-th" style={{ width:80 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-8 text-gray-400 text-sm">등록된 일정이 없습니다. "+ 일정 추가"로 시작하세요.</td></tr>
-            ) : list.map((item, idx) => (
-              <tr key={idx} className="row-hover" style={{ borderTop:'1px solid var(--line-soft)' }}>
-                <td className="table-td text-center text-xs text-gray-400">{idx + 1}</td>
-                <td className="table-td"><TextInput value={item.label} onChange={(v) => updateItem(idx, 'label', v)} placeholder="예) 프로그램비 1차 납부"/></td>
-                <td className="table-td"><TextInput value={item.timing} onChange={(v) => updateItem(idx, 'timing', v)} placeholder="예) 3월 15일까지"/></td>
-                <td className="table-td"><TextInput value={item.detail} onChange={(v) => updateItem(idx, 'detail', v)} placeholder="추가 설명 (옵션)"/></td>
-                <td className="table-td text-right whitespace-nowrap">
-                  <button className="btn-danger text-xs" onClick={() => removeItem(idx)}>삭제</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="text-xs text-gray-500 mt-3">
-        💡 학생 상세 → 기본 정보 → "학사 일정 카테고리"에서 학생별로 카테고리 지정하면, 해당 학생의 리포트 탭에 이 일정이 자동 표시됩니다.
-      </div>
-    </div>
-  );
-};
-
 // 홈스테이 + 방 PDF 미리보기 모달 (브라우저 인쇄로 PDF 저장)
 const HomestayPDFPreview = ({ accom, onClose }) => {
   const [selectedRoomId, setSelectedRoomId] = useState((accom.rooms||[])[0]?.id || '');
@@ -5507,11 +5340,6 @@ const TabBasic = ({ s, update, customOptions, addOption, removeOption, schools=[
         <Field label="BPPW">{isStudent ? <Ro value={s.bppw}/> : <TextInput value={s.bppw} onChange={(v) => update({ bppw: v })} />}</Field>
         <Field label="BUPP 프로그램" span={2}>{isStudent ? <Ro value={s.program}/> : (
           <Select value={s.program} onChange={(v) => update({ program: v })} options={BUPP_PROGRAMS} placeholder="프로그램 선택"/>
-        )}</Field>
-        <Field label="📅 학사 일정 카테고리" span={2}>{isStudent ? <Ro value={ENROLLMENT_CATEGORIES.find(c => c.id === s.enrollmentCategory)?.label}/> : (
-          <RefSelect value={s.enrollmentCategory || ''} onChange={(v) => update({ enrollmentCategory: v })}
-            options={ENROLLMENT_CATEGORIES.map(c => ({ id: c.id, label: c.label }))}
-            placeholder="카테고리 선택 (등록/연장 예상 일정 자동 매칭)"/>
         )}</Field>
       </div>
     </Section>
@@ -9150,7 +8978,7 @@ const StudentDataSummary = ({ student, schools=[], subjects=[], universities=[],
   );
 };
 
-const TabReport = ({ s, update, schools, subjects, universities=[], programs=[], invoices=[], academicSchedules={}, currentUserName='', canEdit=true }) => {
+const TabReport = ({ s, update, schools, subjects, universities=[], programs=[], invoices=[], currentUserName='', canEdit=true }) => {
   // 해당 학생의 인보이스 (linkedStudentId 기준, 발행된 것만 — 학부모용)
   const studentInvoices = invoices
     .filter(i => i.linkedStudentId === s.id && i.status !== 'draft' && i.status !== 'cancelled')
@@ -9188,62 +9016,6 @@ const TabReport = ({ s, update, schools, subjects, universities=[], programs=[],
       <div className="text-xs text-gray-500 mb-4 p-3 rounded" style={{background:'#faf7f3', border:'1px solid var(--border)'}}>
         💡 학생 데이터 자동 요약(누적 학점·Top 6·출석·봉사시간·출결 추이·D-day·대학 깔때기·EC 분포)은 <strong>👤 기본 정보 탭 상단</strong>에서 볼 수 있습니다. 여기 리포트 탭에는 인보이스 · 납부 현황과 작성·누적된 리포트 카드만 표시됩니다.
       </div>
-
-      {/* 📅 등록·연장 예상 일정 — 학생의 enrollmentCategory에 맞는 일정 자동 표시 */}
-      {(() => {
-        const cat = s.enrollmentCategory;
-        if (!cat) {
-          return (
-            <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3', borderColor:'#e8c97a' }}>
-              <div className="text-xs" style={{ color:'#a67800' }}>
-                💡 학사 일정 카테고리가 아직 지정되지 않았습니다. <strong>기본 정보 탭 → "📅 학사 일정 카테고리"</strong>를 선택하시면 이곳에 등록·연장 예상 일정이 자동 표시됩니다.
-              </div>
-            </div>
-          );
-        }
-        const catLabel = ENROLLMENT_CATEGORIES.find(c => c.id === cat)?.label || cat;
-        const items = academicSchedules[cat] || [];
-        if (items.length === 0) {
-          return (
-            <div className="notion-card p-4 mb-4" style={{ background:'#faf7f3' }}>
-              <div className="text-xs text-gray-500">
-                "{catLabel}" 카테고리에 등록된 일정이 없습니다. 사이드바 <strong>📅 학사 일정</strong>에서 추가해주세요.
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div className="mb-5">
-            <div className="font-semibold mb-3 flex items-center gap-2" style={{ color:'#202731' }}>
-              <span style={{ fontSize:18 }}>📅</span> 등록·연장 예상 일정
-              <span className="text-xs font-normal" style={{ color:'var(--muted)' }}>· {catLabel}</span>
-            </div>
-            <div className="notion-card overflow-hidden" style={{ background:'#f0f9f4' }}>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ background:'#dcf2e6' }}>
-                    <th className="table-th" style={{ textAlign:'left', color:'#0f6b4a' }}>일정</th>
-                    <th className="table-th" style={{ textAlign:'left', color:'#0f6b4a', width:'30%' }}>시기</th>
-                    <th className="table-th" style={{ textAlign:'left', color:'#0f6b4a' }}>상세</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, idx) => (
-                    <tr key={idx} style={{ borderTop:'1px solid #c8e5d4', background:'#fff' }}>
-                      <td className="table-td font-medium">{item.label}</td>
-                      <td className="table-td" style={{ color:'#0f6b4a', fontWeight:600 }}>{item.timing || '—'}</td>
-                      <td className="table-td text-xs" style={{ color:'#4a4a4a' }}>{item.detail || ''}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              💡 위 일정은 일반적 안내입니다. 학생별 상황에 따라 조정될 수 있어요. 정확한 인보이스 발행일은 아래 "인보이스 · 납부 현황"에서 확인하세요.
-            </div>
-          </div>
-        );
-      })()}
 
       {/* 💰 인보이스 · 납부 현황 (학부모 전용) — 모든 발행된 인보이스 타임라인 */}
       {studentInvoices.length > 0 && (
@@ -9625,7 +9397,7 @@ const StudentDetail = ({ student, onBack, onUpdate, onDelete, customOptions, add
       {tab === 'ec' && <TabEC s={student} update={update} ecMasters={ecMasters} role={role}/>}
       {tab === 'accom' && <TabAccommodation s={student} update={update} accommodations={accommodations} role={role}/>}
       {tab === 'uni' && <TabUni s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} trackGroups={trackGroups}/>}
-      {tab === 'report' && <TabReport s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} invoices={invoices} academicSchedules={customOptions?.academicSchedules || {}} canEdit={canEdit}/>}
+      {tab === 'report' && <TabReport s={student} update={update} schools={schools} subjects={subjects} universities={universities} programs={programs} invoices={invoices} canEdit={canEdit}/>}
 
       <div className="text-xs text-gray-400 text-center py-6">
         변경사항은 자동으로 브라우저에 저장됩니다 · BUPP Student Manager v1.0
@@ -13613,10 +13385,6 @@ function App({ authMember, firebaseUser, signOut }) {
           <div className={`sidebar-item ${view === 'rideSchedule' ? 'active':''}`}
             onClick={() => { setView('rideSchedule'); setOpenId(null); }}><NavIcon name="calendar"/>라이드 스케줄</div>
         )}
-        {access.academicSchedule && (
-          <div className={`sidebar-item ${view === 'academicSchedule' ? 'active':''}`}
-            onClick={() => { setView('academicSchedule'); setOpenId(null); }}><NavIcon name="calendar"/>학사 일정</div>
-        )}
 
         {(access.members || access.matrix) && (
           <div className="sidebar-section-label">권한 관리</div>
@@ -13697,11 +13465,6 @@ function App({ authMember, firebaseUser, signOut }) {
           />
         ) : view === 'rideSchedule' && access.rideSchedule ? (
           <RideSchedulePage students={students} onUpdateStudent={updateStudent} onJumpToStudent={jumpToStudent}/>
-        ) : view === 'academicSchedule' && access.academicSchedule ? (
-          <AcademicSchedulePage
-            schedules={customOptions?.academicSchedules || DEFAULT_ACADEMIC_SCHEDULES}
-            onUpdateSchedules={(next) => setCustomOptions({ ...customOptions, academicSchedules: next })}
-          />
         ) : view === 'partners' && access.partners ? (
           openPartnerId && partners.find(p => p.id === openPartnerId) ? (
             <PartnerDetailPage

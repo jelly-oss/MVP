@@ -5746,11 +5746,21 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
   const sys = shared.semesterSystem || school?.semesterSystem || '';
   const isYear = sys.startsWith('Year');
 
+  // ESL 과목 판별 — grade === 'ESL' 이거나 code가 ESL로 시작 (공백 유무 관계없이)
+  // ESLAO/ESLBO/ESLCO/ESLDO/ESLEO는 학년 관계없이 어느 학년에서든 수강 가능
+  const isEslSubject = (s) => {
+    if (!s) return false;
+    if (s.grade === 'ESL') return true;
+    const code = (s.code || '').replace(/\s+/g, '').toUpperCase();
+    return /^ESL/.test(code);
+  };
+
   // 주(province) 기반 + 행별 학년 기반 과목 필터
+  // ESL 과목은 학년 필터 예외 — 어느 학년을 선택해도 항상 노출
   const filterSubjectsForRow = (rowGrade) => {
     return subjects.filter(s => {
       if (shared.province && s.province !== shared.province) return false;
-      if (rowGrade && s.grade !== rowGrade) return false;
+      if (rowGrade && s.grade !== rowGrade && !isEslSubject(s)) return false;
       return true;
     });
   };
@@ -5792,10 +5802,11 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
   };
 
   // 행별 학년 변경 시 — 다른 학년 과목이 선택되어 있었다면 클리어
+  // ESL 과목은 학년 변경해도 유지 (모든 학년에서 수강 가능)
   const pickRowGrade = (idx, newGrade) => {
-    const row = rows[idx];
+    const row = rows[idx] || {};
     const currentSub = subjects.find(s => s.id === row.subjectId);
-    const shouldClearSubject = currentSub && newGrade && currentSub.grade !== newGrade;
+    const shouldClearSubject = currentSub && newGrade && currentSub.grade !== newGrade && !isEslSubject(currentSub);
     updateRow(idx, {
       grade: newGrade,
       ...(shouldClearSubject ? { subjectId: '', credits: '' } : {})
@@ -5892,7 +5903,9 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
                     value={row.subjectId}
                     onChange={(v) => pickSubject(idx, v)}
                     options={rowSubjectOpts.map(s => ({ id: s.id, label: `${s.code} — ${s.name}${s.grade ? ` (${gradeLabel(s.grade)})` : ''}` }))}
-                    placeholder={row.grade ? `${gradeLabel(row.grade)} ${rowSubjectOpts.length}개 중 선택` : `전체 ${rowSubjectOpts.length}개 중 선택`}
+                    placeholder={row.grade
+                      ? `${gradeLabel(row.grade)} ${rowSubjectOpts.length}개 중 선택 (ESL 포함)`
+                      : `전체 ${rowSubjectOpts.length}개 중 선택`}
                   />
                 </div>
                 <div>

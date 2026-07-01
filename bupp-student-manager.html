@@ -5722,17 +5722,21 @@ const gradeLabel = (g) => !g ? '' : (g === 'ESL' ? 'ESL' : `G${g}`);
 
 // 일괄 등록기 — 학교/학기/기간 공통, 과목은 여러 개 일괄 추가
 // prefill: 기존 그룹에 과목 추가 시 헤더 자동 채움 (학교·학기·기간·학년·수업형태)
-const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null }) => {
+// editingRecords: 그룹 편집 모드 — 배열이면 그룹 내 모든 record를 로드해서 수정·추가·삭제 가능
+const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null, editingRecords = null }) => {
+  const isEditMode = Array.isArray(editingRecords) && editingRecords.length > 0;
+  const firstEditRec = isEditMode ? editingRecords[0] : null;
   const [shared, setShared] = useState({
-    grade: prefill?.grade || '',
-    schoolId: prefill?.schoolId || '',
-    semesterSystem: prefill?.semesterSystem || '',
-    startDate: prefill?.startDate || '',
-    endDate: prefill?.endDate || '',
-    selection: prefill?.selection || '정규수업',
+    grade: prefill?.grade || firstEditRec?.grade || '',
+    schoolId: prefill?.schoolId || firstEditRec?.schoolId || '',
+    semesterSystem: prefill?.semesterSystem || firstEditRec?.semesterSystem || '',
+    startDate: prefill?.startDate || firstEditRec?.startDate || '',
+    endDate: prefill?.endDate || firstEditRec?.endDate || '',
+    selection: prefill?.selection || firstEditRec?.selection || '정규수업',
     province: 'ON'
   });
   const blankRow = (defaultGrade = '') => ({
+    _recId: null,  // 편집 모드에서 기존 record id (신규 행은 null)
     grade: defaultGrade,  // 행별 학년 — 헤더의 기본 학년이 초기값
     subjectId: '', credits: '', required: false,
     targetScore: '', midterm1: '', midterm2: '', final: '',
@@ -5740,7 +5744,29 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
   });
   // 학기시스템에 따른 기본 행 수
   const defaultRowCount = (sys) => sys?.startsWith('Year') ? 8 : sys?.startsWith('Semester') ? 4 : sys?.startsWith('Quarter') ? 2 : 4;
-  const [rows, setRows] = useState([blankRow()]);
+  // 편집 모드면 모든 record를 rows로 매핑, 아니면 빈 행 1개로 시작
+  // _original — 원본 record 참조 (coveredByInvoiceId 등 편집 UI에 없는 필드 보존용)
+  const initialRows = isEditMode
+    ? editingRecords.map(r => ({
+        _recId: r.id,
+        _original: r,
+        grade: r.grade || '',
+        subjectId: r.subjectId || '',
+        credits: r.credits || '',
+        required: r.required || false,
+        targetScore: r.targetScore || '',
+        midterm1: r.midterm1 || '',
+        midterm2: r.midterm2 || '',
+        final: r.final || '',
+        late: r.late || '',
+        absent: r.absent || '',
+        top6: r.top6 || false,
+        memo: r.memo || ''
+      }))
+    : [blankRow()];
+  const [rows, setRows] = useState(initialRows);
+  // 편집 모드에서 사용자가 삭제한 원본 record id들 (저장 시 삭제 신호)
+  const [deletedIds, setDeletedIds] = useState([]);
 
   const school = schools.find(s => s.id === shared.schoolId);
   const sys = shared.semesterSystem || school?.semesterSystem || '';
@@ -5767,11 +5793,22 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
 
   const updateRow = (idx, patch) => setRows(rows.map((r, i) => i === idx ? { ...r, ...patch } : r));
   const addRow = () => {
-    if (rows.length >= 10) { alert('한 번에 최대 10개까지 추가 가능합니다.'); return; }
+    // 편집 모드에서는 그룹당 최대 15개까지 허용 (원본 record + 추가 몇 개)
+    const cap = isEditMode ? 15 : 10;
+    if (rows.length >= cap) { alert(`한 번에 최대 ${cap}개까지 가능합니다.`); return; }
     setRows([...rows, blankRow(shared.grade)]);
   };
   const removeRow = (idx) => {
-    if (rows.length === 1) return;
+    // 편집 모드: 원본 record면 삭제 대상 목록에 추가 (실제 삭제는 저장 시)
+    // 신규 모드: 최소 1행 유지
+    if (!isEditMode && rows.length === 1) return;
+    const target = rows[idx];
+    if (target?._recId) {
+      const sub = subjects.find(s => s.id === target.subjectId);
+      const label = sub ? `${sub.code} — ${sub.name}` : '(과목 미선택)';
+      if (!confirm(`이 과목을 그룹에서 삭제합니다.\n${label}\n\n저장 버튼을 눌러야 실제 반영됩니다.`)) return;
+      setDeletedIds([...deletedIds, target._recId]);
+    }
     setRows(rows.filter((_, i) => i !== idx));
   };
 
@@ -5818,20 +5855,36 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
   const handleSave = () => {
     if (!shared.schoolId) { alert('학교를 선택해주세요.'); return; }
     const valid = rows.filter(r => r.subjectId);
-    if (valid.length === 0) { alert('과목을 1개 이상 선택해주세요.'); return; }
+    if (!isEditMode && valid.length === 0) { alert('과목을 1개 이상 선택해주세요.'); return; }
+    if (isEditMode && valid.length === 0 && deletedIds.length === 0) { alert('변경된 내용이 없습니다.'); return; }
     // 학기 시스템: shared 빈 값이면 학교 마스터 fallback (학교에 정의된 게 정확함)
     const effectiveSemesterSystem = shared.semesterSystem || schools.find(s => s.id === shared.schoolId)?.semesterSystem || '';
-    const records = valid.map(r => ({
-      id: uid(),
-      grade: r.grade || shared.grade,  // 행별 학년 우선, 없으면 헤더 기본값
-      schoolId: shared.schoolId,
-      semesterSystem: effectiveSemesterSystem,
-      startDate: shared.startDate,
-      endDate: shared.endDate,
-      selection: shared.selection,
-      ...r
-    }));
-    onSave(records);
+    const records = valid.map(r => {
+      // 편집 모드에서는 원본 record 전체를 base로 → coveredByInvoiceId 등 UI에 없는 필드 보존
+      const base = r._original || {};
+      return {
+        ...base,
+        id: r._recId || uid(),
+        grade: r.grade || shared.grade,  // 행별 학년 우선, 없으면 헤더 기본값
+        schoolId: shared.schoolId,
+        semesterSystem: effectiveSemesterSystem,
+        startDate: shared.startDate,
+        endDate: shared.endDate,
+        selection: shared.selection,
+        subjectId: r.subjectId,
+        credits: r.credits,
+        required: r.required,
+        targetScore: r.targetScore,
+        midterm1: r.midterm1,
+        midterm2: r.midterm2,
+        final: r.final,
+        late: r.late,
+        absent: r.absent,
+        top6: r.top6,
+        memo: r.memo
+      };
+    });
+    onSave(records, { isEditMode, deletedIds });
   };
 
   return (
@@ -5952,11 +6005,20 @@ const BulkRoadmapEditor = ({ schools, subjects, onSave, onCancel, prefill = null
         })}
       </div>
 
-      <div className="flex justify-end gap-2 mt-5">
-        <button className="btn-ghost" onClick={onCancel}>취소</button>
-        <button className="btn-primary" onClick={handleSave} disabled={validCount === 0}>
-          {validCount > 0 ? `${validCount}개 일괄 저장` : '과목을 선택하세요'}
-        </button>
+      <div className="flex items-center justify-between mt-5 gap-2">
+        {isEditMode && deletedIds.length > 0 && (
+          <div className="text-xs" style={{ color:'#c20206' }}>
+            🗑 {deletedIds.length}개 과목 삭제 예정 (저장 시 반영)
+          </div>
+        )}
+        <div className="flex justify-end gap-2 ml-auto">
+          <button className="btn-ghost" onClick={onCancel}>취소</button>
+          <button className="btn-primary" onClick={handleSave} disabled={!isEditMode && validCount === 0}>
+            {isEditMode
+              ? `그룹 변경사항 저장 (${validCount}개 과목${deletedIds.length ? ` · ${deletedIds.length}개 삭제` : ''})`
+              : (validCount > 0 ? `${validCount}개 일괄 저장` : '과목을 선택하세요')}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -6155,6 +6217,7 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
   const [editing, setEditing] = useState(null);   // 단일 수정
   const [bulkAdding, setBulkAdding] = useState(false); // 일괄 등록
   const [bulkPrefill, setBulkPrefill] = useState(null); // 일괄 등록 모달 헤더 자동 채움값
+  const [bulkEditingRecords, setBulkEditingRecords] = useState(null); // 🆕 그룹 편집 모드 — 그룹 내 record 배열
   const [pleAdding, setPleAdding] = useState(false);   // PLE 추가
   const [pleEditing, setPleEditing] = useState(null);  // PLE 수정
   const [filters, setFilters] = useState({ schoolId:'', grade:'', selection:'' });
@@ -6179,10 +6242,28 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
     update({ academicRecords: next });
     setEditing(null);
   };
-  const bulkSave = (records) => {
-    update({ academicRecords: [...list, ...records] });
+  // 일괄 저장 — 신규 추가 or 그룹 편집 모드 처리
+  // opts.isEditMode: true면 records = 그룹 내 최신 record 배열, opts.deletedIds = 삭제할 record id 목록
+  const bulkSave = (records, opts = {}) => {
+    const { isEditMode = false, deletedIds = [] } = opts;
+    if (isEditMode) {
+      // 편집 모드: 삭제 대상 제거 + 기존 id는 update, 신규 id는 append
+      const delSet = new Set(deletedIds);
+      const updatesById = new Map(records.map(r => [r.id, r]));
+      // 1) 기존 list에서 삭제 대상 필터링 + 업데이트 대상은 새 값으로 교체
+      const kept = list
+        .filter(r => !delSet.has(r.id))
+        .map(r => updatesById.has(r.id) ? updatesById.get(r.id) : r);
+      // 2) 신규 records (기존 list에 없는 id) append
+      const existingIds = new Set(list.map(r => r.id));
+      const newOnes = records.filter(r => !existingIds.has(r.id));
+      update({ academicRecords: [...kept, ...newOnes] });
+    } else {
+      update({ academicRecords: [...list, ...records] });
+    }
     setBulkAdding(false);
     setBulkPrefill(null);
+    setBulkEditingRecords(null);
   };
   // 기존 그룹에 과목 추가 — 표 행의 학교/학기/기간/학년/수업형태를 가져와서 헤더 자동 채움
   const startAddToGroup = (r) => {
@@ -6194,6 +6275,20 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
       endDate: r.endDate || '',
       selection: r.selection || '정규수업'
     });
+    setBulkAdding(true);
+  };
+  // 🆕 그룹 편집 — 같은 학교·학기·학년·기간의 모든 record를 편집 모드로 로드
+  const startEditGroup = (r) => {
+    const groupRecords = list.filter(x =>
+      !x.isPLE &&
+      x.schoolId === r.schoolId &&
+      (x.semesterSystem || '') === (r.semesterSystem || '') &&
+      (x.grade || '') === (r.grade || '') &&
+      (x.startDate || '') === (r.startDate || '') &&
+      (x.endDate || '') === (r.endDate || '')
+    );
+    if (groupRecords.length === 0) return;
+    setBulkEditingRecords(groupRecords);
     setBulkAdding(true);
   };
   const pleSave = (d) => {
@@ -6286,8 +6381,23 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
 
       {bulkAdding && (
         <div className="notion-card p-5 mb-4 bg-gray-50">
-          <h3 className="font-semibold text-base mb-4">과목 일괄 등록 — 학교/학기/기간을 한번만 입력</h3>
-          <BulkRoadmapEditor schools={schools} subjects={subjects} onSave={bulkSave} prefill={bulkPrefill} onCancel={() => { setBulkAdding(false); setBulkPrefill(null); }}/>
+          <h3 className="font-semibold text-base mb-4">
+            {bulkEditingRecords
+              ? `🛠 그룹 편집 — ${bulkEditingRecords.length}개 과목 (수정·추가·삭제)`
+              : '과목 일괄 등록 — 학교/학기/기간을 한번만 입력'}
+          </h3>
+          {bulkEditingRecords && (
+            <div className="text-xs text-gray-500 mb-3">
+              💡 헤더(학교·학기·기간·학년·수업형태)를 바꾸면 이 그룹의 모든 과목에 반영됩니다. 개별 행에서 학년·과목·점수를 자유롭게 변경, "행 삭제" 버튼으로 그룹에서 제거, "+ 행 추가"로 과목 추가.
+            </div>
+          )}
+          <BulkRoadmapEditor
+            schools={schools} subjects={subjects}
+            onSave={bulkSave}
+            prefill={bulkPrefill}
+            editingRecords={bulkEditingRecords}
+            onCancel={() => { setBulkAdding(false); setBulkPrefill(null); setBulkEditingRecords(null); }}
+          />
         </div>
       )}
 
@@ -6452,7 +6562,11 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
                       </td>
                       <td className="table-td text-sm">{r.credits || '—'}</td>
                       <td className="table-td"><Badge value={r.selection}/></td>
-                      <td className="table-td">
+                      <td className="table-td" style={(() => {
+                        // 미납 시 셀 전체에 연한 빨간 배경으로 눈에 띄게
+                        const isUnpaid = !r.coveredByInvoiceId && studentInvoices.length > 0;
+                        return isUnpaid ? { background:'#fdecee' } : {};
+                      })()}>
                         {(() => {
                           const eligible = getEligibleInvoicesForRow(r);
                           const matched = r.coveredByInvoiceId ? getInvoiceById(r.coveredByInvoiceId) : null;
@@ -6461,35 +6575,67 @@ const TabRoadmap = ({ s, update, schools, subjects, invoices = [], role = 'admin
                             return <span className="text-xs text-gray-300">—</span>;
                           }
                           if (!canEdit) {
-                            // read-only 모드: 매칭된 인보이스 또는 미납
+                            // read-only 모드: 매칭된 인보이스 또는 미납 — 미납은 굵고 크게
                             return matched
-                              ? <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)' }}>✅ {matched.invoiceNumber || matched.id.slice(0,6)}</span>
-                              : <span className="hd-pill" style={{ background:'var(--alert-bg)', color:'var(--alert)' }}>🔴 미납</span>;
+                              ? <span className="hd-pill" style={{ background:'var(--good-bg)', color:'var(--good)', fontWeight:600 }}>✅ {matched.invoiceNumber || matched.id.slice(0,6)}</span>
+                              : <span style={{
+                                  display:'inline-flex', alignItems:'center', gap:6,
+                                  padding:'3px 10px', borderRadius:6,
+                                  background:'#c20206', color:'#fff',
+                                  fontWeight:700, fontSize:12,
+                                  boxShadow:'0 0 0 2px #fff, 0 0 0 3px #c20206'
+                                }}>● 미납</span>;
                           }
+                          const isUnpaid = !r.coveredByInvoiceId;
                           return (
-                            <select
-                              className="notion-input"
-                              style={{ padding:'2px 6px', fontSize:11, maxWidth:140 }}
-                              value={r.coveredByInvoiceId || ''}
-                              onChange={(e) => setRecordInvoice(r.id, e.target.value)}
-                            >
-                              <option value="">🔴 미납</option>
-                              {eligible.map(inv => {
-                                const used = slotUsageByInvoice[inv.id] || 0;
-                                const total = inv.coverage?.slotCount || 0;
-                                return (
-                                  <option key={inv.id} value={inv.id}>
-                                    {inv.invoiceNumber || inv.id.slice(0,6)} ({used}/{total})
-                                  </option>
-                                );
-                              })}
-                            </select>
+                            <div className="flex items-center gap-1.5">
+                              {isUnpaid && (
+                                <span title="미납" style={{
+                                  display:'inline-block',
+                                  width:14, height:14, borderRadius:'50%',
+                                  background:'#c20206',
+                                  boxShadow:'0 0 0 2px #fff, 0 0 0 3px #c20206',
+                                  flexShrink:0
+                                }}/>
+                              )}
+                              <select
+                                className="notion-input"
+                                style={{
+                                  padding:'3px 6px', fontSize:11, maxWidth:140,
+                                  background: isUnpaid ? '#fff5f5' : '#fff',
+                                  border: isUnpaid ? '1.5px solid #c20206' : '1px solid var(--border)',
+                                  color: isUnpaid ? '#c20206' : '#202731',
+                                  fontWeight: isUnpaid ? 600 : 400
+                                }}
+                                value={r.coveredByInvoiceId || ''}
+                                onChange={(e) => setRecordInvoice(r.id, e.target.value)}
+                              >
+                                <option value="">● 미납</option>
+                                {eligible.map(inv => {
+                                  const used = slotUsageByInvoice[inv.id] || 0;
+                                  const total = inv.coverage?.slotCount || 0;
+                                  return (
+                                    <option key={inv.id} value={inv.id}>
+                                      {inv.invoiceNumber || inv.id.slice(0,6)} ({used}/{total})
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </div>
                           );
                         })()}
                       </td>
                       <td className="table-td text-xs text-gray-600">{r.memo || '—'}</td>
                       <td className="table-td text-right whitespace-nowrap">
                         {canEdit && <Fragment>
+                          {isFirst && span > 1 && (
+                            <button
+                              className="btn-ghost"
+                              title="그룹 전체 편집 (헤더·과목 일괄 수정/추가/삭제)"
+                              style={{ color:'#c20206', fontWeight:600 }}
+                              onClick={() => startEditGroup(r)}
+                            >🛠 그룹 편집</button>
+                          )}
                           {isFirst && (
                             <button className="btn-ghost" title="같은 학교·학기·기간에 과목 추가" onClick={() => startAddToGroup(r)}>+ 그룹</button>
                           )}
